@@ -39,7 +39,7 @@ jobs:
 
   deploy:
     needs: build  # build 작업이 성공적으로 완료된 후 실행
-    runs-on: ubuntu-latest(22.04)
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Download build artifact  # 이전 단계에서 업로드한 아티팩트 다운로드
