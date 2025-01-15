@@ -3,7 +3,6 @@ package DC_square.spring.service.community;
 import DC_square.spring.domain.entity.community.Board;
 import DC_square.spring.domain.entity.community.Keyword;
 import DC_square.spring.repository.community.BoardRepository;
-import DC_square.spring.repository.community.KeywordRepository;
 import DC_square.spring.web.dto.request.community.BoardRequestDto;
 import DC_square.spring.web.dto.response.community.BoardResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -11,14 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final KeywordRepository keywordRepository;
 
     /**
      * 게시판 생성 API
