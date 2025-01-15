@@ -5,11 +5,8 @@ import DC_square.spring.service.UserService;
 import DC_square.spring.web.dto.request.UserRequestDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

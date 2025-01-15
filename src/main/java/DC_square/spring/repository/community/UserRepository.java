@@ -1,4 +1,4 @@
-package DC_square.spring.repository;
+package DC_square.spring.repository.community;
 
 import DC_square.spring.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
