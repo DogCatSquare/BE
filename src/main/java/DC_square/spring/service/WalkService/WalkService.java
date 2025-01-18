@@ -1,7 +1,7 @@
 package DC_square.spring.service.WalkService;
 
 import DC_square.spring.domain.entity.Walk;
-import DC_square.spring.repository.WalkRepository;
+import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.web.dto.request.WalkRequestDto;
 import DC_square.spring.web.dto.response.WalkResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +21,10 @@ public class WalkService {
         // 사용자 요청에 따라 가까운 산책로를 가져오는 로직 (예: 위도와 경도를 기준으로 검색)
         List<Walk> walks = walkRepository.findNearbyWalks(
                 walkRequestDto.getLatitude(),
-                walkRequestDto.getLongitude()
+                walkRequestDto.getLongitude(),
+                walkRequestDto.getRadius()
         );
 
-        // Entity -> WalkResponseDto.WalkDto 변환
         List<WalkResponseDto.WalkDto> walkDtos = walks.stream()
                 .map(walk -> WalkResponseDto.WalkDto.builder()
                         .walkId(walk.getId())
@@ -56,7 +56,6 @@ public class WalkService {
                         .build())
                 .collect(Collectors.toList());
 
-        // WalkResponseDto 생성
         return WalkResponseDto.builder()
                 .walks(walkDtos)
                 .build();

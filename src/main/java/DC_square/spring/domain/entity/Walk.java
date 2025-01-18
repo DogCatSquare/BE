@@ -31,7 +31,7 @@ public class Walk {
 
     private Integer reviewCount;
 
-    @Column(nullable = false, precision = 4, scale = 2)
+    @Column(nullable = false)
     private Double distance;
 
     private Integer time;
@@ -45,7 +45,7 @@ public class Walk {
             joinColumns = @JoinColumn(name = "walk_id"))
     @Column(name = "special")
     @Enumerated(EnumType.STRING)
-    private List<Special> specials = new ArrayList<>();  // Special을 List로 변경
+    private List<Special> specials = new ArrayList<>();
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -61,6 +61,6 @@ public class Walk {
     private List<Coordinate> coordinates = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")  // 사용자 ID와 연결
+    @JoinColumn(name = "user_id")
     private User createdBy;
 }

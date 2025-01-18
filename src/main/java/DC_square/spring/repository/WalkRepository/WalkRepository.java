@@ -1,4 +1,4 @@
-package DC_square.spring.repository;
+package DC_square.spring.repository.WalkRepository;
 
 import DC_square.spring.domain.entity.Walk;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,10 +11,10 @@ import java.util.List;
 @Repository
 public interface WalkRepository extends JpaRepository<Walk, Long> {
 
-    // 특정 위도와 경도를 기준으로 가까운 산책로를 찾는 메서드
-    @Query("SELECT w FROM Walk w WHERE ST_Distance_Sphere(point(w.longitude, w.latitude), point(:longitude, :latitude)) < :radius")
+    @Query("SELECT w FROM Walk w JOIN w.coordinates c WHERE ST_Distance_Sphere(point(c.longitude, c.latitude), point(:longitude, :latitude)) < :radius")
     List<Walk> findNearbyWalks(@Param("latitude") Double latitude,
-                               @Param("longitude") Double longitude);
+                               @Param("longitude") Double longitude,
+                               @Param("radius") Double radius);
 
     // 산책로 제목으로 존재 여부 확인
     boolean existsByTitle(String title);

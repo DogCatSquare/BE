@@ -11,4 +11,5 @@ public class WalkRequestDto {
     private Long userId;
     private Double latitude;
     private Double longitude;
+    private Double radius;
 }

@@ -1,20 +1,36 @@
 package DC_square.spring.domain.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Embeddable;
 
-@Entity
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Embeddable
 public class Coordinate {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private Double latitude;
     private Double longitude;
     private Integer sequence;
+
+    public Coordinate() {}
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public Integer getSequence() {
+        return sequence;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setSequence(Integer sequence) {
+        this.sequence = sequence;
+    }
 }
