@@ -33,4 +33,5 @@ public class Coordinate {
     public void setSequence(Integer sequence) {
         this.sequence = sequence;
     }
+
 }
