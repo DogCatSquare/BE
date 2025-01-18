@@ -1,7 +1,7 @@
 package DC_square.spring.service;
 
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.repository.UserRepository;
+import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.UserRequestDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
