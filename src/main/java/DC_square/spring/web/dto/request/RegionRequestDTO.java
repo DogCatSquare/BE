@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RegionRequestDTO {
-    private String Do;
+    private String doName;
     private String si;
     private String gu;
 }

@@ -5,13 +5,13 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 
+
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pet {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,16 +21,15 @@ public class Pet {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private DogCat dogCat;  // enum 타입
+    private DogCat dogCat;
 
     @Column(nullable = false, length = 20)
     private String breed;
 
-    @Column
-    private int birth;
+    @Column(nullable = false)
+    private LocalDate birth;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
 }

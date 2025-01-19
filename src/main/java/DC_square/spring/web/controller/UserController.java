@@ -4,6 +4,7 @@ import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.service.UserService;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.UserRequestDto;
+import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +21,7 @@ public class UserController {
 
     @Operation(summary = "회원가입 API", description = "새로운 유저를 생성하는 API입니다.")
     @PostMapping("/register")
-    public ApiResponse<UserResponseDto> register(@Valid @RequestBody UserRequestDto request) {
+    public ApiResponse<UserResponseDto> register(@Valid @RequestBody UserRegistrationRequestDto request) {
         UserResponseDto response = userService.createUser(request);
         return ApiResponse.onSuccess(response);
     }
