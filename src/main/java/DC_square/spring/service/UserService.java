@@ -1,8 +1,10 @@
 package DC_square.spring.service;
 
 
+import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.Region;
+import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.RegionRepository;
 import DC_square.spring.repository.PetRepository;
@@ -15,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -22,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RegionRepository regionRepository;
     private final PetRepository petRepository;
+    private final DdayRepository ddayRepository;
 
     @Transactional
     public UserResponseDto createUser(UserRegistrationRequestDto request) {  // DTO 타입 변경
@@ -73,6 +78,38 @@ public class UserService {
 
             petRepository.save(pet);
         }
+        // D-day 생성 - 사료 구매
+        LocalDate foodDate = LocalDate.parse(request.getFoodDate());
+        Dday foodDday = Dday.builder()
+                .title("사료 구매")
+                .day(foodDate.plusWeeks(request.getFoodDuring()))
+                .term(request.getFoodDuring())
+                .user(savedUser)
+                .build();
+        ddayRepository.save(foodDday);
+
+        // D-day 생성 - 패드/모래 구매
+        LocalDate padDate = LocalDate.parse(request.getPadDate());
+        Dday padDday = Dday.builder()
+                .title("패드/모래 구매")
+                .day(padDate.plusWeeks(request.getPadDuring()))
+                .term(request.getPadDuring())
+                .user(savedUser)
+                .build();
+        ddayRepository.save(padDday);
+
+        // D-day 생성 - 병원 방문일
+        LocalDate hospitalDate = LocalDate.parse(request.getHospitalDate());
+        Dday hospitalDday = Dday.builder()
+                .title("병원 방문일")
+                .day(hospitalDate)
+                .user(savedUser)
+                .build();
+        ddayRepository.save(hospitalDday);
+
+
+
+
 
         return UserResponseDto.from(savedUser);
     }

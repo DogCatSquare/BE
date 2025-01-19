@@ -46,5 +46,20 @@ public class UserRegistrationRequestDto {
     @Valid
     private List<PetRegistrationDto> pets;
 
+    @NotBlank(message = "사료 구매일은 필수입니다.")
+    private String foodDate;    // yyyy-MM-dd
+
+    @NotNull(message = "사료 구매 주기는 필수입니다.")
+    private Integer foodDuring;  // 주 단위
+
+    @NotBlank(message = "패드/모래 구매일은 필수입니다.")
+    private String padDate;     // yyyy-MM-dd
+
+    @NotNull(message = "패드/모래 구매 주기는 필수입니다.")
+    private Integer padDuring;   // 주 단위
+
+    @NotBlank(message = "병원 방문일은 필수입니다.")
+    private String hospitalDate;  // yyyy-MM-dd
+
 
 }
