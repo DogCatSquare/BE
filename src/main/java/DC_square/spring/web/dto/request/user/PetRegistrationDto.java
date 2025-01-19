@@ -25,10 +25,10 @@ public class PetRegistrationDto {
     private String breed;
 
     @NotBlank(message = "생년월일은 필수입니다.")
-    private String birth; // "yyyy. MM. dd" 형식으로 받음
+    private String birth; // "yyyy. MM. dd" 또는 "yyyy.MM.dd" 형식
 
-    // 날짜 변환 메소드
-    public LocalDate getBirthDate() {
+    // birth String을 LocalDate로 변환
+    public LocalDate convertBirthToLocalDate() {
         try {
             // "yyyy. MM. dd" 형식 시도
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy. MM. dd");

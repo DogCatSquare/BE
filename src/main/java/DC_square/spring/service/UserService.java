@@ -35,9 +35,19 @@ public class UserService {
             throw new RuntimeException("이미 존재하는 닉네임입니다.");
         }
 
-        // 지역 존재 여부 확인
-        Region region = regionRepository.findById(request.getRegionId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 지역이 존재하지 않습니다."));
+        // 지역 정보 조회 또는 생성
+        Region region = regionRepository.findByDoNameAndSiAndGu(
+                request.getDoName(),
+                request.getSi(),
+                request.getGu()
+        ).orElseGet(() -> { //조회 결과 없을 때 새롭게 생성 !
+            Region newRegion = Region.builder()
+                    .doName(request.getDoName())
+                    .si(request.getSi())
+                    .gu(request.getGu())
+                    .build();
+            return regionRepository.save(newRegion);
+        });
 
         // RequestDto -> Entity
         User user = User.builder()
@@ -57,7 +67,7 @@ public class UserService {
                     .petName(petDto.getPetName())
                     .dogCat(petDto.getDogCat())
                     .breed(petDto.getBreed())
-                    .birth(petDto.getBirthDate())
+                    .birth(petDto.convertBirthToLocalDate())
                     .user(savedUser)
                     .build();
 
@@ -67,7 +77,7 @@ public class UserService {
         return UserResponseDto.from(savedUser);
     }
 
-    // 기존 메서드들은 그대로 유지
+
     public UserResponseDto login(LoginRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 이메일입니다."));
