@@ -1,10 +1,12 @@
-package DC_square.spring.web.controller;
+package DC_square.spring.web.controller.walk;
 
 import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.service.WalkService.WalkService;
-import DC_square.spring.web.dto.request.WalkRequestDto;
-import DC_square.spring.web.dto.response.WalkDetailResponseDto;
-import DC_square.spring.web.dto.response.WalkResponseDto;
+import DC_square.spring.web.dto.request.walk.WalkRequestDto;
+import DC_square.spring.web.dto.request.walk.WalkCreateRequestDto;
+import DC_square.spring.web.dto.response.walk.WalkCreateResponseDto;
+import DC_square.spring.web.dto.response.walk.WalkDetailResponseDto;
+import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -48,5 +50,21 @@ public class WalkController {
     ) {
         WalkDetailResponseDto walkDetailResponseDto = walkService.getWalkDetails(walkId);
         return ApiResponse.onSuccess(walkDetailResponseDto);
+    }
+
+    @Operation(summary = "산책로 등록 API", description = "새로운 산책로를 등록하는 API입니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "산책로 등록 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "입력 데이터가 유효하지 않음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON401", description = "로그인 필요"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON500", description = "서버 오류")
+    })
+    @PostMapping("/walks/create/{userId}")
+    public ApiResponse<WalkCreateResponseDto> createWalk(
+            @PathVariable Long userId,
+            @RequestBody WalkCreateRequestDto walkCreateRequestDto
+    ) {
+        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, userId);
+        return ApiResponse.onSuccess(walkCreateResponseDto);
     }
 }

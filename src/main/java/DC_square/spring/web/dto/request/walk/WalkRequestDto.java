@@ -1,4 +1,4 @@
-package DC_square.spring.web.dto.request;
+package DC_square.spring.web.dto.request.walk;
 
 import lombok.Builder;
 import lombok.Getter;

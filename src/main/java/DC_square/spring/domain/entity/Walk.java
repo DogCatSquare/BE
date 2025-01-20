@@ -47,13 +47,13 @@ public class Walk {
     @Enumerated(EnumType.STRING)
     private List<Special> specials = new ArrayList<>();
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    //private String customSpecial;
 
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ElementCollection
     @CollectionTable(name = "walk_coordinates",

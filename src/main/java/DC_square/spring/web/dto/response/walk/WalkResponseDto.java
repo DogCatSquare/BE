@@ -1,4 +1,4 @@
-package DC_square.spring.web.dto.response;
+package DC_square.spring.web.dto.response.walk;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +17,7 @@ public class WalkResponseDto {
         private Long walkId;
         private String title;
         private String description;
-        //private Integer reviewCount;
+        private Integer reviewCount;
         private Double distance;
         private Integer time;
         //private List<ImageDto> images;

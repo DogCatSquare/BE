@@ -1,4 +1,4 @@
-package DC_square.spring.web.dto.response;
+package DC_square.spring.web.dto.response.walk;
 
 import lombok.Builder;
 import lombok.Getter;

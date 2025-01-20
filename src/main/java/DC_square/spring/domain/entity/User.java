@@ -39,4 +39,8 @@ public class User {
     // 병원 방문 날짜
     @Column
     private String hospitalDate;
+
+    public Long getId() {
+        return id;
+    }
 }

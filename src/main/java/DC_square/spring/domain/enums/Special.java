@@ -1,5 +1,9 @@
 package DC_square.spring.domain.enums;
 
 public enum Special {
-    TOILET, PARKING, WASTEBASKET, STAIRS, WATER, OTHER
+    TOILET, PARKING, WASTEBASKET, STAIRS, WATER, OTHER;
+
+    public String getType() {
+        return this.name();
+    }
 }
