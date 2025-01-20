@@ -17,10 +17,8 @@ public interface WalkRepository extends JpaRepository<Walk, Long> {
                                @Param("longitude") Double longitude,
                                @Param("radius") Double radius);
 
-    // 산책로 제목으로 존재 여부 확인
     boolean existsByTitle(String title);
 
-    // 특정 산책로 ID로 조회
     @Query("SELECT w FROM Walk w WHERE w.id = :walkId")
     Optional<Walk> findById(@Param("walkId") Long walkId);
 }

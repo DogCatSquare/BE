@@ -116,9 +116,7 @@ public class WalkService {
                 .build();
     }
 
-    // 산책로 등록
     public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, Long userId) {
-        // userId로 UserEntity 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -128,54 +126,22 @@ public class WalkService {
                 .distance(walkCreateRequestDto.getDistance())
                 .time(walkCreateRequestDto.getTime())
                 .difficulty(walkCreateRequestDto.getDifficulty())
-                .specials(walkCreateRequestDto.getSpecial().stream()  // special 처리
-                        .map(specialDto -> Special.valueOf(specialDto.getType()))  // String -> Special enum 변환
+                .specials(walkCreateRequestDto.getSpecial().stream()
+                        .map(specialDto -> Special.valueOf(specialDto.getType()))
                         .collect(Collectors.toList()))
-                .coordinates(walkCreateRequestDto.getCoordinates().stream()  // coordinates 처리
-                        .map(coordDto -> Coordinate.builder()  // Coordinate 객체 생성
-                                .latitude(coordDto.getLatitude())  // 위도
-                                .longitude(coordDto.getLongitude())  // 경도
-                                .sequence(coordDto.getSequence())  // 순서
-                                .build())  // Coordinate 객체 빌드
+                .coordinates(walkCreateRequestDto.getCoordinates().stream()
+                        .map(coordDto -> Coordinate.builder()
+                                .latitude(coordDto.getLatitude())
+                                .longitude(coordDto.getLongitude())
+                                .sequence(coordDto.getSequence())
+                                .build())
                         .collect(Collectors.toList()))
-                .reviewCount(0)  // 리뷰 개수 초기화
-                .createdBy(user)  // 생성자 정보 (user 객체 필요)
+                .reviewCount(0)
+                .createdBy(user)
                 .build();
 
         Walk savedWalk = walkRepository.save(walk);
 
-//        List<WalkResponseDto.WalkDto> walkDtos = List.of(
-//                WalkResponseDto.WalkDto.builder()
-//                        .walkId(savedWalk.getId())  // walkId를 설정
-//                        .title(savedWalk.getTitle())
-//                        .description(savedWalk.getDescription())
-//                        .distance(savedWalk.getDistance())
-//                        .time(savedWalk.getTime())
-//                        .difficulty(savedWalk.getDifficulty().name())
-//                        .special(savedWalk.getSpecials().stream()
-//                                .map(special -> WalkResponseDto.SpecialDto.builder()
-//                                        .type(special.name())
-//                                        .build())
-//                                .collect(Collectors.toList()))
-//                        .coordinates(savedWalk.getCoordinates().stream()
-//                                .map(coord -> WalkResponseDto.CoordinateDto.builder()
-//                                        .latitude(coord.getLatitude())
-//                                        .longitude(coord.getLongitude())
-//                                        .sequence(coord.getSequence())
-//                                        .build())
-//                                .collect(Collectors.toList()))
-//                        .createdAt(savedWalk.getCreatedAt())
-//                        .updatedAt(savedWalk.getUpdatedAt())
-//                        .createdBy(WalkResponseDto.CreatedByDto.builder()
-//                                .userId(savedWalk.getCreatedBy().getId().toString())  // userId 포함
-//                                .nickname(savedWalk.getCreatedBy().getNickname())    // nickname 포함
-//                                .build())  // 필요한 필드만 포함
-//                        .build()
-//        );
-//
-//        return WalkResponseDto.builder()
-//                .walks(walkDtos)  // WalkDto 목록을 반환
-//                .build();
         return new WalkCreateResponseDto(true, "산책로 등록에 성공했습니다.", savedWalk.getId());
     }
 }
