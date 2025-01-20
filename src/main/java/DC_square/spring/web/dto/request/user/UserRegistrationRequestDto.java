@@ -1,6 +1,7 @@
 package DC_square.spring.web.dto.request.user;
 
 import DC_square.spring.domain.enums.DogCat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class UserRegistrationRequestDto {
 
     @NotBlank(message = "비밀번호는 필수입니다.")
     @Size(min = 8, max = 20, message = "비밀번호는 8자 이상 20자 이하여야 합니다.")
+    @Schema(example = "password123")
     private String password;
 
     @NotBlank(message = "닉네임은 필수입니다.")
@@ -28,6 +30,7 @@ public class UserRegistrationRequestDto {
 
     @NotBlank(message = "전화번호는 필수입니다.")
     @Pattern(regexp = "^\\d{11}$", message = "전화번호는 11자리 숫자여야 합니다.")
+    @Schema(example = "01012341234")
     private String phoneNumber;
 
 
@@ -47,19 +50,24 @@ public class UserRegistrationRequestDto {
     private List<PetRegistrationDto> pets;
 
     @NotBlank(message = "사료 구매일은 필수입니다.")
+    @Schema(example = "2025-01-12")
     private String foodDate;    // yyyy-MM-dd
 
     @NotNull(message = "사료 구매 주기는 필수입니다.")
     private Integer foodDuring;  // 주 단위
 
     @NotBlank(message = "패드/모래 구매일은 필수입니다.")
+    @Schema(example = "2025-01-12")
     private String padDate;     // yyyy-MM-dd
 
     @NotNull(message = "패드/모래 구매 주기는 필수입니다.")
     private Integer padDuring;   // 주 단위
 
     @NotBlank(message = "병원 방문일은 필수입니다.")
+    @Schema(example = "2025-01-12")
     private String hospitalDate;  // yyyy-MM-dd
 
+    @NotNull(message="광고여부는 필수입니다.")
+    private Boolean adAgree;
 
 }

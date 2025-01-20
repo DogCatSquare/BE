@@ -54,13 +54,14 @@ public class UserService {
             return regionRepository.save(newRegion);
         });
 
-        // RequestDto -> Entity
+        // RequestDto -> Entity, DB에 저장
         User user = User.builder()
                 .email(request.getEmail())
                 .password(request.getPassword())
                 .nickname(request.getNickname())
                 .phoneNumber(request.getPhoneNumber())
                 .regionId(region.getId().toString())
+                .adAgree(request.getAdAgree())
                 .build();
 
         // 저장

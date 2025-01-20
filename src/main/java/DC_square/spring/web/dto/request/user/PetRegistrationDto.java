@@ -1,6 +1,7 @@
 package DC_square.spring.web.dto.request.user;
 
 import DC_square.spring.domain.enums.DogCat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -22,9 +23,11 @@ public class PetRegistrationDto {
 
     @NotBlank(message = "품종은 필수입니다.")
     @Size(max = 20, message = "품종은 20자 이하여야 합니다.")
+    @Schema(example = "품종")
     private String breed;
 
     @NotBlank(message = "생년월일은 필수입니다.")
+    @Schema(example = "2024-01-12")
     private String birth; // "yyyy. MM. dd" 또는 "yyyy.MM.dd" 형식
 
     // birth String을 LocalDate로 변환
