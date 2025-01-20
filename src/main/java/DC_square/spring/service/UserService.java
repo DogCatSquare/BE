@@ -13,6 +13,7 @@ import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO 변경
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
+import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,14 +109,10 @@ public class UserService {
                 .build();
         ddayRepository.save(hospitalDday);
 
-
-
-
-
         return UserResponseDto.from(savedUser);
     }
 
-
+    // 로그인
     public UserResponseDto login(LoginRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 이메일입니다."));
@@ -127,10 +124,11 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
+    // 이메일 중복 확인
     public boolean checkEmailDuplicate(String email) {
         return userRepository.existsByEmail(email);
     }
-
+    // 닉네임 중복  확인
     public boolean checkNicknameDuplicate(String nickname) {
         return userRepository.existsByNickname(nickname);
     }
@@ -140,5 +138,24 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         return UserResponseDto.from(user);
+    }
+
+    // 유저 조회
+    @Transactional(readOnly = true)
+    public UserInqueryResponseDto getUserInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 사용자의 regionId로 Region 정보 조회
+        Region region = regionRepository.findById(Long.parseLong(user.getRegionId()))
+                .orElseThrow(() -> new RuntimeException("지역 정보를 찾을 수 없습니다."));
+
+        // 첫 번째 반려동물의 품종 가져오기
+        String firstPetBreed = petRepository.findAllByUser(user).stream()
+                .findFirst()
+                .map(Pet::getBreed)
+                .orElse(null);
+
+        return UserInqueryResponseDto.fromUser(user, region, firstPetBreed);
     }
 }

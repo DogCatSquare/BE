@@ -6,6 +6,7 @@ import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.UserRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
+import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -48,9 +49,9 @@ public class UserController {
     }
 
     @Operation(summary = "유저 조회 API", description = "유저 조회하는 API입니다.")
-    @GetMapping("/users")
-    public ApiResponse<UserResponseDto> getUserById(@RequestParam("userid") Long userId) {
-        UserResponseDto user = userService.findUserById(userId);
-        return ApiResponse.onSuccess(user);
+    @GetMapping("/{userId}/users-inquiry")
+    public ApiResponse<UserInqueryResponseDto> getUserById(@PathVariable  Long userId) {
+        UserInqueryResponseDto userInfo = userService.getUserInfo(userId);
+        return ApiResponse.onSuccess(userInfo);
     }
 }
