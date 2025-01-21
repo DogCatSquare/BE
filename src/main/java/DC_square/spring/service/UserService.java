@@ -13,6 +13,7 @@ import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.user.PetsAddRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO 변경
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
+import DC_square.spring.web.dto.response.PetResponseDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
 import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -163,7 +166,6 @@ public class UserService {
     // 반려동물 추가
     @Transactional
     public UserResponseDto addPets(Long userId, PetsAddRequestDto request) {
-        // 사용자 존재 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
@@ -184,4 +186,14 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
+    @Transactional(readOnly = true)
+    public List<PetResponseDto> getPets(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 해당 사용자의 모든 반려동물 조회 후 DTO로 변환
+        return petRepository.findAllByUser(user).stream()
+                .map(PetResponseDto::from)
+                .collect(Collectors.toList());
+    }
 }
