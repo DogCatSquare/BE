@@ -31,11 +31,20 @@ public class PetController {
         return ApiResponse.onSuccess(userService.addPets(userId, request));
     }
 
-    @Operation(summary = "반려동물 목록 조회 API", description = "사용자의 모든 반려동물 정보를 조회하는 API입니다.")
+    @Operation(summary = "반려동물 전체 목록 조회 API", description = "사용자의 모든 반려동물 정보를 조회하는 API입니다.")
     @GetMapping("/{userId}/allpets")
     public ApiResponse<List<PetResponseDto>> getUserPets(@PathVariable Long userId){
         return ApiResponse.onSuccess(userService.getPets(userId));
     }
+
+    @Operation(summary = "반려동물 상세 조회 API", description = "특정 반려동물의 상세 정보를 조회하는 API입니다.")
+    @GetMapping("/{userId}/pets/{petId}")
+    public ApiResponse<PetResponseDto> getPetDetail(
+            @PathVariable Long userId,
+            @PathVariable Long petId) {
+        return ApiResponse.onSuccess(userService.getPetDetail(userId, petId));
+    }
+
 
     @Operation(summary = "반려동물 삭제  API", description = "반려동물 정보를 삭제하는 API입니다.")
     @DeleteMapping("/{userId}/delpet/{petId}")

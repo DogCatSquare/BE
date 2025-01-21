@@ -186,7 +186,7 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
-    // 반려동물 조회
+    // 반려동물 전체 조회
     @Transactional(readOnly = true)
     public List<PetResponseDto> getPets(Long userId) {
         User user = userRepository.findById(userId)
@@ -197,6 +197,24 @@ public class UserService {
                 .map(PetResponseDto::from)
                 .collect(Collectors.toList());
     }
+
+    // 반려동물 상세조회
+    @Transactional(readOnly = true)
+    public PetResponseDto getPetDetail(Long userId, Long petId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new RuntimeException("반려동물을 찾을 수 없습니다."));
+
+        // 해당 반려동물이 요청한 사용자의 소유인지 확인
+        if (!pet.getUser().getId().equals(userId)) {
+            throw new RuntimeException("해당 반려동물의 정보를 조회할 권한이 없습니다.");
+        }
+        // 반려동물 정보 반환
+        return PetResponseDto.from(pet);
+    }
+
+
 
     // 반려동물 삭제
     @Transactional
