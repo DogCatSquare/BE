@@ -10,6 +10,7 @@ import DC_square.spring.repository.RegionRepository;
 import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.LoginRequestDto;
+import DC_square.spring.web.dto.request.user.PetsAddRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO 변경
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
@@ -158,4 +159,29 @@ public class UserService {
 
         return UserInqueryResponseDto.fromUser(user, region, firstPetBreed);
     }
+
+    // 반려동물 추가
+    @Transactional
+    public UserResponseDto addPets(Long userId, PetsAddRequestDto request) {
+        // 사용자 존재 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 반려동물 저장
+        for (PetRegistrationDto petDto : request.getPets()) {
+            Pet pet = Pet.builder()
+                    .petName(petDto.getPetName())
+                    .dogCat(petDto.getDogCat())
+                    .breed(petDto.getBreed())
+                    .birth(petDto.convertBirthToLocalDate())
+                    .user(user)
+                    .build();
+
+            petRepository.save(pet);
+        }
+
+        // 업데이트된 사용자 정보 반환
+        return UserResponseDto.from(user);
+    }
+
 }
