@@ -186,6 +186,7 @@ public class UserService {
         return UserResponseDto.from(user);
     }
 
+    // 반려동물 조회
     @Transactional(readOnly = true)
     public List<PetResponseDto> getPets(Long userId) {
         User user = userRepository.findById(userId)
@@ -196,6 +197,8 @@ public class UserService {
                 .map(PetResponseDto::from)
                 .collect(Collectors.toList());
     }
+
+    // 반려동물 삭제
     @Transactional
     public void deletePet(Long userId, Long petId) {
         User user = userRepository.findById(userId)
@@ -210,6 +213,32 @@ public class UserService {
 
         // 반려동물 삭제
         petRepository.delete(pet);
+    }
+
+    //반려동물 수정
+    @Transactional
+    public PetResponseDto modifyPet(Long userId, Long petId, PetRegistrationDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new RuntimeException("반려동물을 찾을 수 없습니다."));
+
+        // 해당 반려동물이 요청한 사용자의 소유인지 확인
+        if (!pet.getUser().getId().equals(userId)) {
+            throw new RuntimeException("해당 반려동물을 수정할 권한이 없습니다.");
+        }
+
+        // 반려동물 정보 업데이트
+        pet.setPetName(request.getPetName());
+        pet.setDogCat(request.getDogCat());
+        pet.setBreed(request.getBreed());
+        pet.setBirth(request.convertBirthToLocalDate());
+
+        // 변경 사항 저장
+        Pet updatedPet = petRepository.save(pet);
+
+        // 수정된 반려동물 정보 반환
+        return PetResponseDto.from(updatedPet);
     }
 
 }

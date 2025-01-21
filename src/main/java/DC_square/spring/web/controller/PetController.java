@@ -44,4 +44,13 @@ public class PetController {
         return ApiResponse.onSuccess("반려동물이 성공적으로 삭제되었습니다");
     }
 
+    @Operation(summary = "반려동물 수정 API", description = "반려동물 정보를 수정하는 API입니다.")
+    @PutMapping("/{userId}/modifypet/{petId}")
+    public ApiResponse<PetResponseDto> modifyPet(
+            @PathVariable Long userId,
+            @PathVariable Long petId,
+            @Valid @RequestBody PetRegistrationDto request) {
+        return ApiResponse.onSuccess(userService.modifyPet(userId, petId, request));
+    }
+
 }
