@@ -196,4 +196,20 @@ public class UserService {
                 .map(PetResponseDto::from)
                 .collect(Collectors.toList());
     }
+    @Transactional
+    public void deletePet(Long userId, Long petId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new RuntimeException("반려동물을 찾을 수 없습니다."));
+
+        // 해당 반려동물이 요청한 사용자의 소유인지 확인
+        if (!pet.getUser().getId().equals(userId)) {
+            throw new RuntimeException("해당 반려동물을 삭제할 권한이 없습니다.");
+        }
+
+        // 반려동물 삭제
+        petRepository.delete(pet);
+    }
+
 }

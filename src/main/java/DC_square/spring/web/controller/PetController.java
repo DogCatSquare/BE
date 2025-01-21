@@ -36,4 +36,12 @@ public class PetController {
     public ApiResponse<List<PetResponseDto>> getUserPets(@PathVariable Long userId){
         return ApiResponse.onSuccess(userService.getPets(userId));
     }
+
+    @Operation(summary = "반려동물 삭제  API", description = "반려동물 정보를 삭제하는 API입니다.")
+    @DeleteMapping("/{userId}/delpet/{petId}")
+    public ApiResponse<String> deletePet(@PathVariable Long userId, @PathVariable Long petId){
+        userService.deletePet(userId,petId);
+        return ApiResponse.onSuccess("반려동물이 성공적으로 삭제되었습니다");
+    }
+
 }
