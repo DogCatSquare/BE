@@ -6,6 +6,7 @@ import DC_square.spring.domain.entity.place.PlaceReview;
 //import DC_square.spring.domain.entity.place.PlaceReviewImage;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceRepository;
+import DC_square.spring.repository.place.PlaceReviewLikeRepository;
 import DC_square.spring.repository.place.PlaceReviewRepository;
 import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
@@ -24,6 +25,7 @@ public class PlaceReviewService {
     private final PlaceReviewRepository placeReviewRepository;
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
+    private final PlaceReviewLikeRepository placeReviewLikeRepository;
 
     public Long createPlaceReview(PlaceReviewCreateRequestDTO request, Long placeId) {
 
@@ -52,6 +54,7 @@ public class PlaceReviewService {
                         .id(placeReview.getId())
                         //.breed(placeReview.getPlace().getBreed())
                         .content(placeReview.getContent())
+                        .isLiked(placeReviewLikeRepository.existsByUserIdAndPlaceReviewId(placeReview.getId(), placeReview.getUser().getId()))
                         .userId(placeReview.getUser().getId())
                         .nickname(placeReview.getUser().getNickname())
                         //.userImageUrl(placeReview.getUser().getImageUrl())

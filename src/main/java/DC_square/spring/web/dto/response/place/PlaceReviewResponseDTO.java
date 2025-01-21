@@ -8,6 +8,7 @@ import lombok.Getter;
 public class PlaceReviewResponseDTO {
     private Long id;
     private String content;
+    private boolean isLiked;
     private Long userId;
     private String breed;
     private String nickname;

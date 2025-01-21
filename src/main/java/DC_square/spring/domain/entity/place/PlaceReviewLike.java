@@ -1,5 +1,6 @@
-/*package DC_square.spring.domain.entity.place;
+package DC_square.spring.domain.entity.place;
 
+import DC_square.spring.domain.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,17 +10,17 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "place_review_image")
-
-public class PlaceReviewImage {
+public class PlaceReviewLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "place_review_image_url", nullable = false)
-    private String PlaceReviewImageUrl;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "place_review_id", nullable = false)
     private PlaceReview placeReview;
-}*/
+
+}
