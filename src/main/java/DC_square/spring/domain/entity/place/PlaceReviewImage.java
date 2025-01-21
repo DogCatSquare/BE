@@ -1,4 +1,4 @@
-package DC_square.spring.domain.entity.place;
+/*package DC_square.spring.domain.entity.place;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,10 +16,10 @@ public class PlaceReviewImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    @Column(name = "place_review_image_url", nullable = false)
+    private String PlaceReviewImageUrl;
 
     @ManyToOne
     @JoinColumn(name = "place_review_id", nullable = false)
     private PlaceReview placeReview;
-}
+}*/

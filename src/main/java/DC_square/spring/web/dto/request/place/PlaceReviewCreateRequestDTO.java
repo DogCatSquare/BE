@@ -11,6 +11,6 @@ import java.util.List;
 public class PlaceReviewCreateRequestDTO {
     private Long userId;
     private String content;
-    private List<String> img_urls;
+    private String placeReviewImageUrl;
     private LocalDateTime createdAt;
 }

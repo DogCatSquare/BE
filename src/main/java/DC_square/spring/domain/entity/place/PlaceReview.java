@@ -27,6 +27,9 @@ public class PlaceReview {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "place_review_image_url", nullable = false)
+    private String placeReviewImageUrl;
+
     @ManyToOne
     @JoinColumn(name = "place_id", nullable = false)
     private Place place;
@@ -35,6 +38,6 @@ public class PlaceReview {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "placeReview", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PlaceReviewImage> placeReviewImages = new ArrayList<>();
+    //@OneToMany(mappedBy = "placeReview", cascade = CascadeType.ALL, orphanRemoval = true)
+    //private List<PlaceReviewImage> placeReviewImages = new ArrayList<>();
 }
