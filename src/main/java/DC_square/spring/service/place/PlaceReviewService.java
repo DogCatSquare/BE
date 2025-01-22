@@ -28,6 +28,9 @@ public class PlaceReviewService {
     private final PlaceReviewLikeRepository placeReviewLikeRepository;
 
     public Long createPlaceReview(PlaceReviewCreateRequestDTO request, Long placeId) {
+        if (request.getPlaceReviewImageUrl().isBlank()){
+            throw new RuntimeException("후기 이미지는 필수 입니다..");
+        }
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));

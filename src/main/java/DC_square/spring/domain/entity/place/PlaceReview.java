@@ -2,6 +2,7 @@ package DC_square.spring.domain.entity.place;
 
 import DC_square.spring.domain.entity.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -27,7 +28,7 @@ public class PlaceReview {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "place_review_image_url", nullable = false)
+    @Column(name = "place_review_image_url", nullable = true) // false할 시 오류 일단 true로 놔둠
     private String placeReviewImageUrl;
 
     @ManyToOne

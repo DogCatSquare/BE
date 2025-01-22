@@ -5,6 +5,7 @@ import DC_square.spring.service.place.PlaceReviewService;
 import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class PlaceReviewController {
     @Operation(summary = "장소 리뷰 생성 API")
     @PostMapping
     public ApiResponse<Long> createPlaceReview(
-            @RequestBody PlaceReviewCreateRequestDTO request,
+            @Valid @RequestBody PlaceReviewCreateRequestDTO request,
             @PathVariable("placeId") Long placeId
     ) {
         Long reviewId = placeReviewService.createPlaceReview(request, placeId);
