@@ -5,9 +5,14 @@ import DC_square.spring.service.community.BoardService;
 import DC_square.spring.web.dto.request.community.BoardRequestDto;
 import DC_square.spring.web.dto.response.community.BoardResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,10 +28,12 @@ public class BoardController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
     })
-    @PostMapping
-    public ApiResponse<BoardResponseDto> createBoard(@RequestBody BoardRequestDto boardRequestDto) {
-        BoardResponseDto board = boardService.createdBoard(boardRequestDto);
-        return ApiResponse.onSuccess(board);
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
+    public ApiResponse<BoardResponseDto> createBoard(
+            @Valid @RequestPart("request") BoardRequestDto boardRequestDto,
+            @RequestPart(value = "boardPicture") MultipartFile boardPicture
+    ) {
+        return ApiResponse.onSuccess(boardService.createdBoard(boardRequestDto, boardPicture));
     }
 
     /**
