@@ -28,8 +28,14 @@ public class PlaceReview {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "place_review_image_url", nullable = true) // false할 시 오류 일단 true로 놔둠
-    private String placeReviewImageUrl;
+    @ElementCollection
+    @CollectionTable(
+            name = "place_review_images",
+            joinColumns = @JoinColumn(name = "review_id")
+    )
+    @Column(name = "image_url")
+    private List<String> placeReviewImageUrl;
+
 
     @ManyToOne
     @JoinColumn(name = "place_id", nullable = false)
