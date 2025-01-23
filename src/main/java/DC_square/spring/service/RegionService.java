@@ -15,7 +15,7 @@ public class RegionService {
 
     public Long creatRegion(RegionRequestDTO request) {
         Region region = Region.builder()
-                .Do(request.getDo())
+                .doName(request.getDoName())
                 .si(request.getSi())
                 .gu(request.getGu())
                 .build();

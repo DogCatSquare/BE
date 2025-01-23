@@ -39,7 +39,15 @@ dependencies {
 	//Security 설정
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
+	// 이메일 인증 관련 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// Redis 관련 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 }
+
 
 tasks.named('test') {
 	useJUnitPlatform()
