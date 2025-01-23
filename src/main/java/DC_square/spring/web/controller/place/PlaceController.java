@@ -50,7 +50,7 @@ public class PlaceController {
     @Operation(summary = "장소 상세 조회 API")
     @GetMapping("/{placeId}")
     public ApiResponse<PlaceDetailResponseDTO> getPlaceById(
-            @PathVariable("placeId") Integer placeId
+            @PathVariable("placeId") Long placeId
     ) {
         PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId);
         return ApiResponse.onSuccess(place);

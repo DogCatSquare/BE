@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PlaceRepository extends JpaRepository<Place, Integer> {
+public interface PlaceRepository extends JpaRepository<Place, Long> {
     // Region 엔티티의 id로 조회
     @Query("SELECT p FROM Place p " +
             "WHERE (:regionId is null OR p.region.id = :regionId)")

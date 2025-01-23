@@ -28,10 +28,7 @@ public class Place {
     @Column(name = "category", nullable = false)
     private PlaceCategory category;
 
-    //@Column(name = "distance") // NULL 허용
-    //private Float distance;
-
-    @Column(name = "phoneNumber", nullable = false, length = 12)
+    @Column(name = "phone_number", nullable = false, length = 12)
     private String phoneNumber;
 
     @Column(name = "open") // NULL 허용
@@ -40,6 +37,7 @@ public class Place {
     @Column(name = "view", nullable = false)
     private Integer view;
 
+    // 조회수 초기값 0으로 설정
     @PrePersist
     public void prePersist() {
         this.view = (this.view == null) ? 0 : this.view;
@@ -47,12 +45,12 @@ public class Place {
 
     @ManyToOne
     @JoinColumn(name = "region_id", nullable = false)
-    private Region region;    // regionId -> region으로 변경
+    private Region region;
 
-    @Column(name = "longitude", nullable = false)
+    @Column(name = "longitude", nullable = false) // -180.000000 ~ 180.000000
     private Double longitude;
 
-    @Column(name = "latitude", nullable = false)
+    @Column(name = "latitude", nullable = false) // -180.000000 ~ 180.000000
     private Double latitude;
 
     @OneToOne(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)

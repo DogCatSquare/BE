@@ -70,7 +70,7 @@ public class PlaceService {
                 .collect(Collectors.toList());
     }
 
-    public PlaceResponseDTO findPlaceById( Integer placeId) {
+    public PlaceResponseDTO findPlaceById(Long placeId) {
         // 1. DB 조회
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
@@ -120,7 +120,7 @@ public class PlaceService {
     }
 
     // 장소 상세 조회
-    public PlaceDetailResponseDTO findPlaceDetailById(Integer placeId) {
+    public PlaceDetailResponseDTO findPlaceDetailById(Long placeId) {
         // 1. DB 조회
         PlaceDetail placeDetail = PlaceDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
