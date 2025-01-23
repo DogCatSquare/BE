@@ -28,11 +28,12 @@ public class BoardController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
     })
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ApiResponse<BoardResponseDto> createBoard(@Valid @RequestPart("request")BoardRequestDto boardRequestDto, @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-            @RequestPart("boardPicture") MultipartFile boardPicture){
-        BoardResponseDto board = boardService.createdBoard(boardRequestDto, boardPicture);
-        return ApiResponse.onSuccess(board);
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
+    public ApiResponse<BoardResponseDto> createBoard(
+            @Valid @RequestPart("request") BoardRequestDto boardRequestDto,
+            @RequestPart(value = "boardPicture") MultipartFile boardPicture
+    ) {
+        return ApiResponse.onSuccess(boardService.createdBoard(boardRequestDto, boardPicture));
     }
 
     /**
