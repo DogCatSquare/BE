@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Region {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
     private Long id;
@@ -29,4 +30,8 @@ public class Region {
 
     @OneToMany(mappedBy = "region", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Place> places;
+
+    @Column(name = "latitude") // -180.000000 ~ 180.000000
+    private Double latitude; // 예시
+
 }
