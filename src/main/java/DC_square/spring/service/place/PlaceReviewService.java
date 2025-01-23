@@ -1,5 +1,8 @@
 package DC_square.spring.service.place;
 
+import DC_square.spring.config.S3.AmazonS3Manager;
+import DC_square.spring.config.S3.Uuid;
+import DC_square.spring.config.S3.UuidRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.entity.place.PlaceReview;
@@ -13,8 +16,10 @@ import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,11 +31,21 @@ public class PlaceReviewService {
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
     private final PlaceReviewLikeRepository placeReviewLikeRepository;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
 
-    public Long createPlaceReview(PlaceReviewCreateRequestDTO request, Long placeId) {
-        if (request.getPlaceReviewImageUrl().isBlank()){
-            throw new RuntimeException("후기 이미지는 필수 입니다..");
+    public Long createPlaceReview(PlaceReviewCreateRequestDTO request, Long placeId, List<MultipartFile> images) {
+        if (images.isEmpty()) {
+            throw new RuntimeException("후기 이미지는 필수 입니다.");
         }
+
+        List<String> imageUrls = images.stream()
+                .map(image -> {
+                    String uuid = UUID.randomUUID().toString();
+                    Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+                    return s3Manager.uploadFile(s3Manager.generateReview(savedUuid), image);
+                })
+                .collect(Collectors.toList());
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -44,7 +59,7 @@ public class PlaceReviewService {
                 .place(place)
                 .content(request.getContent())
                 .createdAt(request.getCreatedAt())
-                .placeReviewImageUrl(request.getPlaceReviewImageUrl())
+                .placeReviewImageUrl(imageUrls)
                 .build();
 
         return placeReviewRepository.save(placeReview).getId();

@@ -13,8 +13,7 @@ public class PlaceReviewCreateRequestDTO {
     private Long userId;
     private String content;
 
-    @NotBlank(message = "리뷰 이미지는 필수 입니다.")
-    private String placeReviewImageUrl;
+    private List<String> placeReviewImageUrl;
 
     private LocalDateTime createdAt;
 }

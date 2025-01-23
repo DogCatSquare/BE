@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,14 +21,13 @@ public class PlaceReviewController {
 
     private final PlaceReviewService placeReviewService;
 
-    @Operation(summary = "장소 리뷰 생성 API")
-    @PostMapping
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
     public ApiResponse<Long> createPlaceReview(
-            @Valid @RequestBody PlaceReviewCreateRequestDTO request,
-            @PathVariable("placeId") Long placeId
+            @Valid @RequestPart("request") PlaceReviewCreateRequestDTO request,
+            @PathVariable("placeId") Long placeId,
+            @RequestPart(value = "placeReviewImages") List<MultipartFile> images
     ) {
-        Long reviewId = placeReviewService.createPlaceReview(request, placeId);
-        return ApiResponse.onSuccess(reviewId);
+        return ApiResponse.onSuccess(placeReviewService.createPlaceReview(request, placeId, images));
     }
 
     @Operation(summary = "장소 리뷰 전체 조회 API")
