@@ -33,4 +33,6 @@ public class Board {
     @CreatedDate
     private LocalDateTime createdDate = LocalDateTime.now();
 
+    private String imagePath;
+
 }

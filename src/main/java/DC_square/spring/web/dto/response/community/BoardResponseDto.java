@@ -21,4 +21,6 @@ public class BoardResponseDto {
     private List<String> keywords;
 
     private LocalDateTime createDate;
+
+    private String imagePath;
 }

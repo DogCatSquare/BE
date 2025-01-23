@@ -48,6 +48,9 @@ public class Post {
     @JoinColumn(name = "board_id",nullable = false)
     private Board board;
 
+    @Column(name = "image",nullable = false)
+    private String imagePath;
+
     @CreatedDate
     private LocalDateTime created_at = LocalDateTime.now();
 
