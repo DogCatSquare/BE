@@ -18,8 +18,8 @@ public class Region {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
     private Long id;
 
-    @Column(name = "Do", nullable = false, length = 20)
-    private String Do;
+    @Column(name = "do_name", nullable = false, length = 20) // 'Do'를 'doName'으로 변경 -> sql예약어랑 문제
+    private String doName;
 
     @Column(name = "si", nullable = false, length = 20)
     private String si;

@@ -39,4 +39,8 @@ public class User {
     // 병원 방문 날짜
     @Column
     private String hospitalDate;
+
+    //광고 동의 여부
+    @Column
+    private Boolean adAgree;
 }
