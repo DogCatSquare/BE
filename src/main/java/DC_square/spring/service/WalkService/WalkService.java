@@ -14,6 +14,7 @@ import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -143,5 +144,19 @@ public class WalkService {
         Walk savedWalk = walkRepository.save(walk);
 
         return new WalkCreateResponseDto(true, "산책로 등록에 성공했습니다.", savedWalk.getId());
+    }
+
+    public void deleteWalk(Long walkId, Long userId) throws RuntimeException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
+
+        Walk walk = walkRepository.findById(walkId)
+                .orElseThrow(() -> new IllegalArgumentException("산책로를 찾을 수 없습니다."));
+
+        if (!walk.getCreatedBy().equals(user)) {
+            throw new RuntimeException("산책로 삭제 권한이 없습니다.");
+        }
+
+        walkRepository.delete(walk);
     }
 }
