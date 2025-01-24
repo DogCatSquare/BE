@@ -43,4 +43,9 @@ public class User {
     //광고 동의 여부
     @Column
     private Boolean adAgree;
+
+    //프로필 이미지
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
 }

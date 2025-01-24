@@ -11,7 +11,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "User", description = "유저 관련 API")
 @RestController
@@ -21,10 +23,12 @@ public class UserController {
     private final UserService userService;
 
     @Operation(summary = "회원가입 API", description = "새로운 유저를 생성하는 API입니다.")
-    @PostMapping("/register")
-    public ApiResponse<UserResponseDto> register(@Valid @RequestBody UserRegistrationRequestDto request) {
-        UserResponseDto response = userService.createUser(request);
-        return ApiResponse.onSuccess(response);
+    @PostMapping(value = "/register", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ApiResponse<UserResponseDto> register(
+            @RequestPart("request") UserRegistrationRequestDto request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
+        return ApiResponse.onSuccess(userService.createUser(request, profileImage));
     }
 
     @Operation(summary = "로그인 API", description = "이메일과 비밀번호로 로그인하는 API입니다.")

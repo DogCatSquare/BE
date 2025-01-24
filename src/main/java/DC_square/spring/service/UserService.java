@@ -1,6 +1,9 @@
 package DC_square.spring.service;
 
 
+import DC_square.spring.config.S3.AmazonS3Manager;
+import DC_square.spring.config.S3.Uuid;
+import DC_square.spring.config.S3.UuidRepository;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.Region;
@@ -19,9 +22,11 @@ import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,9 +37,11 @@ public class UserService {
     private final RegionRepository regionRepository;
     private final PetRepository petRepository;
     private final DdayRepository ddayRepository;
+    private final UuidRepository uuidRepository;
+    private final AmazonS3Manager s3Manager;
 
     @Transactional
-    public UserResponseDto createUser(UserRegistrationRequestDto request) {  // DTO 타입 변경
+    public UserResponseDto createUser(UserRegistrationRequestDto request, MultipartFile profileImage) {
         // 이메일 중복 검사
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
@@ -59,6 +66,15 @@ public class UserService {
             return regionRepository.save(newRegion);
         });
 
+        // 프로필 이미지 업로드
+        String profileImageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            profileImageUrl = s3Manager.uploadFile(s3Manager.generateProfile(savedUuid), profileImage);
+        }
+
+
         // RequestDto -> Entity, DB에 저장
         User user = User.builder()
                 .email(request.getEmail())
@@ -67,6 +83,7 @@ public class UserService {
                 .phoneNumber(request.getPhoneNumber())
                 .regionId(region.getId().toString())
                 .adAgree(request.getAdAgree())
+                .profileImageUrl(profileImageUrl)
                 .build();
 
         // 저장
