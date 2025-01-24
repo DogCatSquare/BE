@@ -33,4 +33,10 @@ public class Pet {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    //펫 이미지
+    @Column(name = "pet_image_url")
+    private String petImageUrl;
+
+
 }

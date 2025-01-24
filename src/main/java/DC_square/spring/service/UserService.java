@@ -41,7 +41,7 @@ public class UserService {
     private final AmazonS3Manager s3Manager;
 
     @Transactional
-    public UserResponseDto createUser(UserRegistrationRequestDto request, MultipartFile profileImage) {
+    public UserResponseDto createUser(UserRegistrationRequestDto request, MultipartFile profileImage, MultipartFile petImage) {
         // 이메일 중복 검사
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
@@ -89,18 +89,26 @@ public class UserService {
         // 저장
         User savedUser = userRepository.save(user);
 
-        // 여러 반려동물 정보 저장
-        for (PetRegistrationDto petDto : request.getPets()) {
-            Pet pet = Pet.builder()
-                    .petName(petDto.getPetName())
-                    .dogCat(petDto.getDogCat())
-                    .breed(petDto.getBreed())
-                    .birth(petDto.convertBirthToLocalDate())
-                    .user(savedUser)
-                    .build();
+        // 반려동물 저장
+        String petImageUrl = null;
+        if (petImage != null && !petImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            petImageUrl = s3Manager.uploadFile(s3Manager.generatePet(savedUuid), petImage);
+        }
+
+        Pet pet = Pet.builder()
+                .petName(request.getPet().getPetName())
+                .dogCat(request.getPet().getDogCat())
+                .breed(request.getPet().getBreed())
+                .birth(request.getPet().convertBirthToLocalDate())
+                .user(savedUser)
+                .petImageUrl(petImageUrl)
+                .build();
 
             petRepository.save(pet);
-        }
+
+
         // D-day 생성 - 사료 구매
         LocalDate foodDate = LocalDate.parse(request.getFoodDate());
         Dday foodDday = Dday.builder()

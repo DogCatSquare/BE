@@ -15,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Tag(name = "User", description = "유저 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -26,9 +28,10 @@ public class UserController {
     @PostMapping(value = "/register", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ApiResponse<UserResponseDto> register(
             @RequestPart("request") UserRegistrationRequestDto request,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
-    ) {
-        return ApiResponse.onSuccess(userService.createUser(request, profileImage));
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @RequestPart(value = "petImage", required = false) MultipartFile petImage
+    ){
+        return ApiResponse.onSuccess(userService.createUser(request, profileImage,petImage));
     }
 
     @Operation(summary = "로그인 API", description = "이메일과 비밀번호로 로그인하는 API입니다.")
