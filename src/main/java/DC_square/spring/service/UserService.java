@@ -7,6 +7,7 @@ import DC_square.spring.config.S3.UuidRepository;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.Region;
+import DC_square.spring.domain.enums.DdayType;
 import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.RegionRepository;
@@ -115,7 +116,9 @@ public class UserService {
                 .day(foodDate.plusWeeks(request.getFoodDuring()))
                 .term(request.getFoodDuring())
                 .user(savedUser)
+                .type(DdayType.FOOD)
                 .build();
+        foodDday.setDefaultImageUrl();
         ddayRepository.save(foodDday);
 
         // D-day 생성 - 패드/모래 구매
@@ -125,7 +128,9 @@ public class UserService {
                 .day(padDate.plusWeeks(request.getPadDuring()))
                 .term(request.getPadDuring())
                 .user(savedUser)
+                .type(DdayType.PAD)
                 .build();
+        padDday.setDefaultImageUrl();
         ddayRepository.save(padDday);
 
         // D-day 생성 - 병원 방문일
@@ -134,7 +139,9 @@ public class UserService {
                 .title("병원 방문일")
                 .day(hospitalDate)
                 .user(savedUser)
+                .type(DdayType.HOSPITAL)
                 .build();
+        hospitalDday.setDefaultImageUrl();
         ddayRepository.save(hospitalDday);
 
         return UserResponseDto.from(savedUser);

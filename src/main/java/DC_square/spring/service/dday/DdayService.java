@@ -2,6 +2,7 @@ package DC_square.spring.service.dday;
 
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.User;
+import DC_square.spring.domain.enums.DdayType;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.web.dto.request.dday.DdayRequestDto;
@@ -26,8 +27,10 @@ public class DdayService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         Dday dday = request.toEntity(user);
-        Dday savedDday = ddayRepository.save(dday);
+        dday.setType(DdayType.CUSTOM);
+        dday.setDefaultImageUrl();
 
+        Dday savedDday = ddayRepository.save(dday);
         return DdayResponseDto.from(savedDday);
     }
 
