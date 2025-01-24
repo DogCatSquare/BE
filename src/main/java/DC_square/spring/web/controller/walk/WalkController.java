@@ -25,11 +25,11 @@ public class WalkController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @Parameters({
-            @Parameter(name = "userId", description = "조회하는 유저의 아이디"),
-            @Parameter(name = "latitude", description = "현재 위치의 위도"),
-            @Parameter(name = "longitude", description = "현재 위치의 경도")
-    })
+//    @Parameters({
+//            @Parameter(name = "userId", description = "조회하는 유저의 아이디"),
+//            @Parameter(name = "latitude", description = "현재 위치의 위도"),
+//            @Parameter(name = "longitude", description = "현재 위치의 경도")
+//    })
     @PostMapping("/walks")
     public ApiResponse<WalkResponseDto> viewWalkList(
             @RequestBody WalkRequestDto walkRequestDto
@@ -51,7 +51,6 @@ public class WalkController {
         WalkDetailResponseDto walkDetailResponseDto = walkService.getWalkDetails(walkId);
         return ApiResponse.onSuccess(walkDetailResponseDto);
     }
-
     @Operation(summary = "산책로 등록 API", description = "새로운 산책로를 등록하는 API입니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON201", description = "산책로 등록 성공"),
@@ -59,12 +58,11 @@ public class WalkController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON401", description = "로그인 필요"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON500", description = "서버 오류")
     })
-    @PostMapping("/walks/create/{userId}")
+    @PostMapping("/walks/create")
     public ApiResponse<WalkCreateResponseDto> createWalk(
-            @PathVariable Long userId,
             @RequestBody WalkCreateRequestDto walkCreateRequestDto
     ) {
-        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, userId);
+        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, walkCreateRequestDto.getUserId());
         return ApiResponse.onSuccess(walkCreateResponseDto);
     }
 }

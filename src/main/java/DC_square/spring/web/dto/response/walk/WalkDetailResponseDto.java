@@ -22,18 +22,4 @@ public class WalkDetailResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private WalkResponseDto.CreatedByDto createdBy;
-
-    @Getter
-    @Builder
-    public static class CoordinateDto {
-        private Double latitude;
-        private Double longitude;
-        private Integer sequence;
-    }
-
-    @Getter
-    @Builder
-    public static class SpecialDto {
-        private String type;
-    }
 }
