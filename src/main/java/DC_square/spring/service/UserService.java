@@ -267,7 +267,7 @@ public class UserService {
 
     //반려동물 수정
     @Transactional
-    public PetResponseDto modifyPet(Long userId, Long petId, PetRegistrationDto request) {
+    public PetResponseDto modifyPet(Long userId, Long petId, PetRegistrationDto request, MultipartFile petImage) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         Pet pet = petRepository.findById(petId)
@@ -278,11 +278,19 @@ public class UserService {
             throw new RuntimeException("해당 반려동물을 수정할 권한이 없습니다.");
         }
 
+        String petImageUrl = pet.getPetImageUrl();
+        if (petImage != null && !petImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            petImageUrl = s3Manager.uploadFile(s3Manager.generatePet(savedUuid), petImage);
+        }
+
         // 반려동물 정보 업데이트
         pet.setPetName(request.getPetName());
         pet.setDogCat(request.getDogCat());
         pet.setBreed(request.getBreed());
         pet.setBirth(request.convertBirthToLocalDate());
+        pet.setPetImageUrl(petImageUrl);
 
         // 변경 사항 저장
         Pet updatedPet = petRepository.save(pet);
@@ -290,5 +298,4 @@ public class UserService {
         // 수정된 반려동물 정보 반환
         return PetResponseDto.from(updatedPet);
     }
-
 }

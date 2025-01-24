@@ -57,12 +57,13 @@ public class PetController {
     }
 
     @Operation(summary = "반려동물 수정 API", description = "반려동물 정보를 수정하는 API입니다.")
-    @PutMapping("/{userId}/modifypet/{petId}")
+    @PutMapping(value = "/{userId}/modifypet/{petId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ApiResponse<PetResponseDto> modifyPet(
             @PathVariable Long userId,
             @PathVariable Long petId,
-            @Valid @RequestBody PetRegistrationDto request) {
-        return ApiResponse.onSuccess(userService.modifyPet(userId, petId, request));
+            @RequestPart("request") PetRegistrationDto request,
+            @RequestPart(value = "petImage", required = false) MultipartFile petImage
+    ) {
+        return ApiResponse.onSuccess(userService.modifyPet(userId, petId, request, petImage));
     }
-
 }
