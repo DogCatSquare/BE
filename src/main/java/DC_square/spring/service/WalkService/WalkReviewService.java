@@ -1,8 +1,8 @@
 package DC_square.spring.service.WalkService;
 
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.domain.entity.Walk;
-import DC_square.spring.domain.entity.WalkReview;
+import DC_square.spring.domain.entity.walk.Walk;
+import DC_square.spring.domain.entity.walk.WalkReview;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
 import DC_square.spring.repository.community.UserRepository;

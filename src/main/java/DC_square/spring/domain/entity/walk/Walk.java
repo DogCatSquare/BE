@@ -1,11 +1,11 @@
-package DC_square.spring.domain.entity;
+package DC_square.spring.domain.entity.walk;
 
+import DC_square.spring.domain.entity.Coordinate;
+import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.enums.Difficulty;
 import DC_square.spring.domain.enums.Special;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

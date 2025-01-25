@@ -1,6 +1,6 @@
 package DC_square.spring.service.WalkService;
 
-import DC_square.spring.domain.entity.Walk;
+import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.Coordinate;
 import DC_square.spring.domain.enums.Special;
 import DC_square.spring.domain.entity.User;
@@ -14,7 +14,6 @@ import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.stream.Collectors;
 

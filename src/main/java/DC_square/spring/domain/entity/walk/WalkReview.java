@@ -1,12 +1,10 @@
-package DC_square.spring.domain.entity;
+package DC_square.spring.domain.entity.walk;
 
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.domain.entity.Walk;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
