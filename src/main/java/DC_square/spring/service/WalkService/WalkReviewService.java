@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -65,5 +66,31 @@ public class WalkReviewService {
         }
 
         walkReviewRepository.delete(walkReview);
+    }
+
+    public WalkReviewResponseDto viewWalkReviewList(Long walkId) {
+        Walk walk = walkRepository.findById(walkId)
+                .orElseThrow(() -> new RuntimeException("산책로를 찾을 수 없습니다."));
+
+        List<WalkReview> walkReviews = walkReviewRepository.findByWalk(walk);
+
+        List<WalkReviewResponseDto.WalkReviewDto> walkReviewDtos = walkReviews.stream()
+                .map(review -> WalkReviewResponseDto.WalkReviewDto.builder()
+                        .reviewId(review.getId())
+                        .walkId(walk.getId())
+                        .content(review.getContent())
+                        .createdAt(review.getCreatedAt())
+                        .updatedAt(review.getUpdatedAt())
+                        .createdBy(WalkResponseDto.CreatedByDto.builder()
+                                .userId(String.valueOf(review.getUser().getId()))
+                                .nickname(review.getUser().getNickname())
+                                //.breed(review.getUser().getBreed())
+                                .build())
+                        .build())
+                .collect(Collectors.toList());
+
+        return WalkReviewResponseDto.builder()
+                .walkReviews(walkReviewDtos)
+                .build();
     }
 }

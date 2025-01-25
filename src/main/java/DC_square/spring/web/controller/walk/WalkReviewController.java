@@ -51,4 +51,18 @@ public class WalkReviewController {
         walkReviewService.deleteWalkReview(reviewId, userId);
         return ApiResponse.onSuccess(null, "산책로 후기 삭제에 성공했습니다.");
     }
+
+    @Operation(summary = "산책로 후기 목록 조회 API", description = "특정 산책로에 대한 후기 목록을 조회하는 API입니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "잘못된 요청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON500", description = "서버 오류")
+    })
+    @GetMapping
+    public ApiResponse<WalkReviewResponseDto> viewWalkReviewList(
+            @PathVariable Long walkId
+    ) {
+        WalkReviewResponseDto walkReviewResponseDto = walkReviewService.viewWalkReviewList(walkId);
+        return ApiResponse.onSuccess(walkReviewResponseDto);
+    }
 }
