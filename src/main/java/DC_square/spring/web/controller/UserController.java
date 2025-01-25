@@ -1,14 +1,19 @@
 package DC_square.spring.web.controller;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.config.jwt.JwtTokenProvider;
+import DC_square.spring.domain.entity.User;
+import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.service.UserService;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.UserRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
+import DC_square.spring.web.dto.response.user.LoginResponseDto;
 import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -23,6 +28,8 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Operation(summary = "회원가입 API", description = "새로운 유저를 생성하는 API입니다.")
     @PostMapping(value = "/register", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -36,8 +43,8 @@ public class UserController {
 
     @Operation(summary = "로그인 API", description = "이메일과 비밀번호로 로그인하는 API입니다.")
     @PostMapping("/login")
-    public ApiResponse<UserResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        UserResponseDto response = userService.login(request);
+    public ApiResponse<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
+        LoginResponseDto response = userService.login(request);
         return ApiResponse.onSuccess(response);
     }
 
@@ -55,10 +62,14 @@ public class UserController {
         return ApiResponse.onSuccess(isDuplicate);
     }
 
-    @Operation(summary = "유저 조회 API", description = "유저 조회하는 API입니다.")
-    @GetMapping("/{userId}/users-inquiry")
-    public ApiResponse<UserInqueryResponseDto> getUserById(@PathVariable  Long userId) {
-        UserInqueryResponseDto userInfo = userService.getUserInfo(userId);
-        return ApiResponse.onSuccess(userInfo);
+    @GetMapping("/users-inquiry")
+    public ApiResponse<UserInqueryResponseDto> getUserInfo(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository .findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        return ApiResponse.onSuccess(userService.getUserInfo(user.getId()));
     }
 }

@@ -4,6 +4,7 @@ package DC_square.spring.service;
 import DC_square.spring.config.S3.AmazonS3Manager;
 import DC_square.spring.config.S3.Uuid;
 import DC_square.spring.config.S3.UuidRepository;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.Region;
@@ -18,8 +19,10 @@ import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
 import DC_square.spring.web.dto.response.PetResponseDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
+import DC_square.spring.web.dto.response.user.LoginResponseDto;
 import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RegionRepository regionRepository;
     private final PetRepository petRepository;
@@ -78,7 +83,7 @@ public class UserService {
         // RequestDto -> Entity, DB에 저장
         User user = User.builder()
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 변화나
                 .nickname(request.getNickname())
                 .phoneNumber(request.getPhoneNumber())
                 .regionId(region.getId().toString())
@@ -148,15 +153,23 @@ public class UserService {
     }
 
     // 로그인
-    public UserResponseDto login(LoginRequestDto request) {
+    public LoginResponseDto login(LoginRequestDto request) {
+        //이메일 여부 확인
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 이메일입니다."));
-
-        if (!user.getPassword().equals(request.getPassword())) {
+        // 비밀번호 일치 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())){
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
+        // 토큰 생성
+        String token = jwtTokenProvider.createToken(user.getEmail());
 
-        return UserResponseDto.from(user);
+        return LoginResponseDto.builder()
+                .token(token)
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .userId(user.getId())
+                .build();
     }
 
     // 이메일 중복 확인

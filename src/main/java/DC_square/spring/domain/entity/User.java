@@ -4,6 +4,8 @@ package DC_square.spring.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Builder
@@ -18,7 +20,7 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 120)
     private String password;
 
     @Column(nullable = false, length = 10)
