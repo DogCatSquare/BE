@@ -34,4 +34,21 @@ public class WalkReviewController {
         WalkReviewResponseDto responseDto = walkReviewService.createWalkReview(reviewCreateRequestDto, walkId);
         return ApiResponse.onSuccess(responseDto);
     }
+
+    @Operation(summary = "산책로 후기 삭제 API", description = "특정 산책로 후기를 삭제하는 API입니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 삭제 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "산책로 후기를 찾을 수 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON403", description = "삭제 권한 없음")
+    })
+    @Parameter(name = "reviewId", description = "삭제할 산책로 후기의 ID", required = true)
+    @Parameter(name = "userId", description = "요청한 사용자의 ID", required = true)
+    @DeleteMapping("/{reviewId}/users/{userId}")
+    public ApiResponse<Void> deleteWalkReview(
+            @PathVariable Long reviewId,
+            @PathVariable Long userId
+    ) {
+        walkReviewService.deleteWalkReview(reviewId, userId);
+        return ApiResponse.onSuccess(null, "산책로 후기 삭제에 성공했습니다.");
+    }
 }

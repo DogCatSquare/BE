@@ -52,4 +52,18 @@ public class WalkReviewService {
 
         return new WalkReviewResponseDto(List.of(reviewDto));
     }
+
+    public void deleteWalkReview(Long reviewId, Long userId) throws RuntimeException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
+
+        WalkReview walkReview = walkReviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("해당 후기를 찾을 수 없습니다."));
+
+        if (!walkReview.getUser().getId().equals(userId)) {
+            throw new RuntimeException("산책로 후기 삭제 권한이 없습니다.");
+        }
+
+        walkReviewRepository.delete(walkReview);
+    }
 }
