@@ -20,7 +20,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configure(http))  // CORS 설정 추가
+                .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
@@ -28,7 +28,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

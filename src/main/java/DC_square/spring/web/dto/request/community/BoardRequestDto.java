@@ -22,4 +22,5 @@ public class BoardRequestDto {
     private List<String> keywords;
 
     private LocalDateTime createdAt;
+
 }

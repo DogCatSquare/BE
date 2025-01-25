@@ -1,0 +1,13 @@
+package DC_square.spring.web.dto.request.place;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class PlaceRequestDTO {
+
+    private Long userId;
+    private Double longitude;
+    private Double latitude;
+}
