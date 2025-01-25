@@ -44,4 +44,17 @@ public class WalkReviewLikeService {
                 .message("좋아요를 추가했습니다.")
                 .build();
     }
+
+    public WalkReviewLikeResponseDto cancelLike(Long likeId) {
+        WalkReviewLike walkReviewLike = walkReviewLikeRepository.findById(likeId)
+                .orElseThrow(() -> new RuntimeException("좋아요 정보를 찾을 수 없습니다."));
+
+        walkReviewLikeRepository.delete(walkReviewLike);
+
+        return WalkReviewLikeResponseDto.builder()
+                .status(200)
+                .success(true)
+                .message("좋아요를 취소했습니다.")
+                .build();
+    }
 }
