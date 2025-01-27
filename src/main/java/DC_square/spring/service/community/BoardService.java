@@ -74,6 +74,51 @@ public class BoardService {
                 .build();
     }
 
+    public BoardResponseDto updateBoard(Long boardId, BoardRequestDto boardRequestDto) {
+        // 1. Board를 조회
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시판 id가 존재하지 않습니다."));
+
+        // 2. Board 이름과 내용 업데이트
+        board.setBoardName(boardRequestDto.getBoardName());
+        board.setContent(boardRequestDto.getContent());
+
+        // 3. 키워드가 요청에 포함된 경우에만 업데이트
+        if (boardRequestDto.getKeywords() != null && !boardRequestDto.getKeywords().isEmpty()) {
+            // 기존 키워드 리스트를 비우고 새 키워드 추가
+            board.getKeywordList().clear(); //리스트 비우기(orphanRemoval = true로 인해 db에서도 지워짐)
+            List<Keyword> keywordList = boardRequestDto.getKeywords().stream()
+                    .map(keyword -> Keyword.builder()
+                            .keyword(keyword)
+                            .board(board) // Board와 연관 설정
+                            .build())
+                    .toList();
+            board.getKeywordList().addAll(keywordList);
+        }
+
+        // 4. 변경된 Board 저장
+        Board updatedBoard = boardRepository.save(board);
+
+        // 5. BoardResponseDto 생성 및 반환
+        return BoardResponseDto.builder()
+                .id(updatedBoard.getId())
+                .boardName(updatedBoard.getBoardName())
+                .content(updatedBoard.getContent())
+                .keywords(updatedBoard.getKeywordList().stream()
+                        .map(Keyword::getKeyword)
+                        .toList())
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+
+    /**
+     * 게시판 삭제 API
+     */
+    public void deleteBoard(Long boardId) {
+        boardRepository.deleteById(boardId);
+    }
+
 
 
 
