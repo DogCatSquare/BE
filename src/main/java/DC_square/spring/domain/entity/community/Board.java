@@ -22,7 +22,7 @@ public class Board {
     private Long id;
 
     @Column(name = "title",nullable = false)
-    private String title;
+    private String boardName;
 
     @Column(name = "content",nullable = false)
     private String content;
@@ -33,6 +33,5 @@ public class Board {
     @CreatedDate
     private LocalDateTime createdDate = LocalDateTime.now();
 
-    private String imagePath;
 
 }

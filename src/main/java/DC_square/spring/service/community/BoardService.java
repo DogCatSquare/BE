@@ -28,20 +28,11 @@ public class BoardService {
     /**
      * 게시판 생성 API
      */
-    public BoardResponseDto createdBoard(BoardRequestDto boardRequestDto, MultipartFile boardPicture) {
-
-        String uuid = UUID.randomUUID().toString();
-        Uuid savedUuid = uuidRepository.save(Uuid.builder()
-                .uuid(uuid).build());
-
-        String pictureUrl = s3Manager.uploadFile(s3Manager.generateCommunity(savedUuid),boardPicture);
-
-
+    public BoardResponseDto createdBoard(BoardRequestDto boardRequestDto) {
         //Board 엔티티 생성
         Board board = Board.builder()
-                .title(boardRequestDto.getTitle())
+                .boardName(boardRequestDto.getBoardName())
                 .content(boardRequestDto.getContent())
-                .imagePath(pictureUrl)
                 .build();
 
         // 키워드 매핑(List<String> keywords -> List<Keyword> keywordList)
@@ -62,8 +53,7 @@ public class BoardService {
         //BoardResponseDto 생성해서 반환
         return BoardResponseDto.builder()
                 .id(savedBoard.getId())
-                .title(savedBoard.getTitle())
-                .imagePath(savedBoard.getImagePath())
+                .boardName(savedBoard.getBoardName())
                 .content(savedBoard.getContent())
                 .keywords(keywordList.stream()
                         .map(Keyword::getKeyword)
@@ -85,9 +75,8 @@ public class BoardService {
 
         return BoardResponseDto.builder()
                 .id(board.getId())
-                .title(board.getTitle())
+                .boardName(board.getBoardName())
                 .content(board.getContent())
-                .imagePath(board.getImagePath())
                 .keywords(keywords)
                 .createDate(LocalDateTime.now())
                 .build();

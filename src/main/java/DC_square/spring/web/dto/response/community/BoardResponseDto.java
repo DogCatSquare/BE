@@ -14,13 +14,11 @@ public class BoardResponseDto {
 
     private Long id;
 
-    private String title;
+    private String boardName;
 
     private String content;
 
     private List<String> keywords;
 
     private LocalDateTime createDate;
-
-    private String imagePath;
 }
