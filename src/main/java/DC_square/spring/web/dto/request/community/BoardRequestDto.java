@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -24,7 +23,5 @@ public class BoardRequestDto {
 
     @Size(max = 3, message = "키워드는 최대 3개까지만 입력 가능합니다.")
     private List<String> keywords;
-
-    private LocalDateTime createdAt;
 
 }

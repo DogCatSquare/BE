@@ -18,8 +18,8 @@ public class PostRequestDto {
     @Size(min = 2, max = 15,  message = "게시글 제목은 최소 2자~15자입니다.")
     private String title;
 
-    @NotBlank(message = "게시글 제목은 필수입니다")
-    @Size(max = 300,  message = "게시글 내용은은 300자를 초과할 수 없습니다.")
+    @NotBlank(message = "게시글 내용은 필수입니다")
+    @Size(max = 300,  message = "게시글 내용은 300자를 초과할 수 없습니다.")
     private String content;
     private String video_URL;
     private LocalDateTime created_at;

@@ -47,7 +47,7 @@ public class Post {
     private Board board;
 
     @ElementCollection
-    @CollectionTable(name = "community_images", joinColumns = @JoinColumn(name = "review_id"))
+    @CollectionTable(name = "community_images", joinColumns = @JoinColumn(name = "post_id"))
     private List<String> communityImages;
 
     @CreatedDate

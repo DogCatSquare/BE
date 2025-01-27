@@ -1,8 +1,5 @@
 package DC_square.spring.service.community;
 
-import DC_square.spring.config.S3.AmazonS3Manager;
-import DC_square.spring.config.S3.Uuid;
-import DC_square.spring.config.S3.UuidRepository;
 import DC_square.spring.domain.entity.community.Board;
 import DC_square.spring.domain.entity.community.Keyword;
 import DC_square.spring.repository.community.BoardRepository;
@@ -10,20 +7,15 @@ import DC_square.spring.web.dto.request.community.BoardRequestDto;
 import DC_square.spring.web.dto.response.community.BoardResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
 
     private final BoardRepository boardRepository;
-
-    private final AmazonS3Manager s3Manager;
-    private final UuidRepository uuidRepository;
 
     /**
      * 게시판 생성 API
@@ -58,7 +50,7 @@ public class BoardService {
                 .keywords(keywordList.stream()
                         .map(Keyword::getKeyword)
                         .toList())
-                .createDate(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -78,7 +70,7 @@ public class BoardService {
                 .boardName(board.getBoardName())
                 .content(board.getContent())
                 .keywords(keywords)
-                .createDate(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 

@@ -26,6 +26,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+
     private final UuidRepository uuidRepository;
     private final AmazonS3Manager s3Manager;
 
