@@ -46,6 +46,10 @@ public class PostService {
                 })
                 .collect(Collectors.toList()) : new ArrayList<>();
 
+        // 유튜브 영상 ID 추출
+        String videoId = postRequestDto.getVideo_URL().substring(postRequestDto.getVideo_URL().length() - 11);
+        String thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("해당 사용자 조회할 수 없습니다."));
@@ -80,6 +84,7 @@ public class PostService {
                 .images(savedPost.getCommunityImages())
                 .like_count(savedPost.getLikeCount())
                 .comment_count(savedPost.getCommentCount())
+                .thumbnail_URL(thumbnailUrl)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -91,6 +96,10 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
 
+        // 유튜브 영상 ID 추출
+        String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
+        String thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+
         return PostResponseDto.builder()
                 .id(post.getId())
                 .board(post.getBoard().getBoardName())
@@ -98,8 +107,10 @@ public class PostService {
                 .content(post.getContent())
                 .content(post.getContent())
                 .video_URL(post.getVideo_URL())
+                .thumbnail_URL(thumbnailUrl)
                 .images(post.getCommunityImages())
                 .like_count(post.getLikeCount())
+                .thumbnail_URL(post.getVideo_URL() + "/0.jpg")
                 .comment_count(post.getCommentCount())
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -113,10 +124,15 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
 
+        // 유튜브 영상 ID 추출
+        String videoId = postRequestDto.getVideo_URL().substring(postRequestDto.getVideo_URL().length() - 11);
+        String thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+
         // 제목과 내용 수정
         post.setTitle(postRequestDto.getTitle());
         post.setContent(postRequestDto.getContent());
         post.setVideo_URL(postRequestDto.getVideo_URL());
+
 
         // 이미지 수정 여부 체크
         if (newImages != null && !newImages.isEmpty()) {
@@ -146,6 +162,7 @@ public class PostService {
                 .title(savedPost.getTitle())
                 .content(savedPost.getContent())
                 .video_URL(savedPost.getVideo_URL())
+                .thumbnail_URL(thumbnailUrl)
                 .images(savedPost.getCommunityImages()) // 수정된 이미지 목록
                 .like_count(savedPost.getLikeCount())
                 .comment_count(savedPost.getCommentCount())
