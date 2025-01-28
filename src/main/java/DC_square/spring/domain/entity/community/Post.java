@@ -7,6 +7,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -48,7 +49,7 @@ public class Post {
 
     @ElementCollection
     @CollectionTable(name = "community_images", joinColumns = @JoinColumn(name = "post_id"))
-    private List<String> communityImages;
+    private List<String> communityImages = new ArrayList<>();
 
     @CreatedDate
     private LocalDateTime created_at = LocalDateTime.now();
