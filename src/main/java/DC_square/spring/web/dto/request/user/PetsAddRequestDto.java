@@ -12,5 +12,5 @@ import java.util.List;
 public class PetsAddRequestDto {
     @NotEmpty(message = "최소 한 마리의 반려동물 정보가 필요합니다.")
     @Valid
-    private List<PetRegistrationDto> pets;
+    private PetRegistrationDto pet;
 }
