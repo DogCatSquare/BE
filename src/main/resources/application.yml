@@ -59,8 +59,6 @@ cloud:
         community: community
         dday: dday
         profile: profile
-
-
     region:
       static: ${CLOUD_AWS_REGION_STATIC}
     stack:
@@ -69,6 +67,11 @@ cloud:
       accessKey: ${AWS_ACCESS_KEY_ID}
       secretKey: ${AWS_SECRET_ACCESS_KEY}
 
+# Google Maps
 google:
   maps:
     api-key: ${GOOGLE_MAPS_API_KEY}
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}

@@ -5,14 +5,11 @@ import DC_square.spring.service.community.BoardService;
 import DC_square.spring.web.dto.request.community.BoardRequestDto;
 import DC_square.spring.web.dto.response.community.BoardResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -24,16 +21,15 @@ public class BoardController {
     /**
      * 게시판 생성 API
      */
-    @Operation(summary = "게시판 생성 API",description = "제목, 내용, 키워드(리스트 형태로) 작성해주세요")
+    @Operation(summary = "게시판 생성 API",description = "게시판 이름, 내용, 키워드(리스트 형태로) 작성해주세요")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
     })
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
+    @PostMapping
     public ApiResponse<BoardResponseDto> createBoard(
-            @Valid @RequestPart("request") BoardRequestDto boardRequestDto,
-            @RequestPart(value = "boardPicture") MultipartFile boardPicture
+            @Valid BoardRequestDto boardRequestDto
     ) {
-        return ApiResponse.onSuccess(boardService.createdBoard(boardRequestDto, boardPicture));
+        return ApiResponse.onSuccess(boardService.createdBoard(boardRequestDto));
     }
 
     /**
@@ -45,8 +41,35 @@ public class BoardController {
     })
     @GetMapping("/{boardId}")
     public ApiResponse<BoardResponseDto> getBoard(@PathVariable Long boardId) {
-        BoardResponseDto board = boardService.getBoard(boardId);
-        return ApiResponse.onSuccess(board);
+        return ApiResponse.onSuccess(boardService.getBoard(boardId));
     }
+
+    /**
+     * 게시판 수정 API
+     */
+    @Operation(summary = "게시판 수정 API",description = "게시판 아이디를 입력해주세요")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+    })
+    @PutMapping("/{boardId}")
+    public ApiResponse<BoardResponseDto> updateBoard(@PathVariable Long boardId, @Valid @RequestBody BoardRequestDto boardRequestDto) {
+        return ApiResponse.onSuccess(boardService.updateBoard(boardId,boardRequestDto));
+    }
+
+    /**
+     * 게시판 삭제 API
+     */
+    @Operation(summary = "게시판 삭제 API",description = "게시판 아이디를 입력해주세요")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+    })
+    @DeleteMapping("/{boardId}")
+    public ApiResponse<Void> deleteBoard(@PathVariable Long boardId) {
+        boardService.deleteBoard(boardId);
+        return ApiResponse.onSuccess(null); //성공 응답 반환
+    }
+
+
+
 
 }

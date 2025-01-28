@@ -4,6 +4,8 @@ package DC_square.spring.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Getter
 @Builder
@@ -18,7 +20,7 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 120)
     private String password;
 
     @Column(nullable = false, length = 10)
@@ -43,4 +45,9 @@ public class User {
     //광고 동의 여부
     @Column
     private Boolean adAgree;
+
+    //프로필 이미지
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
 }

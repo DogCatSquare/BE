@@ -47,7 +47,7 @@ public class UserRegistrationRequestDto {
     // 반려동물 정보 리스트
     @NotEmpty(message = "최소 한 마리의 반려동물 정보가 필요합니다.")
     @Valid
-    private List<PetRegistrationDto> pets;
+    private PetRegistrationDto pet; //한 마리만 등록하는걸로 디자인 변경
 
     @NotBlank(message = "사료 구매일은 필수입니다.")
     @Schema(example = "2025-01-12")

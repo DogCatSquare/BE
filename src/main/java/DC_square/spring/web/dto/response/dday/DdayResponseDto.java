@@ -17,6 +17,7 @@ public class DdayResponseDto {
     private Integer term;
     private Long daysLeft;
     private String dDayText;
+    private  String dDayImageUrl;
 
     public static DdayResponseDto from(Dday dday) {
         LocalDate today = LocalDate.now();
@@ -32,6 +33,7 @@ public class DdayResponseDto {
                 .term(dday.getTerm())
                 .daysLeft(daysUntil)
                 .dDayText(dDayStr)
+                .dDayImageUrl(dday.getImageUrl())
                 .build();
     }
 }
