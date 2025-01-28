@@ -7,6 +7,8 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -37,9 +39,6 @@ public class Post {
     @Column(name = "comment_count",nullable = false)
     private Integer commentCount;
 
-    @Column(name = "img_URL")
-    private String img_URL;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
     private User user;
@@ -48,8 +47,9 @@ public class Post {
     @JoinColumn(name = "board_id",nullable = false)
     private Board board;
 
-    @Column(name = "image",nullable = false)
-    private String imagePath;
+    @ElementCollection
+    @CollectionTable(name = "community_images", joinColumns = @JoinColumn(name = "post_id"))
+    private List<String> communityImages = new ArrayList<>();
 
     @CreatedDate
     private LocalDateTime created_at = LocalDateTime.now();
