@@ -43,10 +43,11 @@ public class PetController {
     }
 
 
-    @Operation(summary = "반려동물 전체 목록 조회 API", description = "사용자의 모든 반려동물 정보를 조회하는 API입니다.")
-    @GetMapping("/{userId}/allpets")
-    public ApiResponse<List<PetResponseDto>> getUserPets(@PathVariable Long userId){
-        return ApiResponse.onSuccess(userService.getPets(userId));
+    @Operation(summary = "반려동물 전체 목록 조회 API", description = "사용자의 모든 반려동물 정보를 조회하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @GetMapping
+    public ApiResponse<List<PetResponseDto>> getUserPets(HttpServletRequest request) {
+        User user = getUserFromToken(request);
+        return ApiResponse.onSuccess(userService.getPets(user.getId()));
     }
 
     @Operation(summary = "반려동물 상세 조회 API", description = "특정 반려동물의 상세 정보를 조회하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
@@ -69,15 +70,16 @@ public class PetController {
         return ApiResponse.onSuccess("반려동물이 성공적으로 삭제되었습니다");
     }
 
-    @Operation(summary = "반려동물 수정 API", description = "반려동물 정보를 수정하는 API입니다.")
-    @PutMapping(value = "/{userId}/modifypet/{petId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "반려동물 수정 API", description = "반려동물 정보를 수정하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @PutMapping(value = "/{petId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<PetResponseDto> modifyPet(
-            @PathVariable Long userId,
+            HttpServletRequest request,
             @PathVariable Long petId,
-            @RequestPart("request") PetRegistrationDto request,
+            @RequestPart("request") PetRegistrationDto petRequest,
             @RequestPart(value = "petImage", required = false) MultipartFile petImage
     ) {
-        return ApiResponse.onSuccess(userService.modifyPet(userId, petId, request, petImage));
+        User user = getUserFromToken(request);
+        return ApiResponse.onSuccess(userService.modifyPet(user.getId(), petId, petRequest, petImage));
     }
 
     // 토큰에서 사용자 정보를 가져오는 공통 메서드
