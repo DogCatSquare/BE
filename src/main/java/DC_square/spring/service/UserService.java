@@ -149,7 +149,11 @@ public class UserService {
         hospitalDday.setDefaultImageUrl();
         ddayRepository.save(hospitalDday);
 
-        return UserResponseDto.from(savedUser);
+        // 토큰 생성
+        String token = jwtTokenProvider.createToken(savedUser.getEmail());
+
+        // 토큰을 포함한 응답 반환
+        return UserResponseDto.from(savedUser, token);
     }
 
     // 로그인
