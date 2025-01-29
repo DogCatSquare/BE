@@ -49,19 +49,23 @@ public class PetController {
         return ApiResponse.onSuccess(userService.getPets(userId));
     }
 
-    @Operation(summary = "반려동물 상세 조회 API", description = "특정 반려동물의 상세 정보를 조회하는 API입니다.")
-    @GetMapping("/{userId}/pets/{petId}")
+    @Operation(summary = "반려동물 상세 조회 API", description = "특정 반려동물의 상세 정보를 조회하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @GetMapping("/{petId}")
     public ApiResponse<PetResponseDto> getPetDetail(
-            @PathVariable Long userId,
+            HttpServletRequest request,
             @PathVariable Long petId) {
-        return ApiResponse.onSuccess(userService.getPetDetail(userId, petId));
+        User user = getUserFromToken(request);
+        return ApiResponse.onSuccess(userService.getPetDetail(user.getId(), petId));
     }
 
 
-    @Operation(summary = "반려동물 삭제  API", description = "반려동물 정보를 삭제하는 API입니다.")
-    @DeleteMapping("/{userId}/delpet/{petId}")
-    public ApiResponse<String> deletePet(@PathVariable Long userId, @PathVariable Long petId){
-        userService.deletePet(userId,petId);
+    @Operation(summary = "반려동물 삭제 API", description = "반려동물 정보를 삭제하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @DeleteMapping("/{petId}")
+    public ApiResponse<String> deletePet(
+            HttpServletRequest request,
+            @PathVariable Long petId) {
+        User user = getUserFromToken(request);
+        userService.deletePet(user.getId(), petId);
         return ApiResponse.onSuccess("반려동물이 성공적으로 삭제되었습니다");
     }
 
