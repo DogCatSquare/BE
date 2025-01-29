@@ -37,13 +37,13 @@ public class Dday {
 
     public void setDefaultImageUrl() {
         switch(this.type) {
-            case FOOD: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/dday/food-icon.png";
+            case FOOD: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/pet/e085b385-c8af-4e49-971c-5f89fa6f22da";
                 break;
-            case PAD: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/dday/pad-icon.png";
+            case PAD: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/pet/cc948f41-584f-4cab-97bf-7c9b5cf02878";
                 break;
-            case HOSPITAL: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/dday/hospital-icon.png";
+            case HOSPITAL: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/pet/2527be55-bdff-4ffb-80a7-32496689b5c5";
                 break;
-            case CUSTOM: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/dday/custom-icon.png";
+            case CUSTOM: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/pet/3057edc6-9efa-4147-ba88-6276f057ffbb";
                 break;
         }
     }
