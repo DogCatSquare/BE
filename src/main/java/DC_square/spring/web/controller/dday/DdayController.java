@@ -57,12 +57,18 @@ public class DdayController {
     }
 
 
-    @Operation(summary = "D-day 삭제 API", description = "D-day를 삭제하는 API입니다.")
-    @DeleteMapping("/{userId}/ddays/{ddayId}")
+    @Operation(summary = "D-day 삭제 API", description = "D-day를 삭제하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @DeleteMapping("/{ddayId}")
     public ApiResponse<Void> deleteDday(
-            @PathVariable Long userId,
+            HttpServletRequest request,
             @PathVariable Long ddayId) {
-        ddayService.deleteDday(userId, ddayId);
+        String token = jwtTokenProvider.resolveToken(request);
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        ddayService.deleteDday(user.getId(), ddayId);
         return ApiResponse.onSuccess(null);
     }
 }
