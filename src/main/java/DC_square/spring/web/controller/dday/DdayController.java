@@ -2,11 +2,16 @@ package DC_square.spring.web.controller.dday;
 
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.config.jwt.JwtTokenProvider;
+import DC_square.spring.domain.entity.User;
+import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.service.dday.DdayService;
 import DC_square.spring.web.dto.request.dday.DdayRequestDto;
 import DC_square.spring.web.dto.response.dday.DdayResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +21,25 @@ import java.util.List;
 @Tag(name = "D-day", description = "D-day 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
+@RequestMapping("/api/ddays")
 public class DdayController {
     private final DdayService ddayService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
-    @Operation(summary = "D-day 생성 API", description = "새로운 D-day를 생성하는 API입니다.")
-    @PostMapping("/{userId}")
+
+    @Operation(summary = "D-day 생성 API", description = "새로운 D-day를 생성하는 API입니다.",security = @SecurityRequirement(name = "Authorization"))
+    @PostMapping
     public ApiResponse<DdayResponseDto> createDday(
-            @PathVariable Long userId,
-            @Valid @RequestBody DdayRequestDto request) {
-        DdayResponseDto response = ddayService.createDday(userId, request);
+            HttpServletRequest request,
+            @Valid @RequestBody DdayRequestDto ddayRequest) {
+        String token = jwtTokenProvider.resolveToken(request); //해더에서 JWT 토큰 추출
+        String userEmail = jwtTokenProvider.getUserEmail(token); //JWT 토큰을 복호화해서 저장했던 이메일을 가져온다
+
+        //추출한 이메일로 db에서 사용자 정보를 조회
+        User user = userRepository.findByEmail(userEmail).orElseThrow(()->new RuntimeException("사용자를 찾을 수 없습니다."));
+        // 디데이 생성
+        DdayResponseDto response = ddayService.createDday(user.getId(),ddayRequest);
         return ApiResponse.onSuccess(response);
     }
 
