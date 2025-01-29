@@ -43,13 +43,19 @@ public class DdayController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "사용자별 D-day 조회 API", description = "사용자의 모든 D-day를 조회하는 API입니다.")
-    @GetMapping("/{userId}/ddays")
-    public ApiResponse<List<DdayResponseDto>> getDdaysByUser(
-            @PathVariable Long userId) {
-        List<DdayResponseDto> response = ddayService.getDdaysByUser(userId);
+    @Operation(summary = "사용자별 D-day 조회 API", description = "사용자의 모든 D-day를 조회하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @GetMapping
+    public ApiResponse<List<DdayResponseDto>> getDdays(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        List<DdayResponseDto> response = ddayService.getDdaysByUser(user.getId());
         return ApiResponse.onSuccess(response);
     }
+
 
     @Operation(summary = "D-day 삭제 API", description = "D-day를 삭제하는 API입니다.")
     @DeleteMapping("/{userId}/ddays/{ddayId}")
