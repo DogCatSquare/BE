@@ -62,6 +62,7 @@ public class UserController {
         return ApiResponse.onSuccess(isDuplicate);
     }
 
+    @Operation(summary = "유저 조회 API", description = "유저정보를 조회합니다.")
     @GetMapping("/users-inquiry")
     public ApiResponse<UserInqueryResponseDto> getUserInfo(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
