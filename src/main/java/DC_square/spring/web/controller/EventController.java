@@ -36,4 +36,11 @@ public class EventController {
     public ApiResponse<List<EventResponseDto>> getEvents() {
         return ApiResponse.onSuccess(eventService.getEvents());
     }
+    @Operation(summary = "이벤트 삭제 API", description = "특정 이벤트를 삭제합니다.")
+    @DeleteMapping("/{eventId}")
+    public ApiResponse<Void> deleteEvent(@PathVariable Long eventId) {
+        eventService.deleteEvent(eventId);
+        return ApiResponse.onSuccess(null);
+    }
+
 }

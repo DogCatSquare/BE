@@ -59,4 +59,13 @@ public class EventService {
                 .map(EventResponseDto::from)
                 .collect(Collectors.toList());
     }
+
+    //이벤트 삭제
+    @Transactional
+    public void deleteEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("해당 이벤트를 찾을 수 없습니다."));
+        //추후에 S3에서 이미지 삭제로직 추가
+        eventRepository.delete(event);
+    }
 }
