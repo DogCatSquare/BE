@@ -43,7 +43,6 @@ public class Walk {
     @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WalkSpecial> specials = new ArrayList<>();
 
-    //private String customSpecial;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
