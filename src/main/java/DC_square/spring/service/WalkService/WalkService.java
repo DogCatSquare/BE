@@ -158,4 +158,41 @@ public class WalkService {
 
         walkRepository.delete(walk);
     }
+
+    public WalkResponseDto searchWalks(String title) {
+        List<Walk> walks = walkRepository.findByTitleContaining(title);
+
+        List<WalkResponseDto.WalkDto> walkDtos = walks.stream()
+                .map(walk -> WalkResponseDto.WalkDto.builder()
+                        .walkId(walk.getId())
+                        .title(walk.getTitle())
+                        .description(walk.getDescription())
+                        .distance(walk.getDistance())
+                        .time(walk.getTime())
+                        .difficulty(walk.getDifficulty().name())
+                        .special(walk.getSpecials().stream()
+                                .map(special -> WalkResponseDto.SpecialDto.builder()
+                                        .type(special.name())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .coordinates(walk.getCoordinates().stream()
+                                .map(coord -> WalkResponseDto.CoordinateDto.builder()
+                                        .latitude(coord.getLatitude())
+                                        .longitude(coord.getLongitude())
+                                        .sequence(coord.getSequence())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .createdAt(walk.getCreatedAt())
+                        .updatedAt(walk.getUpdatedAt())
+                        .createdBy(WalkResponseDto.CreatedByDto.builder()
+                                .userId(walk.getCreatedBy().getId().toString())
+                                .nickname(walk.getCreatedBy().getNickname())
+                                .build())
+                        .build())
+                .collect(Collectors.toList());
+
+        return WalkResponseDto.builder()
+                .walks(walkDtos)
+                .build();
+    }
 }

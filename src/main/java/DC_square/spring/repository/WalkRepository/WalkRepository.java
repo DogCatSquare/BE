@@ -21,4 +21,7 @@ public interface WalkRepository extends JpaRepository<Walk, Long> {
 
     @Query("SELECT w FROM Walk w WHERE w.id = :walkId")
     Optional<Walk> findById(@Param("walkId") Long walkId);
+
+    List<Walk> findByTitleContaining(String title);
+
 }
