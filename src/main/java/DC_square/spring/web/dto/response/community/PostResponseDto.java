@@ -10,15 +10,15 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardResponseDto {
-
+public class PostResponseDto {
     private Long id;
-
-    private String boardName;
-
+    private String board;
+    private String title;
     private String content;
-
-    private List<String> keywords;
-
+    private String video_URL;
+    private String thumbnail_URL;
+    private List<String> images;
+    private Integer like_count;
+    private Integer comment_count;
     private LocalDateTime createdAt;
 }

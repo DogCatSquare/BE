@@ -17,6 +17,7 @@ public class UserInqueryResponseDto {
     private String gu;
     private Boolean adAgree;
     private String firstPetBreed; // 첫 번째 반려동물 품종
+    private String profileImageUrl;
 
     public static UserInqueryResponseDto fromUser(User user, Region region, String firstPetBreed) {
         return UserInqueryResponseDto.builder()
@@ -29,6 +30,7 @@ public class UserInqueryResponseDto {
                 .gu(region.getGu())
                 .adAgree(user.getAdAgree())
                 .firstPetBreed(firstPetBreed)
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }
 }

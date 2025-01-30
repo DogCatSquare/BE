@@ -17,6 +17,7 @@ public class UserResponseDto {
     private String nickname;
     private String phoneNumber;
     private String regionId;
+    private String profileImageUrl;
 
     public static UserResponseDto from(User user) {
         return UserResponseDto.builder()
@@ -25,6 +26,8 @@ public class UserResponseDto {
                 .nickname(user.getNickname())
                 .phoneNumber(user.getPhoneNumber())
                 .regionId(user.getRegionId())
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
+
     }
 }

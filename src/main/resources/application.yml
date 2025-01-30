@@ -59,8 +59,6 @@ cloud:
         community: community
         dday: dday
         profile: profile
-
-
     region:
       static: ${CLOUD_AWS_REGION_STATIC}
     stack:
@@ -68,3 +66,6 @@ cloud:
     credentials:
       accessKey: ${AWS_ACCESS_KEY_ID}
       secretKey: ${AWS_SECRET_ACCESS_KEY}
+
+jwt:
+  secret: ${JWT_SECRET}

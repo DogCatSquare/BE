@@ -1,40 +1,52 @@
 package DC_square.spring.service;
 
 
+import DC_square.spring.config.S3.AmazonS3Manager;
+import DC_square.spring.config.S3.Uuid;
+import DC_square.spring.config.S3.UuidRepository;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.Region;
+import DC_square.spring.domain.enums.DdayType;
 import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.RegionRepository;
 import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.LoginRequestDto;
-import DC_square.spring.web.dto.request.user.PetsAddRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO 변경
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
 import DC_square.spring.web.dto.response.PetResponseDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
+import DC_square.spring.web.dto.response.user.LoginResponseDto;
 import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RegionRepository regionRepository;
     private final PetRepository petRepository;
     private final DdayRepository ddayRepository;
+    private final UuidRepository uuidRepository;
+    private final AmazonS3Manager s3Manager;
 
     @Transactional
-    public UserResponseDto createUser(UserRegistrationRequestDto request) {  // DTO 타입 변경
+    public UserResponseDto createUser(UserRegistrationRequestDto request, MultipartFile profileImage, MultipartFile petImage) {
         // 이메일 중복 검사
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
@@ -59,31 +71,49 @@ public class UserService {
             return regionRepository.save(newRegion);
         });
 
+        // 프로필 이미지 업로드
+        String profileImageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            profileImageUrl = s3Manager.uploadFile(s3Manager.generateProfile(savedUuid), profileImage);
+        }
+
+
         // RequestDto -> Entity, DB에 저장
         User user = User.builder()
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 변화나
                 .nickname(request.getNickname())
                 .phoneNumber(request.getPhoneNumber())
                 .regionId(region.getId().toString())
                 .adAgree(request.getAdAgree())
+                .profileImageUrl(profileImageUrl)
                 .build();
 
         // 저장
         User savedUser = userRepository.save(user);
 
-        // 여러 반려동물 정보 저장
-        for (PetRegistrationDto petDto : request.getPets()) {
-            Pet pet = Pet.builder()
-                    .petName(petDto.getPetName())
-                    .dogCat(petDto.getDogCat())
-                    .breed(petDto.getBreed())
-                    .birth(petDto.convertBirthToLocalDate())
-                    .user(savedUser)
-                    .build();
+        // 반려동물 저장
+        String petImageUrl = null;
+        if (petImage != null && !petImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            petImageUrl = s3Manager.uploadFile(s3Manager.generatePet(savedUuid), petImage);
+        }
+
+        Pet pet = Pet.builder()
+                .petName(request.getPet().getPetName())
+                .dogCat(request.getPet().getDogCat())
+                .breed(request.getPet().getBreed())
+                .birth(request.getPet().convertBirthToLocalDate())
+                .user(savedUser)
+                .petImageUrl(petImageUrl)
+                .build();
 
             petRepository.save(pet);
-        }
+
+
         // D-day 생성 - 사료 구매
         LocalDate foodDate = LocalDate.parse(request.getFoodDate());
         Dday foodDday = Dday.builder()
@@ -91,7 +121,9 @@ public class UserService {
                 .day(foodDate.plusWeeks(request.getFoodDuring()))
                 .term(request.getFoodDuring())
                 .user(savedUser)
+                .type(DdayType.FOOD)
                 .build();
+        foodDday.setDefaultImageUrl();
         ddayRepository.save(foodDday);
 
         // D-day 생성 - 패드/모래 구매
@@ -101,7 +133,9 @@ public class UserService {
                 .day(padDate.plusWeeks(request.getPadDuring()))
                 .term(request.getPadDuring())
                 .user(savedUser)
+                .type(DdayType.PAD)
                 .build();
+        padDday.setDefaultImageUrl();
         ddayRepository.save(padDday);
 
         // D-day 생성 - 병원 방문일
@@ -110,22 +144,32 @@ public class UserService {
                 .title("병원 방문일")
                 .day(hospitalDate)
                 .user(savedUser)
+                .type(DdayType.HOSPITAL)
                 .build();
+        hospitalDday.setDefaultImageUrl();
         ddayRepository.save(hospitalDday);
 
         return UserResponseDto.from(savedUser);
     }
 
     // 로그인
-    public UserResponseDto login(LoginRequestDto request) {
+    public LoginResponseDto login(LoginRequestDto request) {
+        //이메일 여부 확인
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 이메일입니다."));
-
-        if (!user.getPassword().equals(request.getPassword())) {
+        // 비밀번호 일치 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())){
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
+        // 토큰 생성
+        String token = jwtTokenProvider.createToken(user.getEmail());
 
-        return UserResponseDto.from(user);
+        return LoginResponseDto.builder()
+                .token(token)
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .userId(user.getId())
+                .build();
     }
 
     // 이메일 중복 확인
@@ -165,22 +209,30 @@ public class UserService {
 
     // 반려동물 추가
     @Transactional
-    public UserResponseDto addPets(Long userId, PetsAddRequestDto request) {
+    public UserResponseDto addPet(Long userId, PetRegistrationDto request, MultipartFile petImage) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 반려동물 저장
-        for (PetRegistrationDto petDto : request.getPets()) {
-            Pet pet = Pet.builder()
-                    .petName(petDto.getPetName())
-                    .dogCat(petDto.getDogCat())
-                    .breed(petDto.getBreed())
-                    .birth(petDto.convertBirthToLocalDate())
-                    .user(user)
-                    .build();
-
-            petRepository.save(pet);
+        String petImageUrl = null;
+        if (petImage != null && !petImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            petImageUrl = s3Manager.uploadFile(s3Manager.generatePet(savedUuid), petImage);
         }
+
+        // 반려동물 저장
+
+        Pet pet = Pet.builder()
+                .petName(request.getPetName())
+                .dogCat(request.getDogCat())
+                .breed(request.getBreed())
+                .birth(request.convertBirthToLocalDate())
+                .user(user)
+                .petImageUrl(petImageUrl)
+                .build();
+
+        petRepository.save(pet);
+
 
         // 업데이트된 사용자 정보 반환
         return UserResponseDto.from(user);
@@ -235,7 +287,7 @@ public class UserService {
 
     //반려동물 수정
     @Transactional
-    public PetResponseDto modifyPet(Long userId, Long petId, PetRegistrationDto request) {
+    public PetResponseDto modifyPet(Long userId, Long petId, PetRegistrationDto request, MultipartFile petImage) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         Pet pet = petRepository.findById(petId)
@@ -246,11 +298,19 @@ public class UserService {
             throw new RuntimeException("해당 반려동물을 수정할 권한이 없습니다.");
         }
 
+        String petImageUrl = pet.getPetImageUrl();
+        if (petImage != null && !petImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            petImageUrl = s3Manager.uploadFile(s3Manager.generatePet(savedUuid), petImage);
+        }
+
         // 반려동물 정보 업데이트
         pet.setPetName(request.getPetName());
         pet.setDogCat(request.getDogCat());
         pet.setBreed(request.getBreed());
         pet.setBirth(request.convertBirthToLocalDate());
+        pet.setPetImageUrl(petImageUrl);
 
         // 변경 사항 저장
         Pet updatedPet = petRepository.save(pet);
@@ -258,5 +318,4 @@ public class UserService {
         // 수정된 반려동물 정보 반환
         return PetResponseDto.from(updatedPet);
     }
-
 }
