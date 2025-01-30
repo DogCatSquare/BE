@@ -40,6 +40,7 @@ public class WalkResponseDto {
     @Builder
     public static class SpecialDto {
         private String type;
+        private String customValue;
     }
 
     @Getter

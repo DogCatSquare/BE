@@ -2,7 +2,9 @@ package DC_square.spring.service.WalkService;
 
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.Coordinate;
+import DC_square.spring.domain.entity.walk.WalkSpecial;
 import DC_square.spring.domain.enums.Special;
+import DC_square.spring.repository.WalkRepository.WalkSpecialRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.repository.community.UserRepository;
@@ -23,6 +25,7 @@ public class WalkService {
 
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
+    private final WalkSpecialRepository walkSpecialRepository;
 
     // 산책로 목록 조회
     public WalkResponseDto viewWalkList(WalkRequestDto walkRequestDto) {
@@ -38,13 +41,13 @@ public class WalkService {
                         .walkId(walk.getId())
                         .title(walk.getTitle())
                         .description(walk.getDescription())
-                        //.reviewCount(walk.getReviewCount())
+                        .reviewCount(walk.getReviewCount())
                         .distance(walk.getDistance())
                         .time(walk.getTime())
                         .difficulty(walk.getDifficulty().name())
                         .special(walk.getSpecials().stream()
                                 .map(special -> WalkResponseDto.SpecialDto.builder()
-                                        .type(special.name())
+                                        .type(special.getSpecialType().name())
                                         .build())
                                 .collect(Collectors.toList()))
                         .coordinates(walk.getCoordinates().stream()
@@ -101,7 +104,7 @@ public class WalkService {
                 .difficulty(walk.getDifficulty().name())
                 .special(walk.getSpecials().stream()
                         .map(special -> WalkResponseDto.SpecialDto.builder()
-                                .type(special.name())
+                                .type(special.getSpecialType().name())
                                 .build())
                         .collect(Collectors.toList()))
                 .startCoordinates(startCoordinates)
@@ -120,15 +123,19 @@ public class WalkService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+//        List<WalkSpecial> specials = walkCreateRequestDto.getSpecial().stream()
+//                .map(specialDto -> {
+//                    Special special = Special.fromString(specialDto.getType());
+//                    String customValue = special == Special.OTHER ? specialDto.getCustomValue() : null;
+//                    return new WalkSpecial(special, customValue, savedWalk);                })
+//                .collect(Collectors.toList());
+
         Walk walk = Walk.builder()
                 .title(walkCreateRequestDto.getTitle())
                 .description(walkCreateRequestDto.getDescription())
                 .distance(walkCreateRequestDto.getDistance())
                 .time(walkCreateRequestDto.getTime())
                 .difficulty(walkCreateRequestDto.getDifficulty())
-                .specials(walkCreateRequestDto.getSpecial().stream()
-                        .map(specialDto -> Special.valueOf(specialDto.getType()))
-                        .collect(Collectors.toList()))
                 .coordinates(walkCreateRequestDto.getCoordinates().stream()
                         .map(coordDto -> Coordinate.builder()
                                 .latitude(coordDto.getLatitude())
@@ -141,6 +148,16 @@ public class WalkService {
                 .build();
 
         Walk savedWalk = walkRepository.save(walk);
+
+        List<WalkSpecial> specials = walkCreateRequestDto.getSpecial().stream()
+                .map(specialDto -> {
+                    Special special = Special.fromString(specialDto.getType());
+                    String customValue = special == Special.OTHER ? specialDto.getCustomValue() : null;
+                    return new WalkSpecial(special, customValue, savedWalk);
+                })
+                .collect(Collectors.toList());
+
+        walkSpecialRepository.saveAll(specials);
 
         return new WalkCreateResponseDto(true, "산책로 등록에 성공했습니다.", savedWalk.getId());
     }
@@ -172,7 +189,7 @@ public class WalkService {
                         .difficulty(walk.getDifficulty().name())
                         .special(walk.getSpecials().stream()
                                 .map(special -> WalkResponseDto.SpecialDto.builder()
-                                        .type(special.name())
+                                        .type(special.getSpecialType().name())
                                         .build())
                                 .collect(Collectors.toList()))
                         .coordinates(walk.getCoordinates().stream()

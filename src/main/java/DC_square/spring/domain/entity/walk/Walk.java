@@ -40,12 +40,8 @@ public class Walk {
     @Column(nullable = false)
     private Difficulty difficulty;
 
-    @ElementCollection
-    @CollectionTable(name = "walk_specials",
-            joinColumns = @JoinColumn(name = "walk_id"))
-    @Column(name = "special")
-    @Enumerated(EnumType.STRING)
-    private List<Special> specials = new ArrayList<>();
+    @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<WalkSpecial> specials = new ArrayList<>();
 
     //private String customSpecial;
 
