@@ -1,5 +1,6 @@
 package DC_square.spring.service.WalkService;
 
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.Coordinate;
 import DC_square.spring.domain.entity.walk.WalkSpecial;
@@ -13,6 +14,7 @@ import DC_square.spring.web.dto.request.walk.WalkCreateRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkCreateResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkDetailResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ public class WalkService {
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
     private final WalkSpecialRepository walkSpecialRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 산책로 목록 조회
     public WalkResponseDto viewWalkList(WalkRequestDto walkRequestDto) {
@@ -119,16 +122,15 @@ public class WalkService {
                 .build();
     }
 
-    public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, String token) {
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("잘못된 토큰입니다.");
+        }
 
-//        List<WalkSpecial> specials = walkCreateRequestDto.getSpecial().stream()
-//                .map(specialDto -> {
-//                    Special special = Special.fromString(specialDto.getType());
-//                    String customValue = special == Special.OTHER ? specialDto.getCustomValue() : null;
-//                    return new WalkSpecial(special, customValue, savedWalk);                })
-//                .collect(Collectors.toList());
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Walk walk = Walk.builder()
                 .title(walkCreateRequestDto.getTitle())
@@ -162,9 +164,15 @@ public class WalkService {
         return new WalkCreateResponseDto(true, "산책로 등록에 성공했습니다.", savedWalk.getId());
     }
 
-    public void deleteWalk(Long walkId, Long userId) throws RuntimeException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
+    public void deleteWalk(Long walkId, String token) {
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("잘못된 토큰입니다.");
+        }
+
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Walk walk = walkRepository.findById(walkId)
                 .orElseThrow(() -> new IllegalArgumentException("산책로를 찾을 수 없습니다."));

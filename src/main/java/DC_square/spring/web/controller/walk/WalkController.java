@@ -1,6 +1,7 @@
 package DC_square.spring.web.controller.walk;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.service.WalkService.WalkService;
 import DC_square.spring.web.dto.request.walk.WalkRequestDto;
 import DC_square.spring.web.dto.request.walk.WalkCreateRequestDto;
@@ -14,16 +15,19 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Service
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class WalkController {
 
     private final WalkService walkService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "산책로 목록 조회 api", description = "산책로 목록을 조회하는 API입니다.")
     @ApiResponses({
@@ -60,9 +64,10 @@ public class WalkController {
     })
     @PostMapping("/walks/create")
     public ApiResponse<WalkCreateResponseDto> createWalk(
-            @RequestBody WalkCreateRequestDto walkCreateRequestDto
+            @RequestBody WalkCreateRequestDto walkCreateRequestDto,
+            @RequestHeader("Authorization") String token
     ) {
-        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, walkCreateRequestDto.getUserId());
+        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, token);
         return ApiResponse.onSuccess(walkCreateResponseDto);
     }
 
@@ -74,12 +79,12 @@ public class WalkController {
     })
     @Parameter(name = "walkId", description = "삭제할 산책로의 ID", required = true)
     @Parameter(name = "userId", description = "요청한 사용자의 ID", required = true)
-    @DeleteMapping("/walks/{walkId}/users/{userId}")
+    @DeleteMapping("/walks/{walkId}")
     public ApiResponse<Void> deleteWalk(
             @PathVariable Long walkId,
-            @PathVariable Long userId
+            @RequestHeader("Authorization") String token
     ) {
-        walkService.deleteWalk(walkId, userId);
+        walkService.deleteWalk(walkId, token);
         return ApiResponse.onSuccess(null, "산책로 삭제에 성공했습니다.");
     }
 

@@ -16,7 +16,6 @@ import java.util.List;
 @Setter
 @Builder
 public class WalkCreateRequestDto {
-    private Long userId;
     private String title;
     private String description;
     private Integer time;
