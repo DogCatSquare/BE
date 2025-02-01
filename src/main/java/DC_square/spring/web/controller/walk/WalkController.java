@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -65,8 +66,9 @@ public class WalkController {
     @PostMapping("/walks/create")
     public ApiResponse<WalkCreateResponseDto> createWalk(
             @RequestBody WalkCreateRequestDto walkCreateRequestDto,
-            @RequestHeader("Authorization") String token
+            HttpServletRequest request
     ) {
+        String token = jwtTokenProvider.resolveToken(request);
         WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, token);
         return ApiResponse.onSuccess(walkCreateResponseDto);
     }
@@ -78,12 +80,12 @@ public class WalkController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON403", description = "삭제 권한 없음")
     })
     @Parameter(name = "walkId", description = "삭제할 산책로의 ID", required = true)
-    @Parameter(name = "userId", description = "요청한 사용자의 ID", required = true)
     @DeleteMapping("/walks/{walkId}")
     public ApiResponse<Void> deleteWalk(
             @PathVariable Long walkId,
-            @RequestHeader("Authorization") String token
+            HttpServletRequest request
     ) {
+        String token = jwtTokenProvider.resolveToken(request);
         walkService.deleteWalk(walkId, token);
         return ApiResponse.onSuccess(null, "산책로 삭제에 성공했습니다.");
     }
