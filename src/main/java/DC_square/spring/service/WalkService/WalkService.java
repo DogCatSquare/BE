@@ -17,9 +17,14 @@ import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import DC_square.spring.config.S3.AmazonS3Manager;
+import DC_square.spring.config.S3.Uuid;
+import DC_square.spring.config.S3.UuidRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +34,8 @@ public class WalkService {
     private final UserRepository userRepository;
     private final WalkSpecialRepository walkSpecialRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
 
     // 산책로 목록 조회
     public WalkResponseDto viewWalkList(WalkRequestDto walkRequestDto) {
@@ -44,6 +51,7 @@ public class WalkService {
                         .walkId(walk.getId())
                         .title(walk.getTitle())
                         .description(walk.getDescription())
+                        .walkImageUrl(walk.getWalkImageUrl())
                         .reviewCount(walk.getReviewCount())
                         .distance(walk.getDistance())
                         .time(walk.getTime())
@@ -102,6 +110,7 @@ public class WalkService {
                 .walkId(walk.getId())
                 .title(walk.getTitle())
                 .description(walk.getDescription())
+                .walkImageUrl(walk.getWalkImageUrl())
                 .distance(walk.getDistance())
                 .time(walk.getTime())
                 .difficulty(walk.getDifficulty().name())
@@ -122,7 +131,19 @@ public class WalkService {
                 .build();
     }
 
-    public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, String token) {
+    public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, String token, List<MultipartFile> images) {
+        if (images.isEmpty()) {
+            throw new RuntimeException("후기 이미지는 필수 입니다.");
+        }
+
+        List<String> imageUrls = images.stream()
+                .map(image -> {
+                    String uuid = UUID.randomUUID().toString();
+                    Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+                    return s3Manager.uploadFile(s3Manager.generateWalk(savedUuid), image);
+                })
+                .collect(Collectors.toList());
+
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new IllegalArgumentException("잘못된 토큰입니다.");
         }
@@ -135,6 +156,7 @@ public class WalkService {
         Walk walk = Walk.builder()
                 .title(walkCreateRequestDto.getTitle())
                 .description(walkCreateRequestDto.getDescription())
+                .walkImageUrl(imageUrls)
                 .distance(walkCreateRequestDto.getDistance())
                 .time(walkCreateRequestDto.getTime())
                 .difficulty(walkCreateRequestDto.getDifficulty())
@@ -192,6 +214,7 @@ public class WalkService {
                         .walkId(walk.getId())
                         .title(walk.getTitle())
                         .description(walk.getDescription())
+                        .walkImageUrl(walk.getWalkImageUrl())
                         .distance(walk.getDistance())
                         .time(walk.getTime())
                         .difficulty(walk.getDifficulty().name())

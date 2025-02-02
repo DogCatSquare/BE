@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -63,13 +65,14 @@ public class WalkController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON401", description = "로그인 필요"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON500", description = "서버 오류")
     })
-    @PostMapping("/walks/create")
+    @PostMapping(value = "/walks/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<WalkCreateResponseDto> createWalk(
-            @RequestBody WalkCreateRequestDto walkCreateRequestDto,
+            @RequestPart(value = "walkCreateRequestDto") WalkCreateRequestDto walkCreateRequestDto,
+            @RequestPart(value = "walkReviewImages") List<MultipartFile> images,
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, token);
+        WalkCreateResponseDto walkCreateResponseDto = walkService.createWalk(walkCreateRequestDto, token, images);
         return ApiResponse.onSuccess(walkCreateResponseDto);
     }
 

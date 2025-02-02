@@ -10,4 +10,6 @@ public interface WalkReviewRepository extends JpaRepository<WalkReview, Long> {
     List<WalkReview> findAllByWalkId(Long walkId);
 
     List<WalkReview> findByWalk(Walk walk);
+
+    int countByWalk(Walk walk);
 }

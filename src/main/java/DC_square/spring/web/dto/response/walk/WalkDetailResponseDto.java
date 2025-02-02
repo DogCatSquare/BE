@@ -12,6 +12,7 @@ public class WalkDetailResponseDto {
     private Long walkId;
     private String title;
     private String description;
+    private List<String> walkImageUrl;
     private Integer time;
     private Double distance;
     private String difficulty;

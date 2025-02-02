@@ -29,7 +29,9 @@ public class Walk {
     @Column(nullable = false)
     private String description;
 
-    private Integer reviewCount;
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer reviewCount = 0;
 
     @Column(nullable = false)
     private Double distance;
@@ -43,6 +45,13 @@ public class Walk {
     @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<WalkSpecial> specials = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(
+            name = "walk_images",
+            joinColumns = @JoinColumn(name = "walk_id")
+    )
+    @Column(name = "image_url")
+    private List<String> walkImageUrl;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -58,4 +67,8 @@ public class Walk {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User createdBy;
+
+    public void updateReviewCount(int count) {
+        this.reviewCount = count;
+    }
 }

@@ -66,6 +66,10 @@ public class WalkReviewService {
 
         WalkReview savedWalkReview = walkReviewRepository.save(walkReview);
 
+        int newReviewCount = walkReviewRepository.countByWalk(walk);
+        walk.updateReviewCount(newReviewCount);
+        walkRepository.save(walk);
+
         WalkReviewResponseDto.WalkReviewDto reviewDto = WalkReviewResponseDto.WalkReviewDto.builder()
                 .reviewId(savedWalkReview.getId())
                 .walkId(savedWalkReview.getWalk().getId())
@@ -100,8 +104,19 @@ public class WalkReviewService {
             throw new RuntimeException("산책로 후기 삭제 권한이 없습니다.");
         }
 
+        Walk walk = walkReview.getWalk();
+
         walkReviewRepository.delete(walkReview);
+
+        Walk updatedWalk = walkRepository.findById(walk.getId())
+                .orElseThrow(() -> new RuntimeException("산책로를 찾을 수 없습니다."));
+
+        int newReviewCount = walkReviewRepository.countByWalk(updatedWalk);
+        updatedWalk.updateReviewCount(newReviewCount);
+
+        walkRepository.save(updatedWalk);
     }
+
 
     public WalkReviewResponseDto viewWalkReviewList(Long walkId) {
         Walk walk = walkRepository.findById(walkId)

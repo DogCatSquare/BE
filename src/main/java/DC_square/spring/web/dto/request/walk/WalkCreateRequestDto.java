@@ -21,15 +21,6 @@ public class WalkCreateRequestDto {
     private Integer time;
     private Double distance;
     private Difficulty difficulty;
-    //private List<Special> special;
     private List<WalkResponseDto.SpecialDto> special;
-    //private String customSpecial;
     private List<Coordinate> coordinates;
-    //private List<String> images;
-
-//    @Data
-//    public static class Special {
-//        private String type;
-//        private String customSpecial;
-//    }
 }

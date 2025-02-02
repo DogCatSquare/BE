@@ -32,7 +32,7 @@ public class WalkReview {
     @ElementCollection
     @CollectionTable(
             name = "walk_review_images",
-            joinColumns = @JoinColumn(name = "walk_id")
+            joinColumns = @JoinColumn(name = "walk_review_id")
     )
     @Column(name = "image_url")
     private List<String> walkReviewImageUrl;
