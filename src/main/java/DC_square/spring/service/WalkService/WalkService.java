@@ -1,10 +1,12 @@
 package DC_square.spring.service.WalkService;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
+import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.Coordinate;
 import DC_square.spring.domain.entity.walk.WalkSpecial;
 import DC_square.spring.domain.enums.Special;
+import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.WalkRepository.WalkSpecialRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
@@ -32,12 +34,12 @@ public class WalkService {
 
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
+    private final PetRepository petRepository;
     private final WalkSpecialRepository walkSpecialRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
 
-    // 산책로 목록 조회
     public WalkResponseDto viewWalkList(WalkRequestDto walkRequestDto) {
         // 사용자 요청에 따라 가까운 산책로를 가져오는 로직 (예: 위도와 경도를 기준으로 검색)
         List<Walk> walks = walkRepository.findNearbyWalks(
@@ -47,35 +49,41 @@ public class WalkService {
         );
 
         List<WalkResponseDto.WalkDto> walkDtos = walks.stream()
-                .map(walk -> WalkResponseDto.WalkDto.builder()
-                        .walkId(walk.getId())
-                        .title(walk.getTitle())
-                        .description(walk.getDescription())
-                        .walkImageUrl(walk.getWalkImageUrl())
-                        .reviewCount(walk.getReviewCount())
-                        .distance(walk.getDistance())
-                        .time(walk.getTime())
-                        .difficulty(walk.getDifficulty().name())
-                        .special(walk.getSpecials().stream()
-                                .map(special -> WalkResponseDto.SpecialDto.builder()
-                                        .type(special.getSpecialType().name())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .coordinates(walk.getCoordinates().stream()
-                                .map(coord -> WalkResponseDto.CoordinateDto.builder()
-                                        .latitude(coord.getLatitude())
-                                        .longitude(coord.getLongitude())
-                                        .sequence(coord.getSequence())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .createdAt(walk.getCreatedAt())
-                        .updatedAt(walk.getUpdatedAt())
-                        .createdBy(WalkResponseDto.CreatedByDto.builder()
-                                .userId(walk.getCreatedBy().getId().toString())
-                                .nickname(walk.getCreatedBy().getNickname())
-                                //.breed(walk.getCreatedBy().getBreed())
-                                .build())
-                        .build())
+                .map(walk -> {
+                    User createdByUser = walk.getCreatedBy();
+                    Pet pet = petRepository.findByUser(createdByUser);
+                    String breed = (pet != null) ? pet.getBreed() : null;
+
+                    return WalkResponseDto.WalkDto.builder()
+                            .walkId(walk.getId())
+                            .title(walk.getTitle())
+                            .description(walk.getDescription())
+                            .walkImageUrl(walk.getWalkImageUrl())
+                            .reviewCount(walk.getReviewCount())
+                            .distance(walk.getDistance())
+                            .time(walk.getTime())
+                            .difficulty(walk.getDifficulty().name())
+                            .special(walk.getSpecials().stream()
+                                    .map(special -> WalkResponseDto.SpecialDto.builder()
+                                            .type(special.getSpecialType().name())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .coordinates(walk.getCoordinates().stream()
+                                    .map(coord -> WalkResponseDto.CoordinateDto.builder()
+                                            .latitude(coord.getLatitude())
+                                            .longitude(coord.getLongitude())
+                                            .sequence(coord.getSequence())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .createdAt(walk.getCreatedAt())
+                            .updatedAt(walk.getUpdatedAt())
+                            .createdBy(WalkResponseDto.CreatedByDto.builder()
+                                    .nickname(createdByUser.getNickname())
+                                    .profileImageUrl(createdByUser.getProfileImageUrl())
+                                    .breed(breed)
+                                    .build())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return WalkResponseDto.builder()
@@ -83,7 +91,6 @@ public class WalkService {
                 .build();
     }
 
-    // 산책로 상세 조회
     public WalkDetailResponseDto getWalkDetails(Long walkId) {
         Walk walk = walkRepository.findById(walkId)
                 .orElseThrow(() -> new IllegalArgumentException("Walk not found for id: " + walkId));
@@ -106,6 +113,10 @@ public class WalkService {
                         .build())
                 .collect(Collectors.toList());
 
+        User createdByUser = walk.getCreatedBy();
+        Pet pet = petRepository.findByUser(createdByUser);
+        String breed = (pet != null) ? pet.getBreed() : null;
+
         return WalkDetailResponseDto.builder()
                 .walkId(walk.getId())
                 .title(walk.getTitle())
@@ -124,12 +135,13 @@ public class WalkService {
                 .createdAt(walk.getCreatedAt())
                 .updatedAt(walk.getUpdatedAt())
                 .createdBy(WalkResponseDto.CreatedByDto.builder()
-                        .userId(walk.getCreatedBy().getId().toString())
-                        .nickname(walk.getCreatedBy().getNickname())
-                        //.breed(walk.getCreatedBy().getBreed())
+                        .nickname(createdByUser.getNickname())
+                        .profileImageUrl(createdByUser.getProfileImageUrl())
+                        .breed(breed)
                         .build())
                 .build();
     }
+
 
     public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, String token, List<MultipartFile> images) {
         if (images.isEmpty()) {
@@ -210,33 +222,40 @@ public class WalkService {
         List<Walk> walks = walkRepository.findByTitleContaining(title);
 
         List<WalkResponseDto.WalkDto> walkDtos = walks.stream()
-                .map(walk -> WalkResponseDto.WalkDto.builder()
-                        .walkId(walk.getId())
-                        .title(walk.getTitle())
-                        .description(walk.getDescription())
-                        .walkImageUrl(walk.getWalkImageUrl())
-                        .distance(walk.getDistance())
-                        .time(walk.getTime())
-                        .difficulty(walk.getDifficulty().name())
-                        .special(walk.getSpecials().stream()
-                                .map(special -> WalkResponseDto.SpecialDto.builder()
-                                        .type(special.getSpecialType().name())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .coordinates(walk.getCoordinates().stream()
-                                .map(coord -> WalkResponseDto.CoordinateDto.builder()
-                                        .latitude(coord.getLatitude())
-                                        .longitude(coord.getLongitude())
-                                        .sequence(coord.getSequence())
-                                        .build())
-                                .collect(Collectors.toList()))
-                        .createdAt(walk.getCreatedAt())
-                        .updatedAt(walk.getUpdatedAt())
-                        .createdBy(WalkResponseDto.CreatedByDto.builder()
-                                .userId(walk.getCreatedBy().getId().toString())
-                                .nickname(walk.getCreatedBy().getNickname())
-                                .build())
-                        .build())
+                .map(walk -> {
+                    User createdByUser = walk.getCreatedBy();
+                    Pet pet = petRepository.findByUser(createdByUser);
+                    String breed = (pet != null) ? pet.getBreed() : null;
+
+                    return WalkResponseDto.WalkDto.builder()
+                            .walkId(walk.getId())
+                            .title(walk.getTitle())
+                            .description(walk.getDescription())
+                            .walkImageUrl(walk.getWalkImageUrl())
+                            .distance(walk.getDistance())
+                            .time(walk.getTime())
+                            .difficulty(walk.getDifficulty().name())
+                            .special(walk.getSpecials().stream()
+                                    .map(special -> WalkResponseDto.SpecialDto.builder()
+                                            .type(special.getSpecialType().name())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .coordinates(walk.getCoordinates().stream()
+                                    .map(coord -> WalkResponseDto.CoordinateDto.builder()
+                                            .latitude(coord.getLatitude())
+                                            .longitude(coord.getLongitude())
+                                            .sequence(coord.getSequence())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .createdAt(walk.getCreatedAt())
+                            .updatedAt(walk.getUpdatedAt())
+                            .createdBy(WalkResponseDto.CreatedByDto.builder()
+                                    .nickname(createdByUser.getNickname())
+                                    .profileImageUrl(createdByUser.getProfileImageUrl())
+                                    .breed(breed)
+                                    .build())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return WalkResponseDto.builder()

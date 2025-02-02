@@ -21,7 +21,6 @@ public class WalkResponseDto {
         private Integer reviewCount;
         private Double distance;
         private Integer time;
-        //private List<ImageDto> images;
         private String difficulty;
         private List<SpecialDto> special;
         private List<CoordinateDto> coordinates;
@@ -29,13 +28,6 @@ public class WalkResponseDto {
         private LocalDateTime updatedAt;
         private CreatedByDto createdBy;
     }
-
-//    @Getter
-//    @Builder
-//    public static class ImageDto {
-//        private Long imageId;
-//        private String walkImgUrl;
-//    }
 
     @Getter
     @Builder
@@ -55,9 +47,8 @@ public class WalkResponseDto {
     @Getter
     @Builder
     public static class CreatedByDto {
-        private String userId;
         private String nickname;
         private String breed;
-        //private String imgUrl;
+        private String profileImageUrl;
     }
 }

@@ -1,9 +1,11 @@
 package DC_square.spring.service.WalkService;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
+import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkReview;
+import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
 import DC_square.spring.repository.community.UserRepository;
@@ -28,6 +30,7 @@ public class WalkReviewService {
     private final WalkReviewRepository walkReviewRepository;
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
+    private final PetRepository petRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
@@ -57,6 +60,11 @@ public class WalkReviewService {
         Walk walk = walkRepository.findById(walkId)
                 .orElseThrow(() -> new RuntimeException("산책로를 찾을 수 없습니다."));
 
+        Pet pet = petRepository.findByUser(user);
+
+        String breed = (pet != null) ? pet.getBreed() : null;
+        String profileImageUrl = user.getProfileImageUrl();
+
         WalkReview walkReview = WalkReview.builder()
                 .user(user)
                 .walk(walk)
@@ -78,9 +86,9 @@ public class WalkReviewService {
                 .createdAt(savedWalkReview.getCreatedAt())
                 .updatedAt(savedWalkReview.getUpdatedAt())
                 .createdBy(WalkResponseDto.CreatedByDto.builder()
-                        .userId(walk.getCreatedBy().getId().toString())
-                        .nickname(walk.getCreatedBy().getNickname())
-                        //.breed(walk.getCreatedBy().getBreed())
+                        .nickname(savedWalkReview.getUser().getNickname())
+                        .profileImageUrl(profileImageUrl)
+                        .breed(breed)
                         .build())
                 .build();
 
@@ -125,19 +133,25 @@ public class WalkReviewService {
         List<WalkReview> walkReviews = walkReviewRepository.findByWalk(walk);
 
         List<WalkReviewResponseDto.WalkReviewDto> walkReviewDtos = walkReviews.stream()
-                .map(review -> WalkReviewResponseDto.WalkReviewDto.builder()
-                        .reviewId(review.getId())
-                        .walkId(walk.getId())
-                        .content(review.getContent())
-                        .walkReviewImageUrl(review.getWalkReviewImageUrl())
-                        .createdAt(review.getCreatedAt())
-                        .updatedAt(review.getUpdatedAt())
-                        .createdBy(WalkResponseDto.CreatedByDto.builder()
-                                .userId(String.valueOf(review.getUser().getId()))
-                                .nickname(review.getUser().getNickname())
-                                //.breed(review.getUser().getBreed())
-                                .build())
-                        .build())
+                .map(review -> {
+                    Pet pet = petRepository.findByUser(review.getUser());
+                    String breed = (pet != null) ? pet.getBreed() : null;
+                    String profileImageUrl = review.getUser().getProfileImageUrl();
+
+                    return WalkReviewResponseDto.WalkReviewDto.builder()
+                            .reviewId(review.getId())
+                            .walkId(walk.getId())
+                            .content(review.getContent())
+                            .walkReviewImageUrl(review.getWalkReviewImageUrl())
+                            .createdAt(review.getCreatedAt())
+                            .updatedAt(review.getUpdatedAt())
+                            .createdBy(WalkResponseDto.CreatedByDto.builder()
+                                    .nickname(review.getUser().getNickname())
+                                    .profileImageUrl(profileImageUrl)
+                                    .breed(breed)
+                                    .build())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return WalkReviewResponseDto.builder()
