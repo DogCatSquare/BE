@@ -1,5 +1,6 @@
 package DC_square.spring.service.WalkService;
 
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkReview;
@@ -22,10 +23,18 @@ public class WalkReviewService {
     private final WalkReviewRepository walkReviewRepository;
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public WalkReviewResponseDto createWalkReview(WalkReviewCreateRequestDto request, Long walkId) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+    public WalkReviewResponseDto createWalkReview(WalkReviewCreateRequestDto request, Long walkId, String token) {
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("잘못된 토큰입니다.");
+        }
+
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Walk walk = walkRepository.findById(walkId)
                 .orElseThrow(() -> new RuntimeException("산책로를 찾을 수 없습니다."));
@@ -54,14 +63,20 @@ public class WalkReviewService {
         return new WalkReviewResponseDto(List.of(reviewDto));
     }
 
-    public void deleteWalkReview(Long reviewId, Long userId) throws RuntimeException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 사용자입니다."));
+    public void deleteWalkReview(Long reviewId, String token) throws RuntimeException {
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new IllegalArgumentException("잘못된 토큰입니다.");
+        }
+
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         WalkReview walkReview = walkReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("해당 후기를 찾을 수 없습니다."));
 
-        if (!walkReview.getUser().getId().equals(userId)) {
+        if (!walkReview.getUser().getEmail().equals(userEmail)) {
             throw new RuntimeException("산책로 후기 삭제 권한이 없습니다.");
         }
 

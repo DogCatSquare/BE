@@ -10,7 +10,6 @@ import java.util.List;
 @Setter
 @Builder
 public class WalkReviewCreateRequestDto {
-    private Long userId;
     private String content;
     //private List<String> images;
 }

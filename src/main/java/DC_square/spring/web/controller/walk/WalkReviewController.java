@@ -1,22 +1,27 @@
 package DC_square.spring.web.controller.walk;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.service.WalkService.WalkReviewService;
 import DC_square.spring.web.dto.request.walk.WalkReviewCreateRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
+@Service
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/walks/{walkId}/reviews")
 public class WalkReviewController {
 
     private final WalkReviewService walkReviewService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Operation(summary = "산책로 후기 등록 API", description = "특정 산책로에 대한 후기를 등록하는 API입니다.")
     @ApiResponses({
@@ -29,9 +34,11 @@ public class WalkReviewController {
     @PostMapping
     public ApiResponse<WalkReviewResponseDto> createReview(
             @PathVariable Long walkId,
-            @RequestBody @Valid WalkReviewCreateRequestDto reviewCreateRequestDto
+            @RequestBody @Valid WalkReviewCreateRequestDto reviewCreateRequestDto,
+            HttpServletRequest request
     ) {
-        WalkReviewResponseDto responseDto = walkReviewService.createWalkReview(reviewCreateRequestDto, walkId);
+        String token = jwtTokenProvider.resolveToken(request);
+        WalkReviewResponseDto responseDto = walkReviewService.createWalkReview(reviewCreateRequestDto, walkId, token);
         return ApiResponse.onSuccess(responseDto);
     }
 
@@ -42,13 +49,13 @@ public class WalkReviewController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON403", description = "삭제 권한 없음")
     })
     @Parameter(name = "reviewId", description = "삭제할 산책로 후기의 ID", required = true)
-    @Parameter(name = "userId", description = "요청한 사용자의 ID", required = true)
-    @DeleteMapping("/{reviewId}/users/{userId}")
+    @DeleteMapping("/{reviewId}")
     public ApiResponse<Void> deleteWalkReview(
             @PathVariable Long reviewId,
-            @PathVariable Long userId
+            HttpServletRequest request
     ) {
-        walkReviewService.deleteWalkReview(reviewId, userId);
+        String token = jwtTokenProvider.resolveToken(request);
+        walkReviewService.deleteWalkReview(reviewId, token);
         return ApiResponse.onSuccess(null, "산책로 후기 삭제에 성공했습니다.");
     }
 
