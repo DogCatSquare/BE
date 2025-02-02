@@ -11,5 +11,4 @@ import java.util.List;
 @Builder
 public class WalkReviewCreateRequestDto {
     private String content;
-    //private List<String> images;
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,10 +29,13 @@ public class WalkReview {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-//    @ElementCollection
-//    @CollectionTable(name = "walk_review_images", joinColumns = @JoinColumn(name = "review_id"))
-//    @Column(name = "image_url")
-//    private List<String> imageUrls;
+    @ElementCollection
+    @CollectionTable(
+            name = "walk_review_images",
+            joinColumns = @JoinColumn(name = "walk_id")
+    )
+    @Column(name = "image_url")
+    private List<String> walkReviewImageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "walk_id", nullable = false)

@@ -21,6 +21,7 @@ public class WalkReviewResponseDto {
         private Long reviewId;
         private Long walkId;
         private String content;
+        private List<String> walkReviewImageUrl;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private WalkResponseDto.CreatedByDto createdBy;

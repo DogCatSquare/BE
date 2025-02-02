@@ -12,9 +12,14 @@ import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import DC_square.spring.config.S3.AmazonS3Manager;
+import DC_square.spring.config.S3.Uuid;
+import DC_square.spring.config.S3.UuidRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +29,22 @@ public class WalkReviewService {
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
 
+    public WalkReviewResponseDto createWalkReview(WalkReviewCreateRequestDto request, Long walkId, String token, List<MultipartFile> images) {
+        if (images.isEmpty()) {
+            throw new RuntimeException("후기 이미지는 필수 입니다.");
+        }
 
-    public WalkReviewResponseDto createWalkReview(WalkReviewCreateRequestDto request, Long walkId, String token) {
+        List<String> imageUrls = images.stream()
+                .map(image -> {
+                    String uuid = UUID.randomUUID().toString();
+                    Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+                    return s3Manager.uploadFile(s3Manager.generateReview(savedUuid), image);
+                })
+                .collect(Collectors.toList());
+
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new IllegalArgumentException("잘못된 토큰입니다.");
         }
@@ -43,6 +61,7 @@ public class WalkReviewService {
                 .user(user)
                 .walk(walk)
                 .content(request.getContent())
+                .walkReviewImageUrl(imageUrls)
                 .build();
 
         WalkReview savedWalkReview = walkReviewRepository.save(walkReview);
@@ -51,6 +70,7 @@ public class WalkReviewService {
                 .reviewId(savedWalkReview.getId())
                 .walkId(savedWalkReview.getWalk().getId())
                 .content(savedWalkReview.getContent())
+                .walkReviewImageUrl(savedWalkReview.getWalkReviewImageUrl())
                 .createdAt(savedWalkReview.getCreatedAt())
                 .updatedAt(savedWalkReview.getUpdatedAt())
                 .createdBy(WalkResponseDto.CreatedByDto.builder()
@@ -94,6 +114,7 @@ public class WalkReviewService {
                         .reviewId(review.getId())
                         .walkId(walk.getId())
                         .content(review.getContent())
+                        .walkReviewImageUrl(review.getWalkReviewImageUrl())
                         .createdAt(review.getCreatedAt())
                         .updatedAt(review.getUpdatedAt())
                         .createdBy(WalkResponseDto.CreatedByDto.builder()

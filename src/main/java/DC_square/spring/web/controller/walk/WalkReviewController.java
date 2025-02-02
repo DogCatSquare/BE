@@ -13,6 +13,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RestController
@@ -31,14 +35,15 @@ public class WalkReviewController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON500", description = "서버 오류")
     })
     @Parameter(name = "walkId", description = "후기를 등록할 산책로의 ID", required = true)
-    @PostMapping
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
     public ApiResponse<WalkReviewResponseDto> createReview(
             @PathVariable Long walkId,
-            @RequestBody @Valid WalkReviewCreateRequestDto reviewCreateRequestDto,
+            @RequestPart("reviewCreateRequestDto") @Valid WalkReviewCreateRequestDto reviewCreateRequestDto,
+            @RequestPart(value = "walkReviewImages") List<MultipartFile> images,
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        WalkReviewResponseDto responseDto = walkReviewService.createWalkReview(reviewCreateRequestDto, walkId, token);
+        WalkReviewResponseDto responseDto = walkReviewService.createWalkReview(reviewCreateRequestDto, walkId, token, images);
         return ApiResponse.onSuccess(responseDto);
     }
 
