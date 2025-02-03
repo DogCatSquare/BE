@@ -17,6 +17,7 @@ import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO 변경
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
+import DC_square.spring.web.dto.request.user.UserUpdateRequestDto;
 import DC_square.spring.web.dto.response.PetResponseDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
 import DC_square.spring.web.dto.response.user.LoginResponseDto;
@@ -149,7 +150,11 @@ public class UserService {
         hospitalDday.setDefaultImageUrl();
         ddayRepository.save(hospitalDday);
 
-        return UserResponseDto.from(savedUser);
+        // 토큰 생성
+        String token = jwtTokenProvider.createToken(savedUser.getEmail());
+
+        // 토큰을 포함한 응답 반환
+        return UserResponseDto.from(savedUser, token);
     }
 
     // 로그인
@@ -317,5 +322,42 @@ public class UserService {
 
         // 수정된 반려동물 정보 반환
         return PetResponseDto.from(updatedPet);
+    }
+
+    //회원 정보 수정
+    @Transactional
+    public UserResponseDto updateUser(String email, UserUpdateRequestDto updateDto, MultipartFile profileImage) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 닉네임 중복 체크
+        if (updateDto.getNickname() != null && !updateDto.getNickname().equals(user.getNickname())) {
+            if (userRepository.existsByNickname(updateDto.getNickname())) {
+                throw new RuntimeException("이미 존재하는 닉네임입니다.");
+            }
+            user.setNickname(updateDto.getNickname());
+        }
+
+        // 전화번호 업데이트
+        if (updateDto.getPhoneNumber() != null) {
+            user.setPhoneNumber(updateDto.getPhoneNumber());
+        }
+
+        // 비밀번호 업데이트
+        if (updateDto.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(updateDto.getPassword()));
+        }
+
+        // 프로필 이미지 업데이트
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+            String profileImageUrl = s3Manager.uploadFile(s3Manager.generateProfile(savedUuid), profileImage);
+            user.setProfileImageUrl(profileImageUrl);
+        }
+
+        User savedUser = userRepository.save(user);
+        //String token = jwtTokenProvider.createToken(savedUser.getEmail());
+        return UserResponseDto.from(savedUser);
     }
 }

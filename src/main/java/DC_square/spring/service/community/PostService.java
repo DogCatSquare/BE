@@ -47,8 +47,11 @@ public class PostService {
                 .collect(Collectors.toList()) : new ArrayList<>();
 
         // 유튜브 영상 ID 추출
-        String videoId = postRequestDto.getVideo_URL().substring(postRequestDto.getVideo_URL().length() - 11);
-        String thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+        String thumbnailUrl = null;
+        if (postRequestDto.getVideo_URL() != null && !postRequestDto.getVideo_URL().isEmpty()) {
+            String videoId = postRequestDto.getVideo_URL().substring(postRequestDto.getVideo_URL().length() - 11);
+            thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+        }
 
 
         User user = userRepository.findById(userId)
@@ -97,8 +100,12 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
 
         // 유튜브 영상 ID 추출
-        String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
-        String thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+        String thumbnailUrl = null;
+        if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
+            String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
+            thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+        }
+
 
         return PostResponseDto.builder()
                 .id(post.getId())
@@ -125,8 +132,11 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
 
         // 유튜브 영상 ID 추출
-        String videoId = postRequestDto.getVideo_URL().substring(postRequestDto.getVideo_URL().length() - 11);
-        String thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+        String thumbnailUrl = null;
+        if (postRequestDto.getVideo_URL() != null && !postRequestDto.getVideo_URL().isEmpty()) {
+            String videoId = postRequestDto.getVideo_URL().substring(postRequestDto.getVideo_URL().length() - 11);
+            thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+        }
 
         // 제목과 내용 수정
         post.setTitle(postRequestDto.getTitle());

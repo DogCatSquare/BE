@@ -8,10 +8,12 @@ import DC_square.spring.service.UserService;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.UserRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;
+import DC_square.spring.web.dto.request.user.UserUpdateRequestDto;
 import DC_square.spring.web.dto.response.UserResponseDto;
 import DC_square.spring.web.dto.response.user.LoginResponseDto;
 import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -62,6 +64,7 @@ public class UserController {
         return ApiResponse.onSuccess(isDuplicate);
     }
 
+    @Operation(summary = "유저 조회 API", description = "유저정보를 조회합니다.")
     @GetMapping("/users-inquiry")
     public ApiResponse<UserInqueryResponseDto> getUserInfo(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
@@ -72,4 +75,18 @@ public class UserController {
 
         return ApiResponse.onSuccess(userService.getUserInfo(user.getId()));
     }
+
+    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "유저정보 수정 API", description = "회원의 닉네임, 전화번호, 비밀번호, 프로필 이미지를 수정합니다.",
+            security = @SecurityRequirement(name = "Authorization"))
+    public ApiResponse<UserResponseDto> updateUser(
+            HttpServletRequest request,
+            @RequestPart(value = "request") UserUpdateRequestDto updateDto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
+        String token = jwtTokenProvider.resolveToken(request);
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+        return ApiResponse.onSuccess(userService.updateUser(userEmail, updateDto, profileImage));
+    }
+
 }
