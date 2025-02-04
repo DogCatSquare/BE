@@ -1,15 +1,21 @@
 package DC_square.spring.service.WalkService;
 
+import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkWish;
+import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.repository.WalkRepository.WalkWishRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.config.jwt.JwtTokenProvider;
+import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkWishResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +24,7 @@ public class WalkWishService {
     private final WalkWishRepository walkWishRepository;
     private final WalkRepository walkRepository;
     private final UserRepository userRepository;
+    private final PetRepository petRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
     public WalkWishResponseDto addWalkWish(String token, Long walkId) {
@@ -61,4 +68,56 @@ public class WalkWishService {
                 .message("위시리스트에서 제거했습니다.")
                 .build();
     }
+
+    public WalkResponseDto viewWishlist(String token) {
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        List<WalkWish> walkWishes = walkWishRepository.findByUserAndIsWished(user, true);
+
+        List<WalkResponseDto.WalkDto> walkDtos = walkWishes.stream()
+                .map(walkWish -> {
+                    Walk walk = walkWish.getWalk();
+                    User createdByUser = walk.getCreatedBy();
+                    Pet pet = petRepository.findByUser(createdByUser);
+                    String breed = (pet != null) ? pet.getBreed() : null;
+
+                    return WalkResponseDto.WalkDto.builder()
+                            .walkId(walk.getId())
+                            .title(walk.getTitle())
+                            .description(walk.getDescription())
+                            .walkImageUrl(walk.getWalkImageUrl())
+                            .reviewCount(walk.getReviewCount())
+                            .distance(walk.getDistance())
+                            .time(walk.getTime())
+                            .difficulty(walk.getDifficulty().name())
+                            .special(walk.getSpecials().stream()
+                                    .map(special -> WalkResponseDto.SpecialDto.builder()
+                                            .type(special.getSpecialType().name())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .coordinates(walk.getCoordinates().stream()
+                                    .map(coord -> WalkResponseDto.CoordinateDto.builder()
+                                            .latitude(coord.getLatitude())
+                                            .longitude(coord.getLongitude())
+                                            .sequence(coord.getSequence())
+                                            .build())
+                                    .collect(Collectors.toList()))
+                            .createdAt(walk.getCreatedAt())
+                            .updatedAt(walk.getUpdatedAt())
+                            .createdBy(WalkResponseDto.CreatedByDto.builder()
+                                    .nickname(createdByUser.getNickname())
+                                    .profileImageUrl(createdByUser.getProfileImageUrl())
+                                    .breed(breed)
+                                    .build())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return WalkResponseDto.builder()
+                .walks(walkDtos)
+                .build();
+    }
+
 }
