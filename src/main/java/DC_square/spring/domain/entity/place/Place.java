@@ -5,6 +5,9 @@ import DC_square.spring.domain.enums.PlaceCategory;
 import  jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "place")
 @Getter
@@ -18,17 +21,17 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 20)
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "address", nullable = false, length = 100)
+    @Column(name = "address", length = 100)
     private String address;
 
     @Enumerated(EnumType.STRING) // enum -> 문자열로 저장
     @Column(name = "category", nullable = false)
     private PlaceCategory category;
 
-    @Column(name = "phone_number", nullable = false, length = 12)
+    @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
     @Column(name = "open") // NULL 허용
@@ -43,6 +46,9 @@ public class Place {
         this.view = (this.view == null) ? 0 : this.view;
     }
 
+    @Column(name = "google_place_id", unique = true)
+    private String googlePlaceId;
+
     @ManyToOne
     @JoinColumn(name = "region_id", nullable = false)
     private Region region;
@@ -55,5 +61,8 @@ public class Place {
 
     @OneToOne(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
     private PlaceDetail placeDetail;
+
+    @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaceImage> images = new ArrayList<>();
 }
 

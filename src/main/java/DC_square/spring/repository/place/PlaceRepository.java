@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, Long> {
@@ -15,4 +16,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
     @Query("SELECT p FROM Place p " +
             "WHERE (:regionId is null OR p.region.id = :regionId)")
     List<Place> findPlacesByRegionId(@Param("regionId") Long regionId);
+
+    Optional<Place> findByGooglePlaceId(String googlePlaceId);
+
+    boolean existsByGooglePlaceId(String googlePlaceId);
 }
