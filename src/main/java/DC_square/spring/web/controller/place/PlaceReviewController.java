@@ -5,8 +5,8 @@ import DC_square.spring.service.place.PlaceReviewService;
 import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Tag(name = "PlaceReview", description = "장소 리뷰 관련 API")
 @RestController
 @RequestMapping("/api/places/{placeId}/reviews")
 @RequiredArgsConstructor
