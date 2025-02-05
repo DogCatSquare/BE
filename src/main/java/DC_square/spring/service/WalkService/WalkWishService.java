@@ -4,6 +4,7 @@ import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkWish;
+import DC_square.spring.domain.enums.Special;
 import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.repository.WalkRepository.WalkWishRepository;
@@ -95,6 +96,7 @@ public class WalkWishService {
                             .special(walk.getSpecials().stream()
                                     .map(special -> WalkResponseDto.SpecialDto.builder()
                                             .type(special.getSpecialType().name())
+                                            .customValue(special.getSpecialType() == Special.OTHER ? special.getCustomValue() : null)
                                             .build())
                                     .collect(Collectors.toList()))
                             .coordinates(walk.getCoordinates().stream()
