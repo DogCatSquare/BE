@@ -71,7 +71,7 @@ cloud:
 google:
   maps:
     api-key: ${GOOGLE_MAPS_API_KEY}
-  nlp:
+  translate:
     api-key: ${GOOGLE_TRANSLATE_API_KEY}
 
 # JWT
