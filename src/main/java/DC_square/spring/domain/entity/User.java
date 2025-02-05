@@ -4,6 +4,8 @@ package DC_square.spring.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -32,6 +34,9 @@ public class User {
 
     @Column
     private String regionId;
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private List<Pet> petList = new ArrayList<>();
 
     //최근 사료 구입 날짜
     @Column
