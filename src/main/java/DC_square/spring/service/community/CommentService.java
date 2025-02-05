@@ -11,6 +11,7 @@ import DC_square.spring.web.dto.request.community.CommentRequestDto;
 import DC_square.spring.web.dto.response.community.CommentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -84,6 +85,48 @@ public class CommentService {
                 .map(comment -> convertToDto(comment, comment.getUser())) // 댓글 작성자의 정보를 사용
                 .collect(Collectors.toList());
     }
+
+
+
+    /**
+     * 댓글 삭제 API (해당 게시글에 속하는 댓글인지 확인 후 삭제)
+     */
+    @Transactional
+    public void deleteComment(Long postId, Long commentId) {
+        // 댓글 조회 (postId도 함께 검증)
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
+
+        // 댓글이 해당 게시글에 속하는지 확인
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new RuntimeException("해당 게시글의 댓글이 아닙니다.");
+        }
+
+        Post post = comment.getPost();
+
+        // 댓글과 대댓글 삭제
+        commentRepository.delete(comment);
+
+        // 게시글의 댓글 수 감소 (대댓글 포함하여 전체 감소)
+        int totalDeleted = countRepliesIncludingSelf(comment);
+        post.setCommentCount(post.getCommentCount() - totalDeleted);
+        postRepository.save(post);
+    }
+
+    /**
+     * 해당 댓글과 그 대댓글 수를 포함한 총 삭제할 댓글 개수를 반환
+     */
+    private int countRepliesIncludingSelf(Comment comment) {
+        int count = 1; // 자기 자신 포함
+        if (comment.getReplies() != null) {
+            for (Comment reply : comment.getReplies()) {
+                count += countRepliesIncludingSelf(reply);
+            }
+        }
+        return count;
+    }
+
+
 
 
     private CommentResponseDto convertToDto(Comment comment, User user) {

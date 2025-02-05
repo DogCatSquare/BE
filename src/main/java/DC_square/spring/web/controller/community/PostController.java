@@ -1,11 +1,13 @@
 package DC_square.spring.web.controller.community;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.service.community.PostLikeService;
 import DC_square.spring.service.community.PostService;
 import DC_square.spring.web.dto.request.community.PostRequestDto;
 import DC_square.spring.web.dto.response.community.PostResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -17,9 +19,11 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/board/post")
+@Tag(name = "Post API", description = "게시글 CRUD, 좋아요 API")
 public class PostController {
 
     private final PostService postService;
+    private final PostLikeService postLikeService;
 
     /**
      * 게시글 생성 API
@@ -78,6 +82,22 @@ public class PostController {
     public ApiResponse<Void> deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
         return ApiResponse.onSuccess(null);
+    }
+
+    /**
+     * 게시글 좋아요 추가 및 취소 API
+     */
+    @Operation(summary = "게시글 좋아요 추가/취소 API", description = "게시글에 좋아요를 추가하거나 취소할 수 있습니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @PostMapping("/{postId}/like")
+    public ApiResponse<String> toggleLike(
+            @PathVariable("postId") Long postId,
+            @RequestParam("userId") Long userId
+    ) {
+        boolean liked = postLikeService.toggleLike(postId, userId);
+        return ApiResponse.onSuccess(liked ? "좋아요가 추가되었습니다." : "좋아요가 취소되었습니다.");
     }
 
 }
