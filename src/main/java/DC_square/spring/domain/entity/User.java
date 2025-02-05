@@ -43,6 +43,10 @@ public class User {
     @Column
     private String hospitalDate;
 
+    public Long getId() {
+        return id;
+    }
+
     //광고 동의 여부
     @Column
     private Boolean adAgree;
