@@ -13,10 +13,12 @@ import java.util.List;
 public class PostResponseDto {
     private Long id;
     private String board;
+    private String username;
     private String title;
     private String content;
     private String video_URL;
     private String thumbnail_URL;
+    private String profileImage_URL;
     private List<String> images;
     private Integer like_count;
     private Integer comment_count;

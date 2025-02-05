@@ -86,8 +86,10 @@ public class PostService {
                 .video_URL(savedPost.getVideo_URL())
                 .images(savedPost.getCommunityImages())
                 .like_count(savedPost.getLikeCount())
+                .username(savedPost.getUser().getNickname())
                 .comment_count(savedPost.getCommentCount())
                 .thumbnail_URL(thumbnailUrl)
+                .profileImage_URL(user.getProfileImageUrl())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -114,7 +116,9 @@ public class PostService {
                 .content(post.getContent())
                 .content(post.getContent())
                 .video_URL(post.getVideo_URL())
+                .username(post.getUser().getNickname())
                 .thumbnail_URL(thumbnailUrl)
+                .profileImage_URL(post.getUser().getProfileImageUrl())
                 .images(post.getCommunityImages())
                 .like_count(post.getLikeCount())
                 .thumbnail_URL(post.getVideo_URL() + "/0.jpg")
@@ -173,8 +177,10 @@ public class PostService {
                 .content(savedPost.getContent())
                 .video_URL(savedPost.getVideo_URL())
                 .thumbnail_URL(thumbnailUrl)
+                .username(savedPost.getUser().getNickname())
                 .images(savedPost.getCommunityImages()) // 수정된 이미지 목록
                 .like_count(savedPost.getLikeCount())
+                .profileImage_URL(savedPost.getUser().getProfileImageUrl())
                 .comment_count(savedPost.getCommentCount())
                 .createdAt(LocalDateTime.now()) // 수정된 날짜 그대로 반환
                 .build();
