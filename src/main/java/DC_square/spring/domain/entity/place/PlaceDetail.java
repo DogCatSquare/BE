@@ -19,7 +19,7 @@ public class PlaceDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "businessHours", nullable = false, length = 12)
+    @Column(name = "businessHours", length = 225)
     private String businessHours;
 
     @Column(name = "homepage_url")
