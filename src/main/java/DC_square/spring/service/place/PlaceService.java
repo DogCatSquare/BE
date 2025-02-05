@@ -72,6 +72,7 @@ public class PlaceService {
         userLocation.setLongitude(longitude);
 
         return results.stream()
+                .filter(this::isPetRelatedPlace)
                 .map(result -> saveAndConvertToDTO(result, region, userLocation))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -86,23 +87,38 @@ public class PlaceService {
     }
 
     // 반려동물 관련 장소 필터링
+//    private boolean isPetRelatedPlace(Map<String, Object> placeData) {
+//        String name = ((String) placeData.get("name")).toLowerCase();
+//        List<String> types = (List<String>) placeData.get("types");
+//
+//        List<String> petKeywords = Arrays.asList(
+//                "pet", "동물", "애견", "강아지", "고양이", "veterinary",
+//                "동물병원", "펫", "애견카페", "애견호텔", "펫샵", "pet hotel", "pet cafe", "animal",
+//                "dog", "cat"
+//        );
+//
+//        boolean hasKeywordInName = petKeywords.stream()
+//                .anyMatch(keyword -> name.contains(keyword.toLowerCase()));
+//
+//        boolean hasKeywordInTypes = types != null && types.stream()
+//                .anyMatch(type -> type.contains("veterinary") || type.contains("pet"));
+//
+//        return hasKeywordInName || hasKeywordInTypes;
+//    }
     private boolean isPetRelatedPlace(Map<String, Object> placeData) {
         String name = ((String) placeData.get("name")).toLowerCase();
-        List<String> types = (List<String>) placeData.get("types");
 
+        // 반려동물 관련 키워드 리스트
         List<String> petKeywords = Arrays.asList(
-                "pet", "동물", "애견", "강아지", "고양이", "veterinary",
-                "동물병원", "펫", "애견카페", "애견호텔", "펫샵", "pet hotel", "pet cafe", "animal",
-                "dog", "cat"
+                "애견", "펫", "동물", "쥬", "pet", "animal", "zoo",
+                "강아지", "고양이", "독","도그", "dog", "cat", "멍",  "댕", "냥",
+                "공원", "park",
+                "veterinary"
         );
 
-        boolean hasKeywordInName = petKeywords.stream()
-                .anyMatch(keyword -> name.contains(keyword.toLowerCase()));
-
-        boolean hasKeywordInTypes = types != null && types.stream()
-                .anyMatch(type -> type.contains("veterinary") || type.contains("pet"));
-
-        return hasKeywordInName || hasKeywordInTypes;
+        // 이름에 반려동물 관련 키워드가 포함되어 있는지 확인
+        return petKeywords.stream()
+                .anyMatch(keyword -> name.contains(keyword));
     }
 
     // Google Place 데이터 저장 및 변환
@@ -176,19 +192,31 @@ public class PlaceService {
 
     // 카테고리 결정
     private PlaceCategory determinePlaceCategory(Map<String, Object> placeData) {
-        List<String> types = (List<String>) placeData.get("types");
-        if (types == null || types.isEmpty()) {
-            return PlaceCategory.ETC;
+        String name = ((String) placeData.get("name")).toLowerCase();
+
+        // 동물병원 카테고리
+        if (name.contains("병원") || name.contains("수의") || name.contains("의료")
+                || name.contains("메디컬") || name.contains("hospital")) {
+            return PlaceCategory.HOSPITAL;
         }
 
-        String mainType = types.get(0);
-        return switch (mainType) {
-            case "veterinary_care", "hospital", "doctor", "health" -> PlaceCategory.HOSPITAL;
-            case "lodging" -> PlaceCategory.HOTEL;
-            case "park" -> PlaceCategory.PARK;
-            case "cafe", "restaurant" -> PlaceCategory.CAFE;
-            default -> PlaceCategory.ETC;
-        };
+        // 호텔 카테고리
+        if (name.contains("호텔") ||name.contains("hotel")) {
+            return PlaceCategory.HOTEL;
+        }
+
+        // 카페 카테고리
+        if (name.contains("카페") || name.contains("cafe")) {
+            return PlaceCategory.CAFE;
+        }
+
+        // 공원 카테고리
+        if (name.contains("공원") || name.contains("운동장") || name.contains("파크")|| name.contains("park")) {
+            return PlaceCategory.PARK;
+        }
+
+        // 위 카테고리에 해당하지 않는 경우
+        return PlaceCategory.ETC;
     }
 
     // DTO 변환
