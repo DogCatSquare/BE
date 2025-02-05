@@ -10,4 +10,5 @@ public class PlaceRequestDTO {
     private Long userId;
     private Double longitude;
     private Double latitude;
+    private String keyword;
 }

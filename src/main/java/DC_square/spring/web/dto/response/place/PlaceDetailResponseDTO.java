@@ -21,4 +21,6 @@ public class PlaceDetailResponseDTO {
     private String homepageUrl;
     private String description;
     private List<String> facilities;
+    private List<String> imageUrls;
+    private Double distance; //구글 API 반환값을 위해 추가
 }
