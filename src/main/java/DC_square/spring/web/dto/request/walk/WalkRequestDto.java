@@ -10,6 +10,11 @@ import lombok.Setter;
 public class WalkRequestDto {
     private Double latitude;
     private Double longitude;
-    @Builder.Default
-    private Double radius = 100000.0;
+    private Double radius;
+
+    public WalkRequestDto(Double latitude, Double longitude, Double radius) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.radius = (radius == null || radius == 0) ? 1000000.0 : radius;
+    }
 }
