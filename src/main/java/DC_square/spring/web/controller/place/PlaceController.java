@@ -10,6 +10,7 @@ import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.service.place.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Place", description = "장소 관련 API")
 @RestController
 @RequestMapping("/api/regions/{regionId}/places")
 @RequiredArgsConstructor
