@@ -7,13 +7,18 @@ import DC_square.spring.config.S3.UuidRepository;
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
-import DC_square.spring.domain.entity.Region;
+import DC_square.spring.domain.entity.region.City;
+import DC_square.spring.domain.entity.region.District;
+import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.domain.enums.DdayType;
 import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.RegionRepository;
 import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.repository.region.CityRepository;
+import DC_square.spring.repository.region.DistrictRepository;
+import DC_square.spring.repository.region.ProvinceRepository;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.user.UserRegistrationRequestDto;  // DTO 변경
 import DC_square.spring.web.dto.request.user.PetRegistrationDto;
@@ -40,11 +45,16 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final ProvinceRepository provinceRepository;
+    private final CityRepository cityRepository;
+    private final DistrictRepository districtRepository;
     private final RegionRepository regionRepository;
     private final PetRepository petRepository;
     private final DdayRepository ddayRepository;
     private final UuidRepository uuidRepository;
     private final AmazonS3Manager s3Manager;
+    private final RegionService regionService;
+
 
     @Transactional
     public UserResponseDto createUser(UserRegistrationRequestDto request, MultipartFile profileImage, MultipartFile petImage) {
@@ -58,19 +68,25 @@ public class UserService {
             throw new RuntimeException("이미 존재하는 닉네임입니다.");
         }
 
+//        // 지역 정보 조회 또는 생성
+//        Region region = regionRepository.findByDoNameAndSiAndGu(
+//                request.getDoName(),
+//                request.getSi(),
+//                request.getGu()
+//        ).orElseGet(() -> { //조회 결과 없을 때 새롭게 생성 !
+//            Region newRegion = Region.builder()
+//                    .doName(request.getDoName())
+//                    .si(request.getSi())
+//                    .gu(request.getGu())
+//                    .build();
+//            return regionRepository.save(newRegion);
+//        });
         // 지역 정보 조회 또는 생성
-        Region region = regionRepository.findByDoNameAndSiAndGu(
+        District district = regionService.findOrCreateDistrict(
                 request.getDoName(),
                 request.getSi(),
                 request.getGu()
-        ).orElseGet(() -> { //조회 결과 없을 때 새롭게 생성 !
-            Region newRegion = Region.builder()
-                    .doName(request.getDoName())
-                    .si(request.getSi())
-                    .gu(request.getGu())
-                    .build();
-            return regionRepository.save(newRegion);
-        });
+        );
 
         // 프로필 이미지 업로드
         String profileImageUrl = null;
@@ -87,7 +103,8 @@ public class UserService {
                 .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 변화나
                 .nickname(request.getNickname())
                 .phoneNumber(request.getPhoneNumber())
-                .regionId(region.getId().toString())
+              // .regionId(region.getId().toString())
+                .district(district)  // district를 직접 참조
                 .adAgree(request.getAdAgree())
                 .profileImageUrl(profileImageUrl)
                 .build();
@@ -199,9 +216,15 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 사용자의 regionId로 Region 정보 조회
-        Region region = regionRepository.findById(Long.parseLong(user.getRegionId()))
-                .orElseThrow(() -> new RuntimeException("지역 정보를 찾을 수 없습니다."));
+//        // 사용자의 regionId로 Region 정보 조회
+//        Region region = regionRepository.findById(Long.parseLong(user.getRegionId()))
+//                .orElseThrow(() -> new RuntimeException("지역 정보를 찾을 수 없습니다."));
+
+        // district를 통해 지역 정보 조회 (이미 연관관계로 매핑되어 있음)
+        District district = user.getDistrict();
+        if (district == null) {
+            throw new RuntimeException("지역 정보를 찾을 수 없습니다.");
+        }
 
         // 첫 번째 반려동물의 품종 가져오기
         String firstPetBreed = petRepository.findAllByUser(user).stream()
@@ -209,7 +232,7 @@ public class UserService {
                 .map(Pet::getBreed)
                 .orElse(null);
 
-        return UserInqueryResponseDto.fromUser(user, region, firstPetBreed);
+        return UserInqueryResponseDto.fromUser(user, firstPetBreed);
     }
 
     // 반려동물 추가

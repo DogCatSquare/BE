@@ -16,6 +16,9 @@ public class UserResponseDto {
     private String email;
     private String nickname;
     private String phoneNumber;
+    private String doName;  // Province name
+    private String si;  // City name
+    private String gu;    // District name
     private String regionId;
     private String profileImageUrl;
     private String token;
@@ -27,7 +30,9 @@ public class UserResponseDto {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .phoneNumber(user.getPhoneNumber())
-                .regionId(user.getRegionId())
+                .doName(user.getDistrict().getCity().getProvince().getName())
+                .si(user.getDistrict().getCity().getName())
+                .gu(user.getDistrict().getName())
                 .profileImageUrl(user.getProfileImageUrl())
                 .token(token)
                 .build();
@@ -40,8 +45,10 @@ public class UserResponseDto {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .phoneNumber(user.getPhoneNumber())
-                .regionId(user.getRegionId())
-                .profileImageUrl(user.getProfileImageUrl())
+                .doName(user.getDistrict().getCity().getProvince().getName())
+                .si(user.getDistrict().getCity().getName())
+                .gu(user.getDistrict().getName())
+//                .profileImageUrl(user.getProfileImageUrl())
                 .build();
 
     }
