@@ -7,11 +7,15 @@ import DC_square.spring.domain.entity.place.PlaceWish;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.repository.place.PlaceWishRepository;
+import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -21,7 +25,9 @@ public class PlaceWishService {
     private final UserRepository userRepository;
     private final PlaceRepository placeRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PlaceService placeService;
 
+    // 마이 장소 위시리스트 토글
     public boolean togglePlaceWish(String token, Long placeId) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)

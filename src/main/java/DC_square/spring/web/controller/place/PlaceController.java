@@ -57,4 +57,16 @@ public class PlaceController {
         PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId, token);
         return ApiResponse.onSuccess(place);
     }
+
+    // 마이 위시 장소 조회 API
+    @Operation(summary = "마이 위시 장소 조회 API")
+    @GetMapping("/wishlist")
+    public ApiResponse<List<PlaceResponseDTO>> getWishList(
+            @PathVariable("regionId") Long regionId,
+            HttpServletRequest request
+    ) {
+        String token = jwtTokenProvider.resolveToken(request);
+        List<PlaceResponseDTO> places = placeService.findWishList(regionId, token);
+        return ApiResponse.onSuccess(places);
+    }
 }

@@ -272,6 +272,36 @@ public class PlaceService {
         return R * c; // km 단위로 변환
     }
 
+    // 위시리스트에서 찜한 장소만 조회하는 메서드
+    public List<PlaceResponseDTO> findWishList(Long regionId, String token) {
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        //사용자가 찜한 `placeId` 리스트 가져오기
+        List<Long> placeIds = placeWishRepository.findAllByUserId(user.getId()).stream()
+                .map(placeWish -> placeWish.getPlace().getId())
+                .collect(Collectors.toList());
+
+        //해당 `placeId`들로 장소 조회
+        List<Place> places = placeRepository.findAllById(placeIds);
+
+        //PlaceResponseDTO로 변환 후 반환
+        return places.stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private PlaceResponseDTO convertToResponseDTO(Place place) {
+        return PlaceResponseDTO.builder()
+                .id(place.getId())
+                .name(place.getName())
+                .address(place.getAddress())
+                .phoneNumber(place.getPhoneNumber())
+                .imgUrl(place.getImages().isEmpty() ? null : place.getImages().get(0).getPhotoReference())
+                .build();
+    }
+
     // 장소 생성 (관리자용)
     public Long createPlace(PlaceCreateRequestDTO request, Long regionId) {
         Region region = regionRepository.getReferenceById(regionId);
