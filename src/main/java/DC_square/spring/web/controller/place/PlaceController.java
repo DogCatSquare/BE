@@ -1,20 +1,17 @@
 package DC_square.spring.web.controller.place;
 
-import DC_square.spring.domain.entity.place.PlaceDetail;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceRequestDTO;
-import DC_square.spring.web.dto.response.UserResponseDto;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
-import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.service.place.PlaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 
 import java.util.List;
 
@@ -25,6 +22,7 @@ import java.util.List;
 public class PlaceController {
 
     private final PlaceService placeService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 장소 전체 조회 API
     @Operation(summary = "장소 전체 조회 API")
@@ -52,9 +50,11 @@ public class PlaceController {
     @Operation(summary = "장소 상세 조회 API")
     @GetMapping("/{placeId}")
     public ApiResponse<PlaceDetailResponseDTO> getPlaceById(
-            @PathVariable("placeId") Long placeId
+            @PathVariable("placeId") Long placeId,
+            HttpServletRequest request
     ) {
-        PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId);
+        String token = jwtTokenProvider.resolveToken(request);
+        PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId, token);
         return ApiResponse.onSuccess(place);
     }
 }
