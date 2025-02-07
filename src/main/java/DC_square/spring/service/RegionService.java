@@ -24,33 +24,20 @@ public class RegionService {
     private final DistrictRepository districtRepository;
 
     public District findOrCreateDistrict(String provinceName, String cityName, String districtName) {
-        // 1. Province 찾기 - 정확한 이름으로 찾기
+       // 저장되지 않은 지역정보 입력시 오류 !
+        // 1. Province 찾기
         Province province = provinceRepository.findByName(provinceName)
-                .orElseGet(() -> {
-                    log.info("Creating new province: {}", provinceName);
-                    return provinceRepository.save(Province.builder()
-                            .name(provinceName)
-                            .build());
-                });
+                .orElseThrow(() -> new RuntimeException(
+                        String.format("존재하지 않는 시/도입니다: %s", provinceName)));
 
-        // 2. City 찾기 - 정확한 이름으로 찾기
+        // 2. City 찾기
         City city = cityRepository.findByNameAndProvince(cityName, province)
-                .orElseGet(() -> {
-                    log.info("Creating new city: {} in province: {}", cityName, provinceName);
-                    return cityRepository.save(City.builder()
-                            .name(cityName)
-                            .province(province)
-                            .build());
-                });
+                .orElseThrow(() -> new RuntimeException(
+                        String.format("존재하지 않는 시/구입니다: %s", cityName)));
 
-        // 3. District 찾기 - 정확한 이름으로 찾기
+        // 3. District 찾기
         return districtRepository.findByNameAndCity(districtName, city)
-                .orElseGet(() -> {
-                    log.info("Creating new district: {} in city: {}", districtName, cityName);
-                    return districtRepository.save(District.builder()
-                            .name(districtName)
-                            .city(city)
-                            .build());
-                });
+                .orElseThrow(() -> new RuntimeException(
+                        String.format("존재하지 않는 동입니다: %s", districtName)));
     }
 }
