@@ -5,6 +5,7 @@ import DC_square.spring.config.S3.AmazonS3Manager;
 import DC_square.spring.config.S3.Uuid;
 import DC_square.spring.config.S3.UuidRepository;
 import DC_square.spring.config.jwt.JwtTokenProvider;
+import DC_square.spring.constant.ImageConstants;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.region.City;
@@ -89,7 +90,7 @@ public class UserService {
         );
 
         // 프로필 이미지 업로드
-        String profileImageUrl = null;
+        String profileImageUrl = ImageConstants.DEFAULT_PROFILE_IMAGE;  // 기본 이미지 설정
         if (profileImage != null && !profileImage.isEmpty()) {
             String uuid = UUID.randomUUID().toString();
             Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
@@ -100,7 +101,7 @@ public class UserService {
         // RequestDto -> Entity, DB에 저장
         User user = User.builder()
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 변화나
+                .password(passwordEncoder.encode(request.getPassword())) // 비밀번호 변환
                 .nickname(request.getNickname())
                 .phoneNumber(request.getPhoneNumber())
               // .regionId(region.getId().toString())
@@ -113,7 +114,7 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         // 반려동물 저장
-        String petImageUrl = null;
+        String petImageUrl = ImageConstants.DEFAULT_PET_IMAGE;  // 기본 이미지 설정
         if (petImage != null && !petImage.isEmpty()) {
             String uuid = UUID.randomUUID().toString();
             Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
