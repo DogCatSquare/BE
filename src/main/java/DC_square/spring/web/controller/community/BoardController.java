@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,6 +70,23 @@ public class BoardController {
     public ApiResponse<Void> deleteBoard(@PathVariable Long boardId) {
         boardService.deleteBoard(boardId);
         return ApiResponse.onSuccess(null); //성공 응답 반환
+    }
+
+    /**
+     * 게시판 조회 API
+     */
+    @Operation(summary = "게시판 검색 API",description = "게시판 이름을 입력해주세요")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+    })
+    @GetMapping("/search")
+    public ApiResponse<List<BoardResponseDto>> searchBoard(@RequestParam String boardName) {
+        if (boardName == null || boardName.trim().isEmpty()) {
+            throw new IllegalArgumentException("게시글 제목은 필수입니다.");
+        }
+
+        List<BoardResponseDto> boardResponseDtoS = boardService.searchBoardByName(boardName);
+        return ApiResponse.onSuccess(boardResponseDtoS);
     }
 
 

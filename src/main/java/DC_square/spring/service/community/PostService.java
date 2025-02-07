@@ -70,6 +70,7 @@ public class PostService {
                 .communityImages(imageUrls)
                 .user(user)
                 .communityImages(imageUrls)
+                .created_at(LocalDateTime.now())
                 .video_URL(postRequestDto.getVideo_URL())
                 .board(findBoard)
                 .build();
@@ -123,9 +124,57 @@ public class PostService {
                 .like_count(post.getLikeCount())
                 .thumbnail_URL(post.getVideo_URL() + "/0.jpg")
                 .comment_count(post.getCommentCount())
-                .createdAt(LocalDateTime.now())
+                .createdAt(post.getCreated_at())
                 .build();
     }
+
+    /**
+     * 게시판 id로 특정 게시판에 있는 게시글들 조회
+     */
+    public List<PostResponseDto> getPosts(Long boardId) {
+
+        // 게시판 ID가 유효한지 확인
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시판 ID가 존재하지 않습니다."));
+
+        // 게시판 ID로 게시글들 조회
+        List<Post> posts = postRepository.findByBoardId(boardId);
+
+
+        // 게시글이 없으면 예외 처리
+        if (posts.isEmpty()) {
+            throw new IllegalArgumentException("해당 게시판에 게시글이 존재하지 않습니다.");
+        }
+
+        // PostResponseDto로 변환하여 반환
+        return posts.stream()
+                .map(post -> {
+                    // 유튜브 영상 ID 추출 (썸네일 URL 생성)
+                    String thumbnailUrl = null;
+                    if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
+                        String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
+                        thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+                    }
+
+                    return PostResponseDto.builder()
+                            .id(post.getId())
+                            .board(post.getBoard().getBoardName())
+                            .title(post.getTitle())
+                            .content(post.getContent())
+                            .video_URL(post.getVideo_URL())
+                            .thumbnail_URL(thumbnailUrl)
+                            .username(post.getUser().getNickname())
+                            .profileImage_URL(post.getUser().getProfileImageUrl())
+                            .images(post.getCommunityImages())
+                            .like_count(post.getLikeCount())
+                            .comment_count(post.getCommentCount())
+                            .createdAt(post.getCreated_at()) // 게시글 생성일
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+
 
     /**
      * 게시글 수정 API
@@ -146,6 +195,7 @@ public class PostService {
         post.setTitle(postRequestDto.getTitle());
         post.setContent(postRequestDto.getContent());
         post.setVideo_URL(postRequestDto.getVideo_URL());
+        post.setCreated_at(LocalDateTime.now());
 
 
         // 이미지 수정 여부 체크
@@ -182,7 +232,7 @@ public class PostService {
                 .like_count(savedPost.getLikeCount())
                 .profileImage_URL(savedPost.getUser().getProfileImageUrl())
                 .comment_count(savedPost.getCommentCount())
-                .createdAt(LocalDateTime.now()) // 수정된 날짜 그대로 반환
+                .createdAt(savedPost.getCreated_at()) // 수정된 날짜 그대로 반환
                 .build();
     }
 
