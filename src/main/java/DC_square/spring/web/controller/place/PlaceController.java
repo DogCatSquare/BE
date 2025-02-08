@@ -17,7 +17,7 @@ import java.util.List;
 
 @Tag(name = "Place", description = "장소 관련 API")
 @RestController
-@RequestMapping("/api/regions/{regionId}/places")
+@RequestMapping("/api/places")
 @RequiredArgsConstructor
 public class PlaceController {
 
@@ -28,10 +28,9 @@ public class PlaceController {
     @Operation(summary = "장소 전체 조회 API")
     @PostMapping("search")
     public ApiResponse<List<PlaceResponseDTO>> getPlaces(
-            @PathVariable("regionId") Long regionId,
             @RequestBody PlaceRequestDTO request  // 사용자 현재 위치
     ) {
-        List<PlaceResponseDTO> places = placeService.findPlaces(regionId, request);
+        List<PlaceResponseDTO> places = placeService.findPlaces(request);
         return ApiResponse.onSuccess(places);
     }
 
@@ -39,10 +38,9 @@ public class PlaceController {
     @Operation(summary = "장소 생성 API")
     @PostMapping
     public ApiResponse<Long> createPlace(
-            @RequestBody PlaceCreateRequestDTO request,
-            @PathVariable("regionId") Long regionId
+            @RequestBody PlaceCreateRequestDTO request
     ) {
-        Long placeId = placeService.createPlace(request, regionId);
+        Long placeId = placeService.createPlace(request);
         return ApiResponse.onSuccess(placeId);
     }
 
