@@ -17,7 +17,7 @@ public class WeatherResponseDto {
     private String location;        // 지역 정보 (ex: 강남구 역삼동)
     private String currentTemp;     // 현재 기온
     private String maxTemp;         // 최고 기온
-    private String minTemp;         // 최저 기온
+    private String minTemp;      // 최저 기온
     private String imageUrl;        // S3 이미지 URL
 
     // D-day 관련 정보 (날씨가 흐릴 때만 사용)
@@ -34,18 +34,26 @@ public class WeatherResponseDto {
             String minTemp,
             Dday dday
     ) {
+        //소수점 제거
+        String formattedMaxTemp = maxTemp != null ?
+                String.valueOf((int)Double.parseDouble(maxTemp)) + "°" : null;
+        String formattedMinTemp = minTemp != null ?
+                String.valueOf((int)Double.parseDouble(minTemp)) + "°" : null;
+        String formattedCurrentTemp = currentTemp != null ?
+                String.valueOf((int)Double.parseDouble(currentTemp)) + "°" : null;
+
         WeatherResponseDtoBuilder builder = WeatherResponseDto.builder()
                 .location(location)
-                .currentTemp(currentTemp + "°")
-                .maxTemp(maxTemp + "°")
-                .minTemp(minTemp + "°");
+                .currentTemp(formattedCurrentTemp)
+                .maxTemp(formattedMaxTemp)
+                .minTemp(formattedMinTemp);
 
         // D-day가 있고 날씨가 흐린 경우
         //기존 코드
-      //  if (dday != null && status == WeatherStatus.CLOUDY) {
+        if (dday != null && status == WeatherStatus.CLOUDY) {
 
         //테스트 (구름이 아닐 때도)
-        if (dday != null) {
+//        if (dday != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
             builder.ddayTitle(dday.getTitle())
                     .ddayMessage("D-" + dday.getDaysLeft())

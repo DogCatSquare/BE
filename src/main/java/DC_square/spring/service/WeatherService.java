@@ -169,18 +169,18 @@ public class WeatherService {
             WeatherStatus status = WeatherStatus.fromWeatherData(pty, sky, Double.parseDouble(wsd));
 
             // 6. 가장 가까운 D-day 찾기 (날씨가 흐린 경우)
-            // 원래 코드
-           // Dday nearestDday = status == WeatherStatus.CLOUDY ? findNearestDday(user) : null;
+             //원래 코드
+            Dday nearestDday = status == WeatherStatus.CLOUDY ? findNearestDday(user) : null;
 
-            // 맑음일 때 테스트
-            Dday nearestDday = status == WeatherStatus.SUNNY ? findNearestDday(user) : null;
+//            // 맑음일 때 테스트
+//            Dday nearestDday = status == WeatherStatus.SUNNY ? findNearestDday(user) : null;
 
 
             // 7. 응답 생성
             return WeatherResponseDto.from(
                     status,
                     pet.getDogCat(),
-                    user.getDistrict().getCity().getName() + " " + user.getDistrict().getName(),
+                    user.getDistrict().getName(), //3 단계만
                     tmp,
                     tmx,
                     tmn,
