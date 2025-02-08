@@ -5,11 +5,13 @@ import DC_square.spring.domain.entity.community.Keyword;
 import DC_square.spring.repository.community.BoardRepository;
 import DC_square.spring.web.dto.request.community.BoardRequestDto;
 import DC_square.spring.web.dto.response.community.BoardResponseDto;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class BoardService {
         Board board = Board.builder()
                 .boardName(boardRequestDto.getBoardName())
                 .content(boardRequestDto.getContent())
+                .createdDate(LocalDateTime.now())
                 .build();
 
         // 키워드 매핑(List<String> keywords -> List<Keyword> keywordList)
@@ -50,7 +53,7 @@ public class BoardService {
                 .keywords(keywordList.stream()
                         .map(Keyword::getKeyword)
                         .toList())
-                .createdAt(LocalDateTime.now())
+                .createdAt(savedBoard.getCreatedDate())
                 .build();
     }
 
@@ -70,7 +73,7 @@ public class BoardService {
                 .boardName(board.getBoardName())
                 .content(board.getContent())
                 .keywords(keywords)
-                .createdAt(LocalDateTime.now())
+                .createdAt(board.getCreatedDate())
                 .build();
     }
 
@@ -82,6 +85,7 @@ public class BoardService {
         // 2. Board 이름과 내용 업데이트
         board.setBoardName(boardRequestDto.getBoardName());
         board.setContent(boardRequestDto.getContent());
+        board.setCreatedDate(LocalDateTime.now());
 
         // 3. 키워드가 요청에 포함된 경우에만 업데이트
         if (boardRequestDto.getKeywords() != null && !boardRequestDto.getKeywords().isEmpty()) {
@@ -107,10 +111,31 @@ public class BoardService {
                 .keywords(updatedBoard.getKeywordList().stream()
                         .map(Keyword::getKeyword)
                         .toList())
-                .createdAt(LocalDateTime.now())
+                .createdAt(updatedBoard.getCreatedDate())
                 .build();
     }
 
+    /**
+     * 게시판 검색 API(조회)
+     */
+    public List<BoardResponseDto> searchBoardByName(String boardName) {
+        List<Board> boards = boardRepository.findByBoardNameContainingIgnoreCase(boardName);
+        if(boards.isEmpty()) {
+            throw new EntityNotFoundException("해당 이름을 포함하는 게시판을 찾을 수 없습니다: " + boardName);
+        }
+
+        return boards.stream()
+                .map(board -> BoardResponseDto.builder()
+                        .id(board.getId())
+                        .boardName(board.getBoardName())
+                        .content(board.getContent())
+                        .keywords(board.getKeywordList().stream()
+                                .map(Keyword::getKeyword)
+                                .collect(Collectors.toList()))
+                        .createdAt(board.getCreatedDate())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
     /**
      * 게시판 삭제 API
