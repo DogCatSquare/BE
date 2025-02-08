@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +35,16 @@ public class PlaceService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    private final AtomicReference<Double> lastLatitude = new AtomicReference<>(null);
+    private final AtomicReference<Double> lastLongitude = new AtomicReference<>(null);
+
     // 장소 검색 (메인)
     public List<PlaceResponseDTO> findPlaces(PlaceRequestDTO request) {
+
+        // 위도/경도 저장
+        lastLatitude.set(request.getLatitude());
+        lastLongitude.set(request.getLongitude());
+
         List<PlaceDetailResponseDTO> places = searchNearbyPlaces(
                 request.getLatitude(),
                 request.getLongitude(),
@@ -87,7 +96,13 @@ public class PlaceService {
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
 
-        return convertToDetailDTO(placeDetail.getPlace(), null, user.getId());
+        PlaceRequestDTO userLocation = new PlaceRequestDTO();
+        Double latitude = lastLatitude.get();
+        Double longitude = lastLongitude.get();
+        userLocation.setLatitude(latitude);
+        userLocation.setLongitude(longitude);
+
+        return convertToDetailDTO(placeDetail.getPlace(), userLocation, user.getId());
     }
 
     // 반려동물 관련 장소 필터링
@@ -237,6 +252,7 @@ public class PlaceService {
                 .homepageUrl(placeDetail.getHomepageUrl())
                 .description(placeDetail.getDescription())
                 .facilities(placeDetail.getFacilities())
+                .distance(distance)
                 .build();
     }
 

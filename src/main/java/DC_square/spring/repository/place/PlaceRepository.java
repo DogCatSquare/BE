@@ -12,11 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, Long> {
-    // Region 엔티티의 id로 조회
-    @Query("SELECT p FROM Place p " +
-            "WHERE (:regionId is null OR p.region.id = :regionId)")
-    List<Place> findPlacesByRegionId(@Param("regionId") Long regionId);
-
     Optional<Place> findByGooglePlaceId(String googlePlaceId);
 
     boolean existsByGooglePlaceId(String googlePlaceId);

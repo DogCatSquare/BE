@@ -15,6 +15,5 @@ public class PlaceResponseDTO {
     private String phoneNumber;
     private Double distance;
     private Boolean open;
-    private Long regionId;
     private String imgUrl;
 }
