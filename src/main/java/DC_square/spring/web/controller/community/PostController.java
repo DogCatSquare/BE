@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/board/post")
+@RequestMapping("/api/board")
 @Tag(name = "Post API", description = "게시글 CRUD, 좋아요 API")
 public class PostController {
 
@@ -28,11 +28,11 @@ public class PostController {
     /**
      * 게시글 생성 API
      */
-    @Operation(summary = "게시글 생성 API", description = "게시글을 작성해주세요(사용자 아이디 필수), 이미지는 필수입니다.")
+    @Operation(summary = "게시글 생성 API", description = "게시글을 작성해주세요(사용자 아이디 필수), 이미지는 선택입니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @PostMapping(value = "/users/{userId}",
+    @PostMapping(value = "/post/users/{userId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // consumes에서 이미지 타입을 제거하고 multipart/form-data만 사용
     public ApiResponse<PostResponseDto> createPost(
             @Valid @RequestPart("request") PostRequestDto postRequestDto,
@@ -49,7 +49,7 @@ public class PostController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @GetMapping("/{postId}")
+    @GetMapping("/post/{postId}")
     public ApiResponse<PostResponseDto> getPost(@PathVariable Long postId) {
         return ApiResponse.onSuccess(postService.getPost(postId));
     }
@@ -61,7 +61,7 @@ public class PostController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @PutMapping(value = "/{postId}",
+    @PutMapping(value = "/post/{postId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // consumes에서 이미지 타입을 제거하고 multipart/form-data만 사용
     public ApiResponse<PostResponseDto> updatePost(
             @Valid @RequestPart("request") PostRequestDto postRequestDto,
@@ -78,7 +78,7 @@ public class PostController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/post/{postId}")
     public ApiResponse<Void> deletePost(@PathVariable Long postId) {
         postService.deletePost(postId);
         return ApiResponse.onSuccess(null);
@@ -91,13 +91,25 @@ public class PostController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @PostMapping("/{postId}/like")
+    @PostMapping("/post/{postId}/like")
     public ApiResponse<String> toggleLike(
             @PathVariable("postId") Long postId,
             @RequestParam("userId") Long userId
     ) {
         boolean liked = postLikeService.toggleLike(postId, userId);
         return ApiResponse.onSuccess(liked ? "좋아요가 추가되었습니다." : "좋아요가 취소되었습니다.");
+    }
+
+    /**
+     * 특정 게시판에 있는 게시글들 조회
+     */
+    @Operation(summary = "특정 게시판에 있는 게시글들 조회 API",description = "게시판 아이디를 입력해주세요")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @GetMapping("/{boardId}/posts")
+    public ApiResponse<List<PostResponseDto>> getPostsByBoard(@PathVariable Long boardId) {
+        return ApiResponse.onSuccess(postService.getPosts(boardId));
     }
 
 }
