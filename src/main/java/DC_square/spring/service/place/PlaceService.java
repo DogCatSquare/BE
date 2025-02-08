@@ -273,7 +273,7 @@ public class PlaceService {
     }
 
     // 위시리스트에서 찜한 장소만 조회하는 메서드
-    public List<PlaceResponseDTO> findWishList(Long regionId, String token) {
+    public List<PlaceResponseDTO> findWishList(String token) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
