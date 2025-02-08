@@ -169,7 +169,12 @@ public class WeatherService {
             WeatherStatus status = WeatherStatus.fromWeatherData(pty, sky, Double.parseDouble(wsd));
 
             // 6. 가장 가까운 D-day 찾기 (날씨가 흐린 경우)
-            Dday nearestDday = status == WeatherStatus.CLOUDY ? findNearestDday(user) : null;
+            // 원래 코드
+           // Dday nearestDday = status == WeatherStatus.CLOUDY ? findNearestDday(user) : null;
+
+            // 맑음일 때 테스트
+            Dday nearestDday = status == WeatherStatus.SUNNY ? findNearestDday(user) : null;
+
 
             // 7. 응답 생성
             return WeatherResponseDto.from(
@@ -190,6 +195,7 @@ public class WeatherService {
 
     private Dday findNearestDday(User user) {
         List<Dday> ddays = ddayRepository.findAllByUserOrderByDayAsc(user);
+        log.info("User's Ddays: {}", ddays);
         LocalDate today = LocalDate.now();
 
         return ddays.stream()
@@ -201,6 +207,10 @@ public class WeatherService {
                             title.equals("병원 방문일");
                     // 오늘 이후의 날짜만 필터
                     boolean isFutureDate = !dday.getDay().isBefore(today);
+
+                    // 필터링 과정 로그
+                    log.info("Checking Dday - Title: {}, Date: {}, isValidTitle: {}, isFutureDate: {}",
+                            title, dday.getDay(), isValidTitle, isFutureDate);
 
                     return isValidTitle && isFutureDate;
                 })

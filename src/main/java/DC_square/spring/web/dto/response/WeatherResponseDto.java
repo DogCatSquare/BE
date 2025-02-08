@@ -41,7 +41,11 @@ public class WeatherResponseDto {
                 .minTemp(minTemp + "°");
 
         // D-day가 있고 날씨가 흐린 경우
-        if (dday != null && status == WeatherStatus.CLOUDY) {
+        //기존 코드
+      //  if (dday != null && status == WeatherStatus.CLOUDY) {
+
+        //테스트 (구름이 아닐 때도)
+        if (dday != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
             builder.ddayTitle(dday.getTitle())
                     .ddayMessage("D-" + dday.getDaysLeft())
