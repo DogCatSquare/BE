@@ -19,6 +19,8 @@ public class UserInqueryResponseDto {
     private Boolean adAgree;
     private String firstPetBreed; // 첫 번째 반려동물 품종
     private String profileImageUrl;
+    private Integer gridX;
+    private Integer gridY;
 
 
     public static UserInqueryResponseDto fromUser(User user, String firstPetBreed) {
@@ -35,6 +37,8 @@ public class UserInqueryResponseDto {
                 .adAgree(user.getAdAgree())
                 .firstPetBreed(firstPetBreed)
                 .profileImageUrl(user.getProfileImageUrl())
+                .gridX(user.getDistrict().getCity().getGrid_X())
+                .gridY(user.getDistrict().getCity().getGrid_Y())
                 .build();
     }
 }
