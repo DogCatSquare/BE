@@ -216,6 +216,9 @@ public class PlaceService {
             );
         }
 
+        PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
+                .orElseThrow(() -> new RuntimeException("장소 상세 정보를 찾을 수 없습니다."));
+
         return PlaceDetailResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
@@ -230,6 +233,10 @@ public class PlaceService {
                         .map(image -> googlePlacesService.getPhotoUrl(image.getPhotoReference(), image.getWidth()))
                         .collect(Collectors.toList()))
                 .isWished(userId != null && placeWishRepository.existsByPlaceIdAndUserId(place.getId(), userId))
+                .businessHours(placeDetail.getBusinessHours())
+                .homepageUrl(placeDetail.getHomepageUrl())
+                .description(placeDetail.getDescription())
+                .facilities(placeDetail.getFacilities())
                 .build();
     }
 
