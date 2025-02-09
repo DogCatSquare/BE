@@ -59,6 +59,7 @@ cloud:
         community: community
         dday: dday
         profile: profile
+        weather: weather
     region:
       static: ${CLOUD_AWS_REGION_STATIC}
     stack:

@@ -28,8 +28,8 @@ public class Region {
     @Column(name = "gu", nullable = false, length = 20)
     private String gu;
 
-    @OneToMany(mappedBy = "region", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Place> places;
+//    @OneToMany(mappedBy = "region", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Place> places;
 
     @Column(name = "latitude") // -180.000000 ~ 180.000000
     private Double latitude; // 예시
