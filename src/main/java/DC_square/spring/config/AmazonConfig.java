@@ -49,6 +49,9 @@ public class AmazonConfig {
     @Value("${cloud.aws.s3.path.dday}")
     private String ddayPath;
 
+    @Value("${cloud.aws.s3.path.weather}")
+    private String weatherPath;
+
 
     @PostConstruct
     public void init() {

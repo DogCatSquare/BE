@@ -58,4 +58,8 @@ public class AmazonS3Manager{
     public String generatedday(Uuid uuid) {
         return amazonConfig.getDdayPath() + '/' + uuid.getUuid();
     }
+
+    public String generateWeather(Uuid uuid) {
+        return amazonConfig.getWeatherPath() + '/' + uuid.getUuid();
+    }
 }
