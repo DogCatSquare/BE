@@ -18,6 +18,7 @@ public class DdayResponseDto {
     private Long daysLeft;
     private String dDayText;
     private  String dDayImageUrl;
+    private Boolean isAlarm;
 
     public static DdayResponseDto from(Dday dday) {
         LocalDate today = LocalDate.now();
@@ -34,6 +35,7 @@ public class DdayResponseDto {
                 .daysLeft(daysUntil)
                 .dDayText(dDayStr)
                 .dDayImageUrl(dday.getImageUrl())
+                .isAlarm(dday.getIsAlarm())
                 .build();
     }
 }
