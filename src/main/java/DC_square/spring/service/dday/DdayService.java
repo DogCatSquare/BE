@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,12 +37,28 @@ public class DdayService {
         return DdayResponseDto.from(savedDday);
     }
 
+    @Transactional
     public List<DdayResponseDto> getDdaysByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        return ddayRepository.findAllByUserOrderByDayAsc(user)
-                .stream()
+        List<Dday> ddays = ddayRepository.findAllByUserOrderByDayAsc(user);
+        LocalDate today = LocalDate.now();
+
+        ddays.forEach(dday -> {
+            // term이 있고 날짜가 지난 D-day 체크
+            if (dday.getTerm() != null && dday.getDay().isBefore(today)) {
+                // 지난 날짜로부터 다음 주기 계산
+                LocalDate lastDday = dday.getDay();
+                while (lastDday.isBefore(today)) {
+                    lastDday = lastDday.plusWeeks(dday.getTerm());
+                }
+                dday.setDay(lastDday);
+                ddayRepository.save(dday);
+            }
+        });
+
+        return ddays.stream()
                 .map(DdayResponseDto::from)
                 .collect(Collectors.toList());
     }
