@@ -89,6 +89,19 @@ public class BoardController {
         return ApiResponse.onSuccess(boardResponseDtoS);
     }
 
+    /**
+     * 게시판 전체 조회 API
+     */
+    @Operation(summary = "게시판 전체 조회 API",description = "모든 게시판 조회를 합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+    })
+    @GetMapping("/all")
+    public ApiResponse<List<BoardResponseDto>> getAllBoards() {
+        List<BoardResponseDto> allBoards = boardService.getAllBoards();
+        return ApiResponse.onSuccess(allBoards);
+    }
+
 
 
 
