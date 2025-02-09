@@ -12,7 +12,7 @@ public class WeatherConstants {
     public static final String RAIN_TYPE = "PTY"; // 강수 형태
     public static final String SKY = "SKY";  // 하늘 상태
     public static final String WIND_SPEED = "WSD";  // 풍속
-
+    public static final String   RAIN_PROBABILITY="POP"; //강수 확률
 
     // S3 이미지 url
     public static final String DOG_SUN_IMAGE = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/weather/dog_sun";

@@ -19,6 +19,7 @@ public class WeatherResponseDto {
     private String maxTemp;         // 최고 기온
     private String minTemp;      // 최저 기온
     private String imageUrl;        // S3 이미지 URL
+    private String rainProbability;     // 강수 확률
 
     // D-day 관련 정보 (날씨가 흐릴 때만 사용)
     private String ddayTitle;       // D-day 제목
@@ -32,7 +33,8 @@ public class WeatherResponseDto {
             String currentTemp,
             String maxTemp,
             String minTemp,
-            Dday dday
+            Dday dday,
+            String pop
     ) {
         //소수점 제거
         String formattedMaxTemp = maxTemp != null ?
@@ -46,7 +48,9 @@ public class WeatherResponseDto {
                 .location(location)
                 .currentTemp(formattedCurrentTemp)
                 .maxTemp(formattedMaxTemp)
-                .minTemp(formattedMinTemp);
+                .minTemp(formattedMinTemp)
+                .rainProbability(pop != null ? pop + "%" : "0%");
+
 
         // D-day가 있고 날씨가 흐린 경우
         //기존 코드
@@ -67,6 +71,7 @@ public class WeatherResponseDto {
         setWeatherMessage(builder, status, petType);
         return builder.build();
     }
+
 
     private static void setWeatherMessage(WeatherResponseDtoBuilder builder, WeatherStatus status, DogCat petType) {
         boolean isDog = petType == DogCat.DOG;

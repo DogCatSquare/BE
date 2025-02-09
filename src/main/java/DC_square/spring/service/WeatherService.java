@@ -121,7 +121,7 @@ public class WeatherService {
                     .getJSONArray("item");
 
             // 4. 날씨 데이터 추출
-            String tmp = null, pty = null, sky = null, wsd = null,tmn=null,tmx=null;
+            String tmp = null, pty = null, sky = null, wsd = null,tmn=null,tmx=null,pop = null;
             int currentHour = now.getHour();
 
 // 가장 최근의 예보 시간을 찾기 위한 변수들
@@ -162,6 +162,9 @@ public class WeatherService {
                     case WeatherConstants.WIND_SPEED:
                         if (forecastHour == closestHour) wsd = value;
                         break;
+                    case WeatherConstants.RAIN_PROBABILITY:
+                        if (forecastHour == closestHour) pop = value;
+                        break;
                 }
             }
 
@@ -184,7 +187,8 @@ public class WeatherService {
                     tmp,
                     tmx,
                     tmn,
-                    nearestDday
+                    nearestDday,
+                    pop
             );
 
         } catch (Exception e) {
