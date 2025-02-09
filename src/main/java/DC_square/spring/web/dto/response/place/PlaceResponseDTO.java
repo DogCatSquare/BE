@@ -1,6 +1,5 @@
 package DC_square.spring.web.dto.response.place;
 
-import DC_square.spring.domain.entity.place.PlaceImage;
 import DC_square.spring.domain.enums.PlaceCategory;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +15,5 @@ public class PlaceResponseDTO {
     private String phoneNumber;
     private Double distance;
     private Boolean open;
-    private Long regionId;
     private String imgUrl;
 }

@@ -10,10 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class PlaceReviewCreateRequestDTO {
-    private Long userId;
     private String content;
-
     private List<String> placeReviewImageUrl;
-
     private LocalDateTime createdAt;
 }

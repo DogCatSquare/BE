@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,20 +29,26 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlaceService {
     private final PlaceRepository placeRepository;
-    private final RegionRepository regionRepository;
     private final PlaceDetailRepository placeDetailRepository;
     private final GooglePlacesService googlePlacesService;
     private final PlaceWishRepository placeWishRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    private final AtomicReference<Double> lastLatitude = new AtomicReference<>(null);
+    private final AtomicReference<Double> lastLongitude = new AtomicReference<>(null);
+
     // 장소 검색 (메인)
-    public List<PlaceResponseDTO> findPlaces(Long regionId, PlaceRequestDTO request) {
+    public List<PlaceResponseDTO> findPlaces(PlaceRequestDTO request) {
+
+        // 위도/경도 저장
+        lastLatitude.set(request.getLatitude());
+        lastLongitude.set(request.getLongitude());
+
         List<PlaceDetailResponseDTO> places = searchNearbyPlaces(
                 request.getLatitude(),
                 request.getLongitude(),
-                request.getKeyword(),
-                regionId
+                request.getKeyword()
         );
 
         return places.stream()
@@ -53,7 +60,6 @@ public class PlaceService {
                         .phoneNumber(place.getPhoneNumber())
                         .distance(place.getDistance())
                         .open(place.getOpen())
-                        .regionId(regionId)
                         .imgUrl(place.getImageUrls() != null && !place.getImageUrls().isEmpty()
                                 ? place.getImageUrls().get(0)  // 첫 번째 이미지 URL 사용
                                 : null)
@@ -62,9 +68,8 @@ public class PlaceService {
     }
 
     // 주변 장소 검색
-    public List<PlaceDetailResponseDTO> searchNearbyPlaces(Double latitude, Double longitude,String keyword, Long regionId) {
-        Region region = regionRepository.getReferenceById(regionId);
-        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? "veterinary" : keyword;
+    public List<PlaceDetailResponseDTO> searchNearbyPlaces(Double latitude, Double longitude,String keyword) {
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? "animal" : keyword;
         Map<String, Object> searchResults = googlePlacesService.searchPlacesByKeyword(latitude, longitude, searchKeyword);
         List<Map<String, Object>> results = (List<Map<String, Object>>) searchResults.get("results");
 
@@ -78,7 +83,7 @@ public class PlaceService {
 
         return results.stream()
                 .filter(this::isPetRelatedPlace)
-                .map(result -> saveAndConvertToDTO(result, region, userLocation))
+                .map(result -> saveAndConvertToDTO(result, userLocation))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
@@ -91,30 +96,16 @@ public class PlaceService {
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
 
-        //boolean isWished = placeWishRepository.existsByPlaceIdAndUserId(placeId, userId);
+        PlaceRequestDTO userLocation = new PlaceRequestDTO();
+        Double latitude = lastLatitude.get();
+        Double longitude = lastLongitude.get();
+        userLocation.setLatitude(latitude);
+        userLocation.setLongitude(longitude);
 
-        return convertToDetailDTO(placeDetail.getPlace(), null, user.getId());
+        return convertToDetailDTO(placeDetail.getPlace(), userLocation, user.getId());
     }
 
     // 반려동물 관련 장소 필터링
-//    private boolean isPetRelatedPlace(Map<String, Object> placeData) {
-//        String name = ((String) placeData.get("name")).toLowerCase();
-//        List<String> types = (List<String>) placeData.get("types");
-//
-//        List<String> petKeywords = Arrays.asList(
-//                "pet", "동물", "애견", "강아지", "고양이", "veterinary",
-//                "동물병원", "펫", "애견카페", "애견호텔", "펫샵", "pet hotel", "pet cafe", "animal",
-//                "dog", "cat"
-//        );
-//
-//        boolean hasKeywordInName = petKeywords.stream()
-//                .anyMatch(keyword -> name.contains(keyword.toLowerCase()));
-//
-//        boolean hasKeywordInTypes = types != null && types.stream()
-//                .anyMatch(type -> type.contains("veterinary") || type.contains("pet"));
-//
-//        return hasKeywordInName || hasKeywordInTypes;
-//    }
     private boolean isPetRelatedPlace(Map<String, Object> placeData) {
         String name = ((String) placeData.get("name")).toLowerCase();
 
@@ -132,7 +123,7 @@ public class PlaceService {
     }
 
     // Google Place 데이터 저장 및 변환
-    private PlaceDetailResponseDTO saveAndConvertToDTO(Map<String, Object> placeData, Region region, PlaceRequestDTO userLocation) {
+    private PlaceDetailResponseDTO saveAndConvertToDTO(Map<String, Object> placeData, PlaceRequestDTO userLocation) {
         String googlePlaceId = (String) placeData.get("place_id");
 
         Place existingPlace = placeRepository.findByGooglePlaceId(googlePlaceId).orElse(null);
@@ -143,7 +134,7 @@ public class PlaceService {
         Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
         Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
 
-        Place newPlace = createPlaceFromGoogleData(placeData, detailResult, region);
+        Place newPlace = createPlaceFromGoogleData(placeData, detailResult);
         Place savedPlace = placeRepository.save(newPlace);
 
         PlaceDetail placeDetail = PlaceDetail.builder()
@@ -163,7 +154,7 @@ public class PlaceService {
     }
 
     // Place 엔티티 생성
-    private Place createPlaceFromGoogleData(Map<String, Object> placeData, Map<String, Object> details, Region region) {
+    private Place createPlaceFromGoogleData(Map<String, Object> placeData, Map<String, Object> details) {
         Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
         Map<String, Object> location = (Map<String, Object>) geometry.get("location");
         Map<String, Object> openingHours = (Map<String, Object>) placeData.get("opening_hours");
@@ -177,7 +168,6 @@ public class PlaceService {
                 .phoneNumber(phoneNumber)
                 .latitude((Double) location.get("lat"))
                 .longitude((Double) location.get("lng"))
-                .region(region)
                 .googlePlaceId((String) placeData.get("place_id"))
                 .open(openingHours != null ? (Boolean) openingHours.get("open_now") : null)
                 .images(new ArrayList<>())
@@ -241,6 +231,9 @@ public class PlaceService {
             );
         }
 
+        PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
+                .orElseThrow(() -> new RuntimeException("장소 상세 정보를 찾을 수 없습니다."));
+
         return PlaceDetailResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
@@ -255,6 +248,11 @@ public class PlaceService {
                         .map(image -> googlePlacesService.getPhotoUrl(image.getPhotoReference(), image.getWidth()))
                         .collect(Collectors.toList()))
                 .isWished(userId != null && placeWishRepository.existsByPlaceIdAndUserId(place.getId(), userId))
+                .businessHours(placeDetail.getBusinessHours())
+                .homepageUrl(placeDetail.getHomepageUrl())
+                .description(placeDetail.getDescription())
+                .facilities(placeDetail.getFacilities())
+                .distance(distance)
                 .build();
     }
 
@@ -303,8 +301,7 @@ public class PlaceService {
     }
 
     // 장소 생성 (관리자용)
-    public Long createPlace(PlaceCreateRequestDTO request, Long regionId) {
-        Region region = regionRepository.getReferenceById(regionId);
+    public Long createPlace(PlaceCreateRequestDTO request) {
 
         Place place = Place.builder()
                 .name(request.getName())
@@ -314,7 +311,6 @@ public class PlaceService {
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .open(request.getOpen())
-                .region(region)
                 .build();
 
         Place savedPlace = placeRepository.save(place);

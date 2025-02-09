@@ -49,9 +49,9 @@ public class Place {
     @Column(name = "google_place_id", unique = true)
     private String googlePlaceId;
 
-    @ManyToOne
-    @JoinColumn(name = "region_id", nullable = false)
-    private Region region;
+//    @ManyToOne
+//    @JoinColumn(name = "region_id", nullable = false)
+//    private Region region;
 
     @Column(name = "longitude", nullable = false) // -180.000000 ~ 180.000000
     private Double longitude;

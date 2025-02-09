@@ -32,15 +32,4 @@ public class PlaceWishController {
         Boolean isWishId = placeWishService.togglePlaceWish(token, placeId);
         return ApiResponse.onSuccess(isWishId);
     }
-
-//    // 마이 장소 위시리스트 조회 API
-//    @Operation(summary = "마이 장소 위시리스트 조회 API")
-//    @GetMapping
-//    public ApiResponse<List<PlaceResponseDTO>> getMyWishList(
-//            HttpServletRequest request
-//    ) {
-//        String token = jwtTokenProvider.resolveToken(request);
-//        List<PlaceResponseDTO> wishList = placeWishService.getMyWishList(token);
-//        return ApiResponse.onSuccess(wishList);
-//    }
 }
