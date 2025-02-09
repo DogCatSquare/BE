@@ -58,7 +58,7 @@ public class BoardService {
     }
 
     /**
-     * 게시판 조회 API
+     * 특정 게시판 조회 API
      */
     public BoardResponseDto getBoard(Long id) {
         Board board = boardRepository.findById(id)
@@ -124,6 +124,24 @@ public class BoardService {
             throw new EntityNotFoundException("해당 이름을 포함하는 게시판을 찾을 수 없습니다: " + boardName);
         }
 
+        return boards.stream()
+                .map(board -> BoardResponseDto.builder()
+                        .id(board.getId())
+                        .boardName(board.getBoardName())
+                        .content(board.getContent())
+                        .keywords(board.getKeywordList().stream()
+                                .map(Keyword::getKeyword)
+                                .collect(Collectors.toList()))
+                        .createdAt(board.getCreatedDate())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 게시판 전체 조회 API
+     */
+    public List<BoardResponseDto> getAllBoards() {
+        List<Board> boards = boardRepository.findAll();
         return boards.stream()
                 .map(board -> BoardResponseDto.builder()
                         .id(board.getId())
