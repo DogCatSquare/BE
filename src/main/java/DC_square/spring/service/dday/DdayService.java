@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,18 +46,30 @@ public class DdayService {
         List<Dday> ddays = ddayRepository.findAllByUserOrderByDayAsc(user);
         LocalDate today = LocalDate.now();
 
-        ddays.forEach(dday -> {
-            // term이 있고 날짜가 지난 D-day 체크
-            if (dday.getTerm() != null && dday.getDay().isBefore(today)) {
-                // 지난 날짜로부터 다음 주기 계산
+        List<Dday> updatedDdays = new ArrayList<>();
+
+        for (Dday dday : ddays) {
+            if (dday.getTerm() != null &&
+                    dday.getTerm() > 0 &&
+                    dday.getDay().isBefore(today)) {
+
                 LocalDate lastDday = dday.getDay();
-                while (lastDday.isBefore(today)) {
+                int maxIterations = 52;  // 최대 1년
+                int iterations = 0;
+
+                while (lastDday.isBefore(today) && iterations < maxIterations) {
                     lastDday = lastDday.plusWeeks(dday.getTerm());
+                    iterations++;
                 }
+
                 dday.setDay(lastDday);
-                ddayRepository.save(dday);
+                updatedDdays.add(dday);
             }
-        });
+        }
+
+        if (!updatedDdays.isEmpty()) {
+            ddayRepository.saveAll(updatedDdays);  // 한번에 저장으로 변경
+        }
 
         return ddays.stream()
                 .map(DdayResponseDto::from)
