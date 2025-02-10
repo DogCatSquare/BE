@@ -4,6 +4,7 @@ import DC_square.spring.domain.enums.DdayType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Getter
@@ -46,5 +47,9 @@ public class Dday {
             case CUSTOM: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/pet/3057edc6-9efa-4147-ba88-6276f057ffbb";
                 break;
         }
+    }
+
+    public long getDaysLeft() {
+        return ChronoUnit.DAYS.between(LocalDate.now(), this.day);
     }
 }
