@@ -36,6 +36,9 @@ public class Dday {
     @Column
     private String imageUrl;
 
+    @Column(nullable = false)
+    private Boolean isAlarm = false;
+
     public void setDefaultImageUrl() {
         switch(this.type) {
             case FOOD: this.imageUrl = "https://dogcatsquare.s3.ap-northeast-2.amazonaws.com/pet/e085b385-c8af-4e49-971c-5f89fa6f22da";
