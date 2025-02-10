@@ -1,6 +1,8 @@
 package DC_square.spring.domain.entity.place;
 
 import DC_square.spring.domain.entity.Region;
+import DC_square.spring.domain.entity.region.City;
+import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.domain.enums.PlaceCategory;
 import  jakarta.persistence.*;
 import lombok.*;
@@ -52,6 +54,14 @@ public class Place {
 //    @ManyToOne
 //    @JoinColumn(name = "region_id", nullable = false)
 //    private Region region;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "province_id")
+    private Province province;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id")
+    private City city;
 
     @Column(name = "longitude", nullable = false) // -180.000000 ~ 180.000000
     private Double longitude;

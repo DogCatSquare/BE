@@ -26,11 +26,12 @@ public class PlaceController {
 
     // 장소 전체 조회 API
     @Operation(summary = "장소 전체 조회 API")
-    @PostMapping("search")
+    @PostMapping("search/{cityId}")
     public ApiResponse<List<PlaceResponseDTO>> getPlaces(
-            @RequestBody PlaceRequestDTO request  // 사용자 현재 위치
+            @RequestBody PlaceRequestDTO request,  // 사용자 현재 위치
+            @PathVariable("cityId") Long cityId
     ) {
-        List<PlaceResponseDTO> places = placeService.findPlaces(request);
+        List<PlaceResponseDTO> places = placeService.findPlaces(request, cityId);
         return ApiResponse.onSuccess(places);
     }
 
@@ -64,6 +65,16 @@ public class PlaceController {
     ) {
         String token = jwtTokenProvider.resolveToken(request);
         List<PlaceResponseDTO> places = placeService.findWishList(token);
+        return ApiResponse.onSuccess(places);
+    }
+
+    // 지역별 핫 플레이스 조회 API
+    @Operation(summary = "지역별 핫 플레이스 조회 API", description = "위시가 많은 순서로 정렬")
+    @GetMapping("/hot/{cityId}")
+    public ApiResponse<List<PlaceResponseDTO>> getHotPlacesByCity(
+            @PathVariable("cityId") Long cityId
+    ) {
+        List<PlaceResponseDTO> places = placeService.findHotPlacesByCity(cityId);
         return ApiResponse.onSuccess(places);
     }
 }
