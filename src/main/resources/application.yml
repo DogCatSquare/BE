@@ -78,3 +78,7 @@ google:
 # JWT
 jwt:
   secret: ${JWT_SECRET}
+
+# 기상청 api
+weather:
+  service-key: ${WEATHER_SERVICE_KEY}
