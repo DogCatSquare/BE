@@ -23,6 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -75,7 +76,7 @@ public class WeatherService {
             }
 
             // 2. API 호출 정보 준비
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));  // UTC 시간 문제 해결을 위해
             String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         //  String baseTime = String.format("%02d00", (now.getHour() / 3) * 3);
