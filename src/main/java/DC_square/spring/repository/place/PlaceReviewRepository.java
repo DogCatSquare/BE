@@ -12,4 +12,11 @@ public interface PlaceReviewRepository extends JpaRepository<PlaceReview, Long> 
 
     @Query("SELECT pr FROM PlaceReview pr WHERE pr.user.id = :userId")
     List<PlaceReview> findAllByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(pr) FROM PlaceReview pr WHERE pr.place.id = :placeId")
+    int countByPlaceId(@Param("placeId") Long placeId);
+
+    // 최근 리뷰 2개 조회
+    @Query("SELECT pr FROM PlaceReview pr WHERE pr.place.id = :placeId ORDER BY pr.createdAt DESC LIMIT 2")
+    List<PlaceReview> findTop2ByPlaceOrderByCreatedAtDesc(@Param("placeId") Long placeId);
 }

@@ -25,6 +25,7 @@ public class PlaceReviewController {
     private final PlaceReviewService placeReviewService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Operation(summary = "장소 리뷰 생성 API")
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
     public ApiResponse<Long> createPlaceReview(
             @Valid @RequestPart("request") PlaceReviewCreateRequestDTO createDto,

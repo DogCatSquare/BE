@@ -18,4 +18,5 @@ public class PlaceResponseDTO {
     private Double distance;
     private Boolean open;
     private String imgUrl;
+    private Integer reviewCount;
 }
