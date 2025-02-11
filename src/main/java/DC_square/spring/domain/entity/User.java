@@ -1,6 +1,7 @@
 package DC_square.spring.domain.entity;
 
 
+import DC_square.spring.domain.entity.region.District;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,8 +33,11 @@ public class User {
     @Column(nullable = false, length = 11)
     private String phoneNumber;
 
-    @Column
-    private String regionId;
+//    @Column
+//    private String regionId;
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "district_id")
+private District district;
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
     private List<Pet> petList = new ArrayList<>();
