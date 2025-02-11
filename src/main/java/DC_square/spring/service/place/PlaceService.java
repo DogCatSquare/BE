@@ -1,27 +1,29 @@
 package DC_square.spring.service.place;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
-import DC_square.spring.domain.entity.Region;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.place.PlaceDetail;
 import DC_square.spring.domain.entity.place.PlaceImage;
-import DC_square.spring.repository.RegionRepository;
+import DC_square.spring.domain.entity.region.City;
+import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceDetailRepository;
 import DC_square.spring.repository.place.PlaceWishRepository;
+import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
-import DC_square.spring.web.dto.request.place.PlaceRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.repository.place.PlaceRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.util.Pair;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,21 +36,16 @@ public class PlaceService {
     private final PlaceWishRepository placeWishRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-
-    private final AtomicReference<Double> lastLatitude = new AtomicReference<>(null);
-    private final AtomicReference<Double> lastLongitude = new AtomicReference<>(null);
+    private final EntityManager em;
 
     // 장소 검색 (메인)
-    public List<PlaceResponseDTO> findPlaces(PlaceRequestDTO request) {
-
-        // 위도/경도 저장
-        lastLatitude.set(request.getLatitude());
-        lastLongitude.set(request.getLongitude());
+    public List<PlaceResponseDTO> findPlaces(LocationRequestDTO location, Long cityId, String keyword) {
 
         List<PlaceDetailResponseDTO> places = searchNearbyPlaces(
-                request.getLatitude(),
-                request.getLongitude(),
-                request.getKeyword()
+                location.getLatitude(),
+                location.getLongitude(),
+                keyword,
+                cityId
         );
 
         return places.stream()
@@ -68,7 +65,7 @@ public class PlaceService {
     }
 
     // 주변 장소 검색
-    public List<PlaceDetailResponseDTO> searchNearbyPlaces(Double latitude, Double longitude,String keyword) {
+    public List<PlaceDetailResponseDTO> searchNearbyPlaces(Double latitude, Double longitude, String keyword, Long cityId) {
         String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? "animal" : keyword;
         Map<String, Object> searchResults = googlePlacesService.searchPlacesByKeyword(latitude, longitude, searchKeyword);
         List<Map<String, Object>> results = (List<Map<String, Object>>) searchResults.get("results");
@@ -77,32 +74,26 @@ public class PlaceService {
             return new ArrayList<>();
         }
 
-        PlaceRequestDTO userLocation = new PlaceRequestDTO();
-        userLocation.setLatitude(latitude);
-        userLocation.setLongitude(longitude);
+        LocationRequestDTO location = new LocationRequestDTO();
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
 
         return results.stream()
                 .filter(this::isPetRelatedPlace)
-                .map(result -> saveAndConvertToDTO(result, userLocation))
+                .map(result -> saveAndConvertToDTO(result, location, cityId))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     // 장소 상세 정보 조회
-    public PlaceDetailResponseDTO findPlaceDetailById(Long placeId, String token) {
+    public PlaceDetailResponseDTO findPlaceDetailById(Long placeId, String token, LocationRequestDTO location) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
 
-        PlaceRequestDTO userLocation = new PlaceRequestDTO();
-        Double latitude = lastLatitude.get();
-        Double longitude = lastLongitude.get();
-        userLocation.setLatitude(latitude);
-        userLocation.setLongitude(longitude);
-
-        return convertToDetailDTO(placeDetail.getPlace(), userLocation, user.getId());
+        return convertToDetailDTO(placeDetail.getPlace(), location, user.getId());
     }
 
     // 반려동물 관련 장소 필터링
@@ -123,18 +114,32 @@ public class PlaceService {
     }
 
     // Google Place 데이터 저장 및 변환
-    private PlaceDetailResponseDTO saveAndConvertToDTO(Map<String, Object> placeData, PlaceRequestDTO userLocation) {
+    private PlaceDetailResponseDTO saveAndConvertToDTO(Map<String, Object> placeData, LocationRequestDTO location, Long cityId) {
         String googlePlaceId = (String) placeData.get("place_id");
 
         Place existingPlace = placeRepository.findByGooglePlaceId(googlePlaceId).orElse(null);
         if (existingPlace != null) {
-            return convertToDetailDTO(existingPlace, userLocation, null);
+            return convertToDetailDTO(existingPlace, location, null);
         }
 
         Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
         Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
 
-        Place newPlace = createPlaceFromGoogleData(placeData, detailResult);
+        String address = (String) placeData.get("formatted_address");
+        Pair<Province, City> regionInfo = extractRegionInfo(address);
+
+        // 도시 정보가 없는 경우
+        if (regionInfo == null || regionInfo.getSecond() == null) {
+            String findCityQuery = "SELECT c FROM City c WHERE c.id = :cityId";
+            City city = em.createQuery(findCityQuery, City.class)
+                    .setParameter("cityId", cityId)
+                    .getSingleResult();
+            if (city != null) {
+                regionInfo = Pair.of(city.getProvince(), city);
+            }
+        }
+
+        Place newPlace = createPlaceFromGoogleData(placeData, detailResult, regionInfo);
         Place savedPlace = placeRepository.save(newPlace);
 
         PlaceDetail placeDetail = PlaceDetail.builder()
@@ -150,11 +155,40 @@ public class PlaceService {
 
         saveGooglePlaceImages(detailResult, savedPlace);
 
-        return convertToDetailDTO(savedPlace, userLocation, null);
+        return convertToDetailDTO(savedPlace, location, null);
+    }
+
+    private Pair<Province, City> extractRegionInfo(String address) {
+        // Province 조회
+        String findProvinceQuery = "SELECT p FROM Province p";
+        List<Province> provinces = em.createQuery(findProvinceQuery, Province.class)
+                .getResultList();
+
+        Province matchedProvince = provinces.stream()
+                .filter(province -> address.startsWith(province.getName()))
+                .findFirst()
+                .orElse(null);
+
+        if (matchedProvince == null) {
+            return null;
+        }
+
+        // City 조회
+        String findCityQuery = "SELECT c FROM City c WHERE c.province.id = :provinceId";
+        List<City> cities = em.createQuery(findCityQuery, City.class)
+                .setParameter("provinceId", matchedProvince.getId())
+                .getResultList();
+
+        City matchedCity = cities.stream()
+                .filter(city -> address.contains(city.getName()))
+                .findFirst()
+                .orElse(null);
+
+        return Pair.of(matchedProvince, matchedCity);
     }
 
     // Place 엔티티 생성
-    private Place createPlaceFromGoogleData(Map<String, Object> placeData, Map<String, Object> details) {
+    private Place createPlaceFromGoogleData(Map<String, Object> placeData, Map<String, Object> details, Pair<Province, City> regionInfo) {
         Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
         Map<String, Object> location = (Map<String, Object>) geometry.get("location");
         Map<String, Object> openingHours = (Map<String, Object>) placeData.get("opening_hours");
@@ -171,6 +205,8 @@ public class PlaceService {
                 .googlePlaceId((String) placeData.get("place_id"))
                 .open(openingHours != null ? (Boolean) openingHours.get("open_now") : null)
                 .images(new ArrayList<>())
+                .province(regionInfo != null ? regionInfo.getFirst() : null)
+                .city(regionInfo != null ? regionInfo.getSecond() : null)
                 .build();
     }
 
@@ -220,16 +256,13 @@ public class PlaceService {
     }
 
     // DTO 변환
-    private PlaceDetailResponseDTO convertToDetailDTO(Place place, PlaceRequestDTO userLocation, Long userId) {
-        Double distance = null;
-        if (userLocation != null) {
-            distance = calculateDistance(
-                    userLocation.getLatitude(),
-                    userLocation.getLongitude(),
-                    place.getLatitude(),
-                    place.getLongitude()
-            );
-        }
+    private PlaceDetailResponseDTO convertToDetailDTO(Place place, LocationRequestDTO location, Long userId) {
+        Double distance = calculateDistance(
+                location.getLatitude(),
+                location.getLongitude(),
+                place.getLatitude(),
+                place.getLongitude()
+        );
 
         PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
                 .orElseThrow(() -> new RuntimeException("장소 상세 정보를 찾을 수 없습니다."));
@@ -252,7 +285,6 @@ public class PlaceService {
                 .homepageUrl(placeDetail.getHomepageUrl())
                 .description(placeDetail.getDescription())
                 .facilities(placeDetail.getFacilities())
-                .distance(distance)
                 .build();
     }
 
@@ -271,7 +303,7 @@ public class PlaceService {
     }
 
     // 위시리스트에서 찜한 장소만 조회하는 메서드
-    public List<PlaceResponseDTO> findWishList(String token) {
+    public List<PlaceResponseDTO> findWishList(String token, LocationRequestDTO location) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -286,18 +318,56 @@ public class PlaceService {
 
         //PlaceResponseDTO로 변환 후 반환
         return places.stream()
-                .map(this::convertToResponseDTO)
+                .map(place -> convertToResponseDTO(place, location))
                 .collect(Collectors.toList());
     }
 
-    private PlaceResponseDTO convertToResponseDTO(Place place) {
+    private PlaceResponseDTO convertToResponseDTO(Place place , LocationRequestDTO location) {
+        Double distance = calculateDistance(
+                location.getLatitude(),
+                location.getLongitude(),
+                place.getLatitude(),
+                place.getLongitude()
+        );
         return PlaceResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
                 .address(place.getAddress())
+                .distance(distance)
                 .phoneNumber(place.getPhoneNumber())
                 .imgUrl(place.getImages().isEmpty() ? null : place.getImages().get(0).getPhotoReference())
                 .build();
+    }
+
+    // 도시별 핫 플레이스 조회
+    public List<PlaceResponseDTO> findHotPlacesByCity(Long cityId, LocationRequestDTO location) {
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        List<Object[]> results = placeRepository.findAllByCityIdOrderByWishCount(cityId,pageRequest);
+        return results.stream()
+                .map(result -> {
+                    Place place = (Place) result[0];
+                    Double distance = calculateDistance(
+                            location.getLatitude(),
+                            location.getLongitude(),
+                            place.getLatitude(),
+                            place.getLongitude()
+                    );
+                    return PlaceResponseDTO.builder()
+                            .id(place.getId())
+                            .name(place.getName())
+                            //.address(place.getAddress())
+                            .category(place.getCategory())
+                            //.phoneNumber(place.getPhoneNumber())
+                            .open(place.getOpen())
+                            .distance(distance)
+                            .imgUrl(place.getImages().isEmpty() ? null :
+                                    googlePlacesService.getPhotoUrl(
+                                            place.getImages().get(0).getPhotoReference(),
+                                            place.getImages().get(0).getWidth()
+                                    ))
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     // 장소 생성 (관리자용)

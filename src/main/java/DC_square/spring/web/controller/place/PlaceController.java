@@ -1,5 +1,6 @@
 package DC_square.spring.web.controller.place;
 
+import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
@@ -26,11 +27,14 @@ public class PlaceController {
 
     // 장소 전체 조회 API
     @Operation(summary = "장소 전체 조회 API")
-    @PostMapping("search")
+    @PostMapping("search/{cityId}")
     public ApiResponse<List<PlaceResponseDTO>> getPlaces(
-            @RequestBody PlaceRequestDTO request  // 사용자 현재 위치
+            @RequestBody LocationRequestDTO location,  // 사용자 현재 위치
+            @PathVariable("cityId") Long cityId,
+            @RequestParam(required = false) String keyword
+
     ) {
-        List<PlaceResponseDTO> places = placeService.findPlaces(request);
+        List<PlaceResponseDTO> places = placeService.findPlaces(location, cityId, keyword);
         return ApiResponse.onSuccess(places);
     }
 
@@ -46,24 +50,37 @@ public class PlaceController {
 
     // 장소 상세 조회 API
     @Operation(summary = "장소 상세 조회 API")
-    @GetMapping("/{placeId}")
+    @PostMapping("/{placeId}")
     public ApiResponse<PlaceDetailResponseDTO> getPlaceById(
             @PathVariable("placeId") Long placeId,
+            @RequestBody LocationRequestDTO location,
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId, token);
+        PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId, token, location);
         return ApiResponse.onSuccess(place);
     }
 
     // 마이 위시 장소 조회 API
     @Operation(summary = "마이 위시 장소 조회 API")
-    @GetMapping("/wishlist")
+    @PostMapping("/wishlist")
     public ApiResponse<List<PlaceResponseDTO>> getWishList(
-            HttpServletRequest request
+            HttpServletRequest request,
+            @RequestBody LocationRequestDTO location
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        List<PlaceResponseDTO> places = placeService.findWishList(token);
+        List<PlaceResponseDTO> places = placeService.findWishList(token, location);
+        return ApiResponse.onSuccess(places);
+    }
+
+    // 지역별 핫 플레이스 조회 API
+    @Operation(summary = "지역별 핫 플레이스 조회 API", description = "위시가 많은 순서로 정렬")
+    @PostMapping("/hot/{cityId}")
+    public ApiResponse<List<PlaceResponseDTO>> getHotPlacesByCity(
+            @PathVariable("cityId") Long cityId,
+            @RequestBody LocationRequestDTO location
+    ) {
+        List<PlaceResponseDTO> places = placeService.findHotPlacesByCity(cityId, location);
         return ApiResponse.onSuccess(places);
     }
 }
