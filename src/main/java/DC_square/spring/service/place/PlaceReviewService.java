@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -62,7 +64,7 @@ public class PlaceReviewService {
                 .user(user)
                 .place(place)
                 .content(request.getContent())
-                .createdAt(LocalDateTime.now()) //작성 시간 = 서버 시간
+                .createdAt(ZonedDateTime.now(ZoneId.of("Asia/Seoul")).toLocalDateTime())
                 .placeReviewImageUrl(imageUrls)
                 .build();
 

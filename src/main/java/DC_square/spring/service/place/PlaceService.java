@@ -4,10 +4,12 @@ import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.place.PlaceDetail;
 import DC_square.spring.domain.entity.place.PlaceImage;
+import DC_square.spring.domain.entity.place.PlaceReview;
 import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceDetailRepository;
+import DC_square.spring.repository.place.PlaceReviewRepository;
 import DC_square.spring.repository.place.PlaceWishRepository;
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
@@ -16,6 +18,7 @@ import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.repository.place.PlaceRepository;
+import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +35,7 @@ import java.util.stream.Collectors;
 public class PlaceService {
     private final PlaceRepository placeRepository;
     private final PlaceDetailRepository placeDetailRepository;
+    private final PlaceReviewRepository placeReviewRepository;
     private final GooglePlacesService googlePlacesService;
     private final PlaceWishRepository placeWishRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -55,6 +59,8 @@ public class PlaceService {
                         .address(place.getAddress())
                         .category(PlaceCategory.valueOf(place.getCategory()))
                         .phoneNumber(place.getPhoneNumber())
+                        .latitude(place.getLatitude())
+                        .longitude(place.getLongitude())
                         .distance(place.getDistance())
                         .open(place.getOpen())
                         .imgUrl(place.getImageUrls() != null && !place.getImageUrls().isEmpty()
@@ -264,8 +270,24 @@ public class PlaceService {
                 place.getLongitude()
         );
 
+        int reviewCount = placeReviewRepository.countByPlaceId(place.getId());
+
         PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
                 .orElseThrow(() -> new RuntimeException("장소 상세 정보를 찾을 수 없습니다."));
+
+        List<PlaceReview> recentReviews = placeReviewRepository.findTop2ByPlaceOrderByCreatedAtDesc(place.getId());
+        List<PlaceReviewResponseDTO> recentReviewDtos = recentReviews.stream()
+                .map(review -> PlaceReviewResponseDTO.builder()
+                        .id(review.getId())
+                        .content(review.getContent())
+                        .breed(review.getUser().getPetList().get(0).getBreed())
+                        .nickname(review.getUser().getNickname())
+                        .userImageUrl(review.getUser().getProfileImageUrl())
+                        .createdAt(review.getCreatedAt().toString())
+                        .placeReviewImageUrl(review.getPlaceReviewImageUrl())
+                        .placeId(review.getPlace().getId())
+                        .build())
+                .collect(Collectors.toList());
 
         return PlaceDetailResponseDTO.builder()
                 .id(place.getId())
@@ -285,6 +307,8 @@ public class PlaceService {
                 .homepageUrl(placeDetail.getHomepageUrl())
                 .description(placeDetail.getDescription())
                 .facilities(placeDetail.getFacilities())
+                .reviewCount(reviewCount)
+                .recentReviews(recentReviewDtos)
                 .build();
     }
 
@@ -329,12 +353,18 @@ public class PlaceService {
                 place.getLatitude(),
                 place.getLongitude()
         );
+
+        int reviewCount = placeReviewRepository.countByPlaceId(place.getId());
+
         return PlaceResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
                 .address(place.getAddress())
+                .latitude(place.getLatitude())
+                .longitude(place.getLongitude())
                 .distance(distance)
                 .phoneNumber(place.getPhoneNumber())
+                .reviewCount(reviewCount)
                 .imgUrl(place.getImages().isEmpty() ? null : place.getImages().get(0).getPhotoReference())
                 .build();
     }

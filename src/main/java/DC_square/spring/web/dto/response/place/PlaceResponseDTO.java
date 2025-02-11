@@ -13,7 +13,10 @@ public class PlaceResponseDTO {
     private String address;
     private PlaceCategory category;
     private String phoneNumber;
+    private Double longitude;
+    private Double latitude;
     private Double distance;
     private Boolean open;
     private String imgUrl;
+    private Integer reviewCount;
 }

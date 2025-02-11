@@ -24,4 +24,6 @@ public class PlaceDetailResponseDTO {
     private List<String> imageUrls;
     private Double distance; //구글 API 반환값을 위해 추가
     private boolean isWished;
+    private Integer reviewCount;
+    private List<PlaceReviewResponseDTO> recentReviews;
 }
