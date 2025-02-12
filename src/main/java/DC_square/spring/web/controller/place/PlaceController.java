@@ -2,8 +2,9 @@ package DC_square.spring.web.controller.place;
 
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
-import DC_square.spring.web.dto.request.place.PlaceRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
+import DC_square.spring.web.dto.request.place.PlacePageRequestDTO;
+import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.service.place.PlaceService;
@@ -28,13 +29,20 @@ public class PlaceController {
     // 장소 전체 조회 API
     @Operation(summary = "장소 전체 조회 API")
     @PostMapping("search/{cityId}")
-    public ApiResponse<List<PlaceResponseDTO>> getPlaces(
+    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> getPlaces(
             @RequestBody LocationRequestDTO location,  // 사용자 현재 위치
             @PathVariable("cityId") Long cityId,
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page
 
     ) {
-        List<PlaceResponseDTO> places = placeService.findPlaces(location, cityId, keyword);
+        PlacePageResponseDTO<PlaceResponseDTO> places = placeService.findPlaces(
+                location,
+                cityId,
+                keyword,
+                page,
+                10 // 한 페이지에 보여줄 장소 수
+        );
         return ApiResponse.onSuccess(places);
     }
 
@@ -64,12 +72,13 @@ public class PlaceController {
     // 마이 위시 장소 조회 API
     @Operation(summary = "마이 위시 장소 조회 API")
     @PostMapping("/wishlist")
-    public ApiResponse<List<PlaceResponseDTO>> getWishList(
+    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> getWishList(
             HttpServletRequest request,
-            @RequestBody LocationRequestDTO location
+            @RequestBody LocationRequestDTO location,
+            @RequestParam(defaultValue = "0") int page
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        List<PlaceResponseDTO> places = placeService.findWishList(token, location);
+        PlacePageResponseDTO<PlaceResponseDTO> places = placeService.findWishList(token, location, page, 10);
         return ApiResponse.onSuccess(places);
     }
 

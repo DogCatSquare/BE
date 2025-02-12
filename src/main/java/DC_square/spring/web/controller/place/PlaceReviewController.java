@@ -4,6 +4,7 @@ import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.service.place.PlaceReviewService;
 import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
+import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,10 +40,11 @@ public class PlaceReviewController {
 
     @Operation(summary = "장소 리뷰 전체 조회 API")
     @GetMapping
-    public ApiResponse<List<PlaceReviewResponseDTO>> getReviews(
-            @PathVariable("placeId") Long placeId
+    public ApiResponse<PlacePageResponseDTO<PlaceReviewResponseDTO>> getReviews(
+            @PathVariable("placeId") Long placeId,
+            @RequestParam(defaultValue = "0") int page
     ) {
-        List<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(placeId);
+        PlacePageResponseDTO<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(placeId, page, 10);
         return ApiResponse.onSuccess(reviews);
     }
 
