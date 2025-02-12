@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -174,6 +175,51 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 사용자가 작성한 모든 게시글 조회
+     */
+    public List<PostResponseDto> getPostsByUser(Long userId) {
+        //사용자가 존재하는지 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        //사용자가 작성한 게시글들 조회
+        List<Post> posts = postRepository.findByUserId(userId);
+
+        // 게시글이 없으면 예외 처리
+        if (posts.isEmpty()) {
+            throw new RuntimeException("사용자가 작성한 게시글이 존재하지 않습니다.");
+        }
+
+        // 게시글들을 PostResponseDto로 변환하여 반환
+        return posts.stream()
+                .map(post -> {
+                    // 유튜브 영상 ID 추출 (썸네일 URL 생성)
+                    String thumbnailUrl = null;
+                    if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
+                        String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
+                        thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+                    }
+
+                    return PostResponseDto.builder()
+                            .id(post.getId())
+                            .board(post.getBoard().getBoardName()) // 게시판 이름
+                            .title(post.getTitle())
+                            .content(post.getContent())
+                            .video_URL(post.getVideo_URL())
+                            .thumbnail_URL(thumbnailUrl)
+                            .username(post.getUser().getNickname())
+                            .profileImage_URL(post.getUser().getProfileImageUrl())
+                            .images(post.getCommunityImages())
+                            .like_count(post.getLikeCount())
+                            .comment_count(post.getCommentCount())
+                            .createdAt(post.getCreated_at()) // 게시글 생성일
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+
 
 
     /**
@@ -243,4 +289,28 @@ public class PostService {
         postRepository.deleteById(postId);
     }
 
+    /**
+     * 인기 게시글 목록을 가져옵니다.
+     * 좋아요 수가 10개 이상인 게시글만 가져오고, 좋아요 수 내림차순으로 정렬합니다.
+     */
+    public List<PostResponseDto> getPopularPosts() {
+        List<Post> popularPosts = postRepository.findByLikeCountGreaterThanEqualOrderByLikeCountDesc(10);
+
+        return popularPosts.stream()
+                .map(post -> PostResponseDto.builder()
+                        .id(post.getId())
+                        .board(post.getBoard().getBoardName()) // 게시판 이름
+                        .username(post.getUser().getNickname()) // 사용자 이름
+                        .title(post.getTitle())
+                        .content(post.getContent())
+                        .video_URL(post.getVideo_URL())
+                        .thumbnail_URL(post.getVideo_URL()) // 비디오 썸네일 추가 (예시)
+                        .profileImage_URL(post.getUser().getProfileImageUrl()) // 사용자 프로필 이미지
+                        .images(post.getCommunityImages()) // 게시글 이미지들
+                        .like_count(post.getLikeCount())
+                        .comment_count(post.getCommentCount())
+                        .createdAt(post.getCreated_at())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
