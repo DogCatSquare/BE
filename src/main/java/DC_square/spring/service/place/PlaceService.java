@@ -337,7 +337,7 @@ public class PlaceService {
     }
 
     // 위시리스트에서 찜한 장소만 조회하는 메서드
-    public List<PlaceResponseDTO> findWishList(String token, LocationRequestDTO location) {
+    public PlacePageResponseDTO<PlaceResponseDTO> findWishList(String token, LocationRequestDTO location, int page, int size) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -351,9 +351,11 @@ public class PlaceService {
         List<Place> places = placeRepository.findAllById(placeIds);
 
         //PlaceResponseDTO로 변환 후 반환
-        return places.stream()
+        List<PlaceResponseDTO> responseDTOs = places.stream()
                 .map(place -> convertToResponseDTO(place, location))
                 .collect(Collectors.toList());
+
+        return PlacePageResponseDTO.of(responseDTOs, page, size);
     }
 
     private PlaceResponseDTO convertToResponseDTO(Place place , LocationRequestDTO location) {
