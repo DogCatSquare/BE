@@ -112,4 +112,31 @@ public class PostController {
         return ApiResponse.onSuccess(postService.getPosts(boardId));
     }
 
+    /**
+     * 인기 게시글 목록 조회
+     */
+    @Operation(summary = "인기 게시글 목록 조회 API",description = "인기 게시글 목록 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @GetMapping("/posts/popular")
+    public ApiResponse<List<PostResponseDto>> getPopularPosts() {
+        List<PostResponseDto> popularPosts = postService.getPopularPosts();
+        return ApiResponse.onSuccess(popularPosts);
+    }
+
+    /**
+     * 사용자가 작성한 게시글 모두 조회
+     */
+    @Operation(summary = "사용자가 작성한 게시글 모두 조회",description = "사용자가 작성한 게시글 목록 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @GetMapping("/posts/user/{userId}")
+    public ApiResponse<List<PostResponseDto>> getPostsByUser(@PathVariable Long userId) {
+        List<PostResponseDto> userPosts = postService.getPostsByUser(userId);
+        return ApiResponse.onSuccess(userPosts);
+    }
+
+
 }
