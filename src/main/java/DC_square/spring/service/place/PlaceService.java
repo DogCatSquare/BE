@@ -14,6 +14,7 @@ import DC_square.spring.repository.place.PlaceWishRepository;
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
+import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.enums.PlaceCategory;
@@ -21,7 +22,9 @@ import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.util.Pair;
@@ -43,8 +46,13 @@ public class PlaceService {
     private final EntityManager em;
 
     // 장소 검색 (메인)
-    public List<PlaceResponseDTO> findPlaces(LocationRequestDTO location, Long cityId, String keyword) {
-
+    public PlacePageResponseDTO<PlaceResponseDTO> findPlaces(
+            LocationRequestDTO location,
+            Long cityId,
+            String keyword,
+            int page,
+            int size
+    ) {
         List<PlaceDetailResponseDTO> places = searchNearbyPlaces(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -52,7 +60,7 @@ public class PlaceService {
                 cityId
         );
 
-        return places.stream()
+        List<PlaceResponseDTO> responseDtos = places.stream()
                 .map(place -> PlaceResponseDTO.builder()
                         .id(place.getId())
                         .name(place.getName())
@@ -64,10 +72,12 @@ public class PlaceService {
                         .distance(place.getDistance())
                         .open(place.getOpen())
                         .imgUrl(place.getImageUrls() != null && !place.getImageUrls().isEmpty()
-                                ? place.getImageUrls().get(0)  // 첫 번째 이미지 URL 사용
+                                ? place.getImageUrls().get(0)
                                 : null)
                         .build())
                 .collect(Collectors.toList());
+
+        return PlacePageResponseDTO.of(responseDtos, page, size);
     }
 
     // 주변 장소 검색
