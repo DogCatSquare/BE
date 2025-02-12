@@ -60,7 +60,7 @@ public class PlaceService {
                 cityId
         );
 
-        List<PlaceResponseDTO> responseDtos = places.stream()
+        List<PlaceResponseDTO> responseDTOs = places.stream()
                 .map(place -> PlaceResponseDTO.builder()
                         .id(place.getId())
                         .name(place.getName())
@@ -77,7 +77,7 @@ public class PlaceService {
                         .build())
                 .collect(Collectors.toList());
 
-        return PlacePageResponseDTO.of(responseDtos, page, size);
+        return PlacePageResponseDTO.of(responseDTOs, page, size);
     }
 
     // 주변 장소 검색
