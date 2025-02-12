@@ -6,6 +6,7 @@ import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceReviewRepository;
 import DC_square.spring.web.dto.response.ReviewResponseDTO;
+import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class MyReviewService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public List<ReviewResponseDTO> getMyReviews(String token) {
+    public PlacePageResponseDTO<ReviewResponseDTO> getMyReviews(String token, int page, int size) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -52,6 +53,6 @@ public class MyReviewService {
         // 날짜순 정렬
         allReviews.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
 
-        return allReviews;
+        return PlacePageResponseDTO.of(allReviews, page, size);
     }
 }

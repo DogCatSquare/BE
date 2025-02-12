@@ -13,6 +13,7 @@ import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.repository.place.PlaceReviewLikeRepository;
 import DC_square.spring.repository.place.PlaceReviewRepository;
 import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
+import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -71,9 +72,10 @@ public class PlaceReviewService {
         return placeReviewRepository.save(placeReview).getId();
     }
 
-    public List<PlaceReviewResponseDTO> findPlaceReviews(Long placeId) {
+    public PlacePageResponseDTO<PlaceReviewResponseDTO> findPlaceReviews(Long placeId, int page, int size) {
         List<PlaceReview> placeReviews = placeReviewRepository.findAllByPlaceId(placeId);
-        return placeReviews.stream()
+
+        List<PlaceReviewResponseDTO> responseDTOs = placeReviews.stream()
                 .map(placeReview -> PlaceReviewResponseDTO.builder()
                         .id(placeReview.getId())
                         .breed(placeReview.getUser().getPetList().get(0).getBreed())
@@ -87,6 +89,23 @@ public class PlaceReviewService {
                         .placeId(placeReview.getPlace().getId())
                         .build())
                 .collect(Collectors.toList());
+
+        return PlacePageResponseDTO.of(responseDTOs, page, size);
+
+//        return placeReviews.stream()
+//                .map(placeReview -> PlaceReviewResponseDTO.builder()
+//                        .id(placeReview.getId())
+//                        .breed(placeReview.getUser().getPetList().get(0).getBreed())
+//                        .content(placeReview.getContent())
+//                        //.isLiked(placeReviewLikeRepository.existsByUserIdAndPlaceReviewId(placeReview.getId(), placeReview.getUser().getId()))
+//                        .userId(placeReview.getUser().getId())
+//                        .nickname(placeReview.getUser().getNickname())
+//                        .userImageUrl(placeReview.getUser().getProfileImageUrl())
+//                        .createdAt(placeReview.getCreatedAt().toString())
+//                        .placeReviewImageUrl(placeReview.getPlaceReviewImageUrl())
+//                        .placeId(placeReview.getPlace().getId())
+//                        .build())
+//                .collect(Collectors.toList());
     }
 
     public void deletePlaceReview(Long reviewId, String token) {

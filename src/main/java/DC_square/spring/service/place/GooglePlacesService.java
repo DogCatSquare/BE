@@ -55,6 +55,7 @@ public class GooglePlacesService {
                 .queryParam("location", latitude + "," + longitude)
                 .queryParam("radius", 3000)
                 .queryParam("language", "ko")
+                .queryParam("maxResults", 60)
                 .queryParam("key", googleMapsConfig.getApiKey())
                 .build()
                 .toUriString();
