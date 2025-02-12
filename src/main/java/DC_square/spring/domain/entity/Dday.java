@@ -36,6 +36,7 @@ public class Dday {
     @Column
     private String imageUrl;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isAlarm = false;
 
