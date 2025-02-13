@@ -37,8 +37,8 @@ public class MyReviewService {
                                 .content(review.getContent())
                                 .createdAt(review.getCreatedAt())
                                 .imageUrls(review.getPlaceReviewImageUrl())
-                                .placeOrWalkId(review.getPlace().getId())
-                                .type(ReviewResponseDTO.ReviewType.PLACE)
+                                .placeId(review.getPlace().getId())
+                                .walkId(null)
                                 .build()
                 ));
 
@@ -51,8 +51,8 @@ public class MyReviewService {
                                 .content(review.getContent())
                                 .createdAt(review.getCreatedAt())
                                 .imageUrls(review.getWalkReviewImageUrl())
-                                .placeOrWalkId(review.getWalk().getId())
-                                .type(ReviewResponseDTO.ReviewType.WALK)
+                                .placeId(null)
+                                .walkId(review.getWalk().getId())
                                 .build()
                 ));
 
