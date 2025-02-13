@@ -186,13 +186,7 @@ public class UserService {
         }
         // 토큰 생성
         String token = jwtTokenProvider.createToken(user.getEmail());
-
-        return LoginResponseDto.builder()
-                .token(token)
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .userId(user.getId())
-                .build();
+        return LoginResponseDto.from(user, token);
     }
 
     // 이메일 중복 확인
