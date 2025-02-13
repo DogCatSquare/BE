@@ -12,4 +12,5 @@ public class MyBoardResponseDto {
     private Long boardId;
     private String username;
     private String boardName;
+    private Integer orderIndex;
 }

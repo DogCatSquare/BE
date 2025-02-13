@@ -8,6 +8,7 @@ import DC_square.spring.repository.community.BoardRepository;
 import DC_square.spring.repository.community.MyBoardRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.response.community.MyBoardResponseDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +29,8 @@ public class MyBoardService {
     /**
      * 마이게시판 등록
      */
+    @Transactional
     public MyBoardResponseDto addMyBoard(Long boardId, String token) {
-
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 조회할 수 없습니다."));
@@ -41,14 +42,21 @@ public class MyBoardService {
             throw new IllegalArgumentException("최대 6개까지 등록이 가능합니다.");
         }
 
-        // 특정 사용자가 해당 게시판을 마이게시판에 등록했는지 확인
         if (myBoardRepository.existsByUserAndBoard(user, board)) {
             throw new IllegalArgumentException("이미 마이게시판에 등록된 게시판입니다.");
         }
 
+        // 해당 사용자의 마지막 orderIndex 찾기
+        List<MyBoard> userBoards = myBoardRepository.findByUser(user);
+        int maxOrderIndex = userBoards.stream()
+                .mapToInt(MyBoard::getOrderIndex)
+                .max()
+                .orElse(0);
+
         MyBoard newMyBoard = MyBoard.builder()
                 .user(user)
                 .board(board)
+                .orderIndex(maxOrderIndex + 1)  // 마지막 orderIndex + 1
                 .build();
 
         MyBoard savedMyBoard = myBoardRepository.save(newMyBoard);
@@ -60,7 +68,6 @@ public class MyBoardService {
                 .boardName(savedMyBoard.getBoard().getBoardName())
                 .build();
     }
-
 
     /**
      * 마이게시판 목록 조회
