@@ -1,11 +1,13 @@
 package DC_square.spring.web.controller.community;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.service.community.MyBoardService;
 import DC_square.spring.web.dto.response.community.MyBoardResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,7 @@ import java.util.List;
 public class MyBoardController {
 
     private final MyBoardService myBoardService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 마이게시판 추가 API
@@ -29,9 +32,10 @@ public class MyBoardController {
     @PostMapping
     public ApiResponse<MyBoardResponseDto> addMyBoard(
             @RequestParam Long boardId,
-            @RequestParam int orderIndex
+            HttpServletRequest request
     ) {
-        return ApiResponse.onSuccess(myBoardService.addMyBoard(boardId, orderIndex));
+        String token = jwtTokenProvider.resolveToken(request);
+        return ApiResponse.onSuccess(myBoardService.addMyBoard(boardId,token));
     }
     /**
      * 마이게시판 목록 API
@@ -41,23 +45,9 @@ public class MyBoardController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
     })
     @GetMapping
-    public ApiResponse<List<MyBoardResponseDto>> getMyBoards() {
-        return ApiResponse.onSuccess(myBoardService.getMyBoards());
-    }
-
-    /**
-     * 마이게시판 순서 변경 API
-     */
-    @Operation(summary = "마이게시판 순서변경 API", description = "마이게시판 ID랑 새로운 순서를 입력해주세요")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
-    })
-    @PutMapping("/{myBoardId}/order")
-    public ApiResponse<MyBoardResponseDto> updateMyBoardOrder(
-            @PathVariable Long myBoardId,
-            @RequestParam int newOrderIndex
-    ) {
-        return ApiResponse.onSuccess(myBoardService.updateOrder(myBoardId, newOrderIndex));
+    public ApiResponse<List<MyBoardResponseDto>> getMyBoards(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        return ApiResponse.onSuccess(myBoardService.getMyBoards(token));
     }
 
     /**
@@ -67,9 +57,10 @@ public class MyBoardController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
     })
-    @DeleteMapping("/{myBoardId}")
-    public ApiResponse<Void> removeMyBoard(@PathVariable Long myBoardId) {
-        myBoardService.removeMyBoard(myBoardId);
+    @DeleteMapping("/user/{userId}")
+    public ApiResponse<Void> removeMyBoard(@RequestParam Long myBoardId, HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        myBoardService.removeMyBoard(myBoardId,token);
         return ApiResponse.onSuccess(null);
     }
 
