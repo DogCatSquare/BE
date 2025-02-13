@@ -74,5 +74,13 @@ public class Place {
 
     @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PlaceImage> images = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+            name = "place_keywords",
+            joinColumns = @JoinColumn(name = "place_id")
+    )
+    @Column(name = "keyword")
+    private List<String> keywords = new ArrayList<>();
 }
 

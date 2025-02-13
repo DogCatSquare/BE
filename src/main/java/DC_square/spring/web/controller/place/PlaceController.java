@@ -2,6 +2,7 @@ package DC_square.spring.web.controller.place;
 
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
+import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.request.place.PlacePageRequestDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
@@ -91,5 +92,16 @@ public class PlaceController {
     ) {
         List<PlaceResponseDTO> places = placeService.findHotPlacesByCity(cityId, location);
         return ApiResponse.onSuccess(places);
+    }
+
+    // 장소 데이터 입력 받기 API
+    @Operation(summary = "장소 데이터 입력 받기 API")
+    @PostMapping("/{placeId}/data")
+    public ApiResponse<String> updatePlaceUserInfo(
+            @PathVariable("placeId") Long placeId,
+            @RequestBody PlaceUserInfoUpdateDTO updateDTO
+            ){
+        placeService.updatePlaceUserInfo(placeId, updateDTO);
+        return ApiResponse.onSuccess("장소 정보가 성공적으로 업데이트 되었습니다.");
     }
 }

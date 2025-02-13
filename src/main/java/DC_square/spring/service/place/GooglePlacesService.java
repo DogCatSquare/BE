@@ -46,7 +46,6 @@ public class GooglePlacesService {
 
     public Map<String, Object> searchPlacesByKeyword(double latitude, double longitude, String keyword) {
         String translatedKeyword = translateToEnglish(keyword);
-        System.out.println("🔍 변환된 키워드: " + translatedKeyword);
         String encodedKeyword = URLEncoder.encode(translatedKeyword, StandardCharsets.UTF_8);
 
         String url = UriComponentsBuilder
