@@ -38,4 +38,7 @@ public class PlaceDetail {
 
     @OneToMany(mappedBy = "placeDetail", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Cost> costs;
+
+    @Column(name = "additional_info", length = 500)
+    private String additionalInfo;
 }

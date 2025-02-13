@@ -33,9 +33,12 @@ public class MyReviewService {
                 .forEach(review -> allReviews.add(
                         ReviewResponseDTO.builder()
                                 .id(review.getId())
+                                .title(review.getPlace().getName())
                                 .content(review.getContent())
                                 .createdAt(review.getCreatedAt())
                                 .imageUrls(review.getPlaceReviewImageUrl())
+                                .placeOrWalkId(review.getPlace().getId())
+                                .type(ReviewResponseDTO.ReviewType.PLACE)
                                 .build()
                 ));
 
@@ -44,9 +47,12 @@ public class MyReviewService {
                 .forEach(review -> allReviews.add(
                         ReviewResponseDTO.builder()
                                 .id(review.getId())
+                                .title(review.getWalk().getTitle())
                                 .content(review.getContent())
                                 .createdAt(review.getCreatedAt())
                                 .imageUrls(review.getWalkReviewImageUrl())
+                                .placeOrWalkId(review.getWalk().getId())
+                                .type(ReviewResponseDTO.ReviewType.WALK)
                                 .build()
                 ));
 

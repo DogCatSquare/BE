@@ -26,4 +26,6 @@ public class PlaceDetailResponseDTO {
     private boolean isWished;
     private Integer reviewCount;
     private List<PlaceReviewResponseDTO> recentReviews;
+    private List<String> keywords;
+    private String additionalInfo;
 }

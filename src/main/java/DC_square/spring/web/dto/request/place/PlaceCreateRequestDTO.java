@@ -19,5 +19,7 @@ public class PlaceCreateRequestDTO {
     private String businessHours;
     private String homepageUrl;
     private String description;
-    private List<String> facilities;
+    //private List<String> facilities;
+    private List<String> keywords;
+    private String additionalInfo;
 }
