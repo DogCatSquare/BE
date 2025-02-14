@@ -108,7 +108,7 @@ public class PlaceReviewService {
 //                .collect(Collectors.toList());
     }
 
-    public void deletePlaceReview(Long reviewId, String token) {
+    public void deletePlaceReview(Long placeId, Long reviewId, String token) {
 
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
