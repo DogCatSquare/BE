@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/wishlist/walks/{walkId}")
+@RequestMapping("/api/wishlist/walks")
 public class WalkWishController {
     private final WalkWishService walkWishService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -23,7 +23,7 @@ public class WalkWishController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON401", description = "로그인 필요"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "산책로를 찾을 수 없음")
     })
-    @PostMapping
+    @PostMapping("/{walkId}")
     public ApiResponse<String> addWishlist(
             @PathVariable Long walkId,
             HttpServletRequest request
@@ -40,7 +40,7 @@ public class WalkWishController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "산책로를 찾을 수 없음"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "이미 취소된 상태")
     })
-    @DeleteMapping("/cancel")
+    @DeleteMapping("/{walkId}/cancel")
     public ApiResponse<String> cancelWishlist(
             @PathVariable Long walkId,
             HttpServletRequest request
