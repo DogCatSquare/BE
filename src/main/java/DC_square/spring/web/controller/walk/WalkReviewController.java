@@ -56,11 +56,12 @@ public class WalkReviewController {
     @Parameter(name = "reviewId", description = "삭제할 산책로 후기의 ID", required = true)
     @DeleteMapping("/{reviewId}")
     public ApiResponse<Void> deleteWalkReview(
+            @PathVariable("walkId") Long walkId,
             @PathVariable Long reviewId,
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        walkReviewService.deleteWalkReview(reviewId, token);
+        walkReviewService.deleteWalkReview(walkId, reviewId, token);
         return ApiResponse.onSuccess(null, "산책로 후기 삭제에 성공했습니다.");
     }
 
