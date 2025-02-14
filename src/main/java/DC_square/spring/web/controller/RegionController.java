@@ -19,11 +19,11 @@ public class RegionController {
 
     private final RegionService regionService;
 
-    @Operation(summary = "지역 생성 API")
-    @PostMapping
-    public ApiResponse<Long> createRegion(@RequestBody RegionRequestDTO request) {
-        regionService.creatRegion(request);
-        Long regionId = regionService.creatRegion(request);
-        return ApiResponse.onSuccess(regionId);
-    }
+//    @Operation(summary = "지역 생성 API")
+//    @PostMapping
+//    public ApiResponse<Long> createRegion(@RequestBody RegionRequestDTO request) {
+//        regionService.creatRegion(request);
+//        Long regionId = regionService.creatRegion(request);
+//        return ApiResponse.onSuccess(regionId);
+//    }
 }

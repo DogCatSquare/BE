@@ -1,11 +1,14 @@
 package DC_square.spring.web.controller.place;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.service.place.PlaceReviewService;
 import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
+import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,32 +24,38 @@ import java.util.List;
 public class PlaceReviewController {
 
     private final PlaceReviewService placeReviewService;
+    private final JwtTokenProvider jwtTokenProvider;
 
+    @Operation(summary = "장소 리뷰 생성 API")
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE})
     public ApiResponse<Long> createPlaceReview(
-            @Valid @RequestPart("request") PlaceReviewCreateRequestDTO request,
+            @Valid @RequestPart("request") PlaceReviewCreateRequestDTO createDto,
             @PathVariable("placeId") Long placeId,
-            @RequestPart(value = "placeReviewImages") List<MultipartFile> images
+            @RequestPart(value = "placeReviewImages") List<MultipartFile> images,
+            HttpServletRequest request
     ) {
-        return ApiResponse.onSuccess(placeReviewService.createPlaceReview(request, placeId, images));
+        String token = jwtTokenProvider.resolveToken(request);
+        return ApiResponse.onSuccess(placeReviewService.createPlaceReview(createDto, placeId, images, token));
     }
 
     @Operation(summary = "장소 리뷰 전체 조회 API")
     @GetMapping
-    public ApiResponse<List<PlaceReviewResponseDTO>> getReviews(
-            @PathVariable("placeId") Long placeId
+    public ApiResponse<PlacePageResponseDTO<PlaceReviewResponseDTO>> getReviews(
+            @PathVariable("placeId") Long placeId,
+            @RequestParam(defaultValue = "0") int page
     ) {
-        List<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(placeId);
+        PlacePageResponseDTO<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(placeId, page, 10);
         return ApiResponse.onSuccess(reviews);
     }
 
     @Operation(summary = "장소 리뷰 삭제 API")
-    @DeleteMapping("/{reviewId}/users/{userId}")
+    @DeleteMapping("/{reviewId}")
     public ApiResponse<Long> deleteReview(
             @PathVariable("reviewId") Long reviewId,
-            @PathVariable("userId") Long userId
+            HttpServletRequest request
     ) {
-        placeReviewService.deletePlaceReview(reviewId, userId);
+        String token = jwtTokenProvider.resolveToken(request);
+        placeReviewService.deletePlaceReview(reviewId, token);
         return ApiResponse.onSuccess(reviewId);
     }
 }

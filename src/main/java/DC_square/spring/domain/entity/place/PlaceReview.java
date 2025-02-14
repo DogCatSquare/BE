@@ -45,6 +45,4 @@ public class PlaceReview {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    //@OneToMany(mappedBy = "placeReview", cascade = CascadeType.ALL, orphanRemoval = true)
-    //private List<PlaceReviewImage> placeReviewImages = new ArrayList<>();
 }

@@ -19,7 +19,7 @@ public class PlaceDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "businessHours", length = 225)
+    @Column(name = "businessHours", columnDefinition = "TEXT")
     private String businessHours;
 
     @Column(name = "homepage_url")
@@ -38,4 +38,7 @@ public class PlaceDetail {
 
     @OneToMany(mappedBy = "placeDetail", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Cost> costs;
+
+    @Column(name = "additional_info", length = 500)
+    private String additionalInfo;
 }

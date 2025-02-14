@@ -1,10 +1,14 @@
 package DC_square.spring.config;
 
+import DC_square.spring.domain.enums.DogCat;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import org.springframework.context.annotation.Bean;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Configuration;

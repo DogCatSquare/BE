@@ -7,6 +7,7 @@ import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.service.dday.DdayService;
 import DC_square.spring.web.dto.request.dday.DdayRequestDto;
+import DC_square.spring.web.dto.request.dday.DdayUpdateRequestDto;
 import DC_square.spring.web.dto.response.dday.DdayResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -55,6 +56,23 @@ public class DdayController {
         List<DdayResponseDto> response = ddayService.getDdaysByUser(user.getId());
         return ApiResponse.onSuccess(response);
     }
+
+    @Operation(summary = "D-day 수정 API", description = "D-day를 수정하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))
+    @PutMapping("/{ddayId}")
+    public ApiResponse<DdayResponseDto> updateDday(
+            HttpServletRequest request,
+            @PathVariable Long ddayId,
+            @Valid @RequestBody DdayUpdateRequestDto updateRequest) {
+        String token = jwtTokenProvider.resolveToken(request);
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        DdayResponseDto response = ddayService.updateDday(user.getId(), ddayId, updateRequest);
+        return ApiResponse.onSuccess(response);
+    }
+
 
 
     @Operation(summary = "D-day 삭제 API", description = "D-day를 삭제하는 API입니다.", security = @SecurityRequirement(name = "Authorization"))

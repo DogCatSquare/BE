@@ -46,7 +46,6 @@ public class GooglePlacesService {
 
     public Map<String, Object> searchPlacesByKeyword(double latitude, double longitude, String keyword) {
         String translatedKeyword = translateToEnglish(keyword);
-        System.out.println("🔍 변환된 키워드: " + translatedKeyword);
         String encodedKeyword = URLEncoder.encode(translatedKeyword, StandardCharsets.UTF_8);
 
         String url = UriComponentsBuilder
@@ -55,28 +54,7 @@ public class GooglePlacesService {
                 .queryParam("location", latitude + "," + longitude)
                 .queryParam("radius", 3000)
                 .queryParam("language", "ko")
-                .queryParam("key", googleMapsConfig.getApiKey())
-                .build()
-                .toUriString();
-//
-//        Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-//        System.out.println("API Response: " + response);
-//
-//        return response;
-        return restTemplate.getForObject(url, Map.class);
-    }
-
-    // 카테고리로 장소 검색
-    public Map<String, Object> searchPlacesByCategory(double latitude, double longitude, PlaceCategory category) {
-        String keyword = getCategoryKeyword(category);
-        String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-
-        String url = UriComponentsBuilder
-                .fromHttpUrl(PLACES_API_BASE_URL + "/textsearch/json")
-                .queryParam("query", encodedKeyword)
-                .queryParam("location", latitude + "," + longitude)
-                .queryParam("radius", 3000)
-                .queryParam("language", "ko")
+                .queryParam("maxResults", 60)
                 .queryParam("key", googleMapsConfig.getApiKey())
                 .build()
                 .toUriString();
@@ -84,15 +62,33 @@ public class GooglePlacesService {
         return restTemplate.getForObject(url, Map.class);
     }
 
-    private String getCategoryKeyword(PlaceCategory category) {
-        return switch (category) {
-            case HOSPITAL -> "동물병원 veterinary";
-            case HOTEL -> "애견호텔 반려동물호텔";
-            case PARK -> "애견운동장 반려동물공원";
-            case CAFE -> "애견카페 펫카페";
-            case ETC -> "펫샵 동물용품";
-        };
-    }
+//    // 카테고리로 장소 검색
+//    public Map<String, Object> searchPlacesByCategory(double latitude, double longitude, PlaceCategory category) {
+//        String keyword = getCategoryKeyword(category);
+//        String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
+//
+//        String url = UriComponentsBuilder
+//                .fromHttpUrl(PLACES_API_BASE_URL + "/textsearch/json")
+//                .queryParam("query", encodedKeyword)
+//                .queryParam("location", latitude + "," + longitude)
+//                .queryParam("radius", 3000)
+//                .queryParam("language", "ko")
+//                .queryParam("key", googleMapsConfig.getApiKey())
+//                .build()
+//                .toUriString();
+//
+//        return restTemplate.getForObject(url, Map.class);
+//    }
+//
+//    private String getCategoryKeyword(PlaceCategory category) {
+//        return switch (category) {
+//            case HOSPITAL -> "동물병원 veterinary";
+//            case HOTEL -> "애견호텔 반려동물호텔";
+//            case PARK -> "애견운동장 반려동물공원";
+//            case CAFE -> "애견카페 펫카페";
+//            case ETC -> "펫샵 동물용품";
+//        };
+//    }
 
     public Map<String, Object> getPlaceDetails(String placeId) {
         String url = UriComponentsBuilder
