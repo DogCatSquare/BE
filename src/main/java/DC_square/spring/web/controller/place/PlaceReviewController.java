@@ -51,11 +51,12 @@ public class PlaceReviewController {
     @Operation(summary = "장소 리뷰 삭제 API")
     @DeleteMapping("/{reviewId}")
     public ApiResponse<Long> deleteReview(
+            @PathVariable("placeId") Long placeId,
             @PathVariable("reviewId") Long reviewId,
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        placeReviewService.deletePlaceReview(reviewId, token);
+        placeReviewService.deletePlaceReview(placeId,reviewId, token);
         return ApiResponse.onSuccess(reviewId);
     }
 }
