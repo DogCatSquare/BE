@@ -74,6 +74,7 @@ public class WeatherService {
             if (pet == null) {
                 throw new RuntimeException("반려동물 정보를 찾을 수 없습니다.");
             }
+            log.info("Pet type: {}", pet.getDogCat());
 
             // 2. API 호출 정보 준비
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));  // UTC 시간 문제 해결을 위해
@@ -98,7 +99,7 @@ public class WeatherService {
                    // baseTime,
                     "0200",
                     URLEncoder.encode(serviceKey, StandardCharsets.UTF_8), // authKey  인코딩
-                    260,  // numOfRows
+                    300,  // numOfRows
                     user.getDistrict().getCity().getGrid_X(),
                     user.getDistrict().getCity().getGrid_Y()
             );
@@ -171,6 +172,7 @@ public class WeatherService {
 
             // 5. 날씨 상태 결정
             WeatherStatus status = WeatherStatus.fromWeatherData(pty, sky, Double.parseDouble(wsd));
+            log.info("Weather Status: {}, Sky: {}, PTY: {}, WSD: {}", status, sky, pty, wsd);
 
             // 6. 가장 가까운 D-day 찾기 (날씨가 흐린 경우)
              //원래 코드
@@ -181,7 +183,7 @@ public class WeatherService {
 
 
             // 7. 응답 생성
-            return WeatherResponseDto.from(
+            WeatherResponseDto weatherResponse = WeatherResponseDto.from(
                     status,
                     pet.getDogCat(),
                     user.getDistrict().getName(), //3 단계만
@@ -191,6 +193,9 @@ public class WeatherService {
                     nearestDday,
                     pop
             );
+
+            log.info("Weather Response: {}", weatherResponse);
+            return weatherResponse;
 
         } catch (Exception e) {
             log.error("날씨 정보 조회 중 오류 발생: {}", e.getMessage(), e);
