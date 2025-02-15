@@ -95,7 +95,7 @@ public class WalkReviewService {
         return new WalkReviewResponseDto(List.of(reviewDto));
     }
 
-    public void deleteWalkReview(Long reviewId, String token) throws RuntimeException {
+    public void deleteWalkReview(Long walkId, Long reviewId, String token) throws RuntimeException {
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new IllegalArgumentException("잘못된 토큰입니다.");
         }
@@ -107,6 +107,10 @@ public class WalkReviewService {
 
         WalkReview walkReview = walkReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("해당 후기를 찾을 수 없습니다."));
+
+        if (!walkReview.getWalk().getId().equals(walkId)) {
+            throw new RuntimeException("해당 산책로에 존재하는 후기가 아닙니다.");
+        }
 
         if (!walkReview.getUser().getEmail().equals(userEmail)) {
             throw new RuntimeException("산책로 후기 삭제 권한이 없습니다.");
