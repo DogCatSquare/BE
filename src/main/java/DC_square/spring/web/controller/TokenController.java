@@ -1,6 +1,9 @@
 package DC_square.spring.web.controller;
 
 import DC_square.spring.apiPayload.ApiResponse;
+import DC_square.spring.apiPayload.code.status.ErrorStatus;
+import DC_square.spring.apiPayload.exception.ExceptionAdvice;
+import DC_square.spring.apiPayload.exception.TokenException;
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.config.jwt.RefreshTokenRedisRepository;
 import DC_square.spring.web.dto.response.TokenDto;
@@ -27,7 +30,7 @@ public class TokenController {
     public ApiResponse<TokenDto> refresh(@RequestHeader("RefreshToken") String refreshToken) {
         // Refresh Token 검증
         if (!jwtTokenProvider.validateRefreshToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new TokenException(ErrorStatus.TOKEN_INVALID);
         }
 
         // 새로운 토큰 발급
@@ -35,8 +38,8 @@ public class TokenController {
         String newAccessToken = jwtTokenProvider.createAccessToken(userEmail);
 
         return ApiResponse.onSuccess(TokenDto.builder()
-                .accessToken(newAccessToken) // 새로 발급 받은 access token
-                .refreshToken(refreshToken) //기존 refresh token
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
                 .build());
     }
 }
