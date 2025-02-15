@@ -25,9 +25,9 @@ public class MyBoardController {
     /**
      * 마이게시판 추가 API
      */
-    @Operation(summary = "마이게시판 추가 API", description = "boardId랑 순서(orderIndex)를 입력해주세요")
+    @Operation(summary = "마이게시판 추가 API", description = "boardId를 입력하여 마이게시판에 추가합니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
     @PostMapping
     public ApiResponse<MyBoardResponseDto> addMyBoard(
@@ -35,14 +35,15 @@ public class MyBoardController {
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        return ApiResponse.onSuccess(myBoardService.addMyBoard(boardId,token));
+        return ApiResponse.onSuccess(myBoardService.addMyBoard(boardId, token));
     }
+
     /**
      * 마이게시판 목록 API
      */
     @Operation(summary = "마이게시판 조회 API", description = "마이게시판 목록을 조회합니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
     @GetMapping
     public ApiResponse<List<MyBoardResponseDto>> getMyBoards(HttpServletRequest request) {
@@ -53,16 +54,27 @@ public class MyBoardController {
     /**
      * 마이게시판 삭제 API
      */
-    @Operation(summary = "마이게시판 삭제 API", description = "마이게시판에서 게시판을 삭제합니다.")
+    @Operation(summary = "마이게시판 삭제 API", description = "마이게시판에서 특정 게시판을 삭제합니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @DeleteMapping("/user/{userId}")
-    public ApiResponse<Void> removeMyBoard(@RequestParam Long myBoardId, HttpServletRequest request) {
+    @DeleteMapping("/{myBoardId}")
+    public ApiResponse<Void> removeMyBoard(@PathVariable Long myBoardId, HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        myBoardService.removeMyBoard(myBoardId,token);
+        myBoardService.removeMyBoard(myBoardId, token);
         return ApiResponse.onSuccess(null);
     }
 
-
+    /**
+     * 홈 화면 조회 API (기본 게시판 + 마이게시판)
+     */
+    @Operation(summary = "홈 화면 조회 API", description = "기본 게시판과 마이게시판을 포함한 홈 화면 게시판 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @GetMapping("/home")
+    public ApiResponse<List<String>> getHomeBoards(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        return ApiResponse.onSuccess(myBoardService.getHomeBoards(token));
+    }
 }
