@@ -57,15 +57,30 @@ public class PlaceService {
             return PlacePageResponseDTO.of(new ArrayList<>(), page, size);
         }
 
-        //검색어 유사도 기반 정렬
-        results.sort((a, b) -> compareByNameSimilarity((String) a.get("name"),
-                (String) b.get("name"),
-                keyword));
+        // 각 장소의 유사도 점수를 미리 계산하여 저장
+        Map<String, Double> similarityScores = new HashMap<>();
+        for (Map<String, Object> result : results) {
+            String name = (String) result.get("name");
+            double similarity = calculateSimilarity(name.toLowerCase(), keyword.toLowerCase());
+            similarityScores.put(name, similarity);
+        }
 
         List<PlaceResponseDTO> responseDTOs = results.stream()
                 .filter(this::isPetRelatedPlace)
                 .map(result -> saveAndConvertToDTO(result, location))
                 .filter(Objects::nonNull)
+                .sorted((a, b) -> {
+                    // 1. 먼저 유사도로 비교
+                    double similarityA = similarityScores.get(a.getName());
+                    double similarityB = similarityScores.get(b.getName());
+                    int similarityCompare = Double.compare(similarityB, similarityA);
+
+                    // 2. 유사도가 같은 경우 거리로 비교
+                    if (similarityCompare == 0) {
+                        return Double.compare(a.getDistance(), b.getDistance());
+                    }
+                    return similarityCompare;
+                })
                 .collect(Collectors.toList());
 
         return PlacePageResponseDTO.of(responseDTOs, page, size);
@@ -161,6 +176,7 @@ public class PlaceService {
         List<PlaceResponseDTO> responseDTOs = results.stream()
                 .map(result -> saveAndConvertToDTO(result, location))
                 .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(PlaceResponseDTO::getDistance))
                 .collect(Collectors.toList());
 
         return PlacePageResponseDTO.of(responseDTOs, page, size);
