@@ -116,4 +116,17 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
                 request
         );
     }
+
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<ApiResponse<Object>> handleTokenException(TokenException e) {
+        ErrorStatus errorStatus = e.getErrorStatus();
+        ApiResponse<Object> response = ApiResponse.onFailure(
+                errorStatus.getCode(),
+                errorStatus.getMessage(),
+                null
+        );
+        return new ResponseEntity<>(response, errorStatus.getHttpStatus());
+    }
+
+
 }

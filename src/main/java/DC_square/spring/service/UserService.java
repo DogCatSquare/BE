@@ -169,10 +169,11 @@ public class UserService {
         ddayRepository.save(hospitalDday);
 
         // 토큰 생성
-        String token = jwtTokenProvider.createToken(savedUser.getEmail());
+        String token = jwtTokenProvider.createAccessToken(savedUser.getEmail());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
 
         // 토큰을 포함한 응답 반환
-        return UserResponseDto.from(savedUser, token);
+        return UserResponseDto.from(savedUser, token,refreshToken);
     }
 
     // 로그인
@@ -185,8 +186,9 @@ public class UserService {
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
         // 토큰 생성
-        String token = jwtTokenProvider.createToken(user.getEmail());
-        return LoginResponseDto.from(user, token);
+        String token = jwtTokenProvider.createAccessToken(user.getEmail());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getEmail());
+        return LoginResponseDto.from(user, token,refreshToken);
     }
 
     // 이메일 중복 확인
