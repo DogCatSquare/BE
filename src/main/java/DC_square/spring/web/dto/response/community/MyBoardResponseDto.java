@@ -10,6 +10,6 @@ import lombok.*;
 public class MyBoardResponseDto {
     private Long id;
     private Long boardId;
+    private String username;
     private String boardName;
-    private Integer orderIndex;
 }
