@@ -18,7 +18,14 @@ public class JwtTokenProvider {
     private String secretKey;  // application.yml에서 설정한 키
 
     // 토큰 유효기간 설정 (24시간)
-    private final long tokenValidityInMilliseconds = 1000L * 60 * 60 * 24;
+   // private final long tokenValidityInMilliseconds = 1000L * 60 * 60 * 24;
+
+    //토큰 유효기간  설정
+    private final long accessTokenValidityInMilliseconds = 1000L * 60 * 5; // 5분
+    private final long refreshTokenValidityInMilliseconds = 1000L * 60 * 60 * 24 * 14; // 2주
+
+    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
+
 
     // 객체 초기화시 비밀키를 Base64로 인코딩
     @PostConstruct
@@ -27,16 +34,14 @@ public class JwtTokenProvider {
     }
 
     // JWT 토큰 생성 메서드
-    public String createToken(String userEmail) {
+    public String createAccessToken(String userEmail) {
         // 1. Claims 객체에 토큰에 담을 데이터 설정
         Claims claims = Jwts.claims().setSubject(userEmail);
-
-        // 추가정보를 담고 싶다면 claims에 추가 가능
         claims.put("role", "ROLE_USER");  // 사용자 역할 정보
 
         // 2. 토큰 생성 시간 설정
         Date now = new Date();
-        Date validity = new Date(now.getTime() + tokenValidityInMilliseconds);
+        Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
 
         // 3. JWT 토큰 생성
         return Jwts.builder()
@@ -45,6 +50,25 @@ public class JwtTokenProvider {
                 .setExpiration(validity)   // 토큰 만료 시간
                 .signWith(SignatureAlgorithm.HS256, secretKey)  // 암호화 알고리즘, 비밀키
                 .compact();
+    }
+
+    // Refresh Token 생성
+    public String createRefreshToken(String userEmail) {
+        Claims claims = Jwts.claims().setSubject(userEmail);
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + refreshTokenValidityInMilliseconds);
+
+        String refreshToken = Jwts.builder()
+                .setClaims(claims) // 정보 담기
+                .setIssuedAt(now)  // 토큰 발행 시간
+                .setExpiration(validity)  // 토큰 만료 시간
+                .signWith(SignatureAlgorithm.HS256, secretKey)  // 암호화 알고리즘, 비밀키
+                .compact();
+
+        // Redis에 저장
+        refreshTokenRedisRepository.save(userEmail, refreshToken);
+
+        return refreshToken;
     }
 
     // 토큰에서 값 추출
@@ -56,7 +80,29 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    // 토큰 유효성 검증
+    // Refresh Token 검증
+    public boolean validateRefreshToken(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token);
+
+            String userEmail = claims.getBody().getSubject();
+            String savedToken = refreshTokenRedisRepository.findByEmail(userEmail);
+
+            if (savedToken == null || !savedToken.equals(token)) {
+                return false;
+            }
+
+            return !claims.getBody()
+                    .getExpiration()
+                    .before(new Date());
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    // Access  Token 유효성 검증
     public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parser()

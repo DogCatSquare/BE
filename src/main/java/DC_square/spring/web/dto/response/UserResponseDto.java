@@ -24,9 +24,10 @@ public class UserResponseDto {
     private String regionId;
     private String profileImageUrl;
     private String token;
+    private String refreshToken;
 
     // 토큰 (회원가입)
-    public static UserResponseDto from(User user, String token) {
+    public static UserResponseDto from(User user, String token,String refreshToken) {
         return UserResponseDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -39,6 +40,7 @@ public class UserResponseDto {
                 .districtId(user.getDistrict().getId())
                 .profileImageUrl(user.getProfileImageUrl())
                 .token(token)
+                .refreshToken(refreshToken)
                 .build();
     }
     
