@@ -441,7 +441,11 @@ public class PlaceService {
                     return PlaceResponseDTO.builder()
                             .id(place.getId())
                             .name(place.getName())
+                            //.address(place.getAddress())
                             .category(place.getCategory())
+                            //.phoneNumber(place.getPhoneNumber())
+                            //.latitude(place.getLatitude())
+                            //.longitude(place.getLongitude())
                             .open(place.getOpen())
                             .distance(calculateDistance(
                                     location.getLatitude(),
@@ -449,6 +453,8 @@ public class PlaceService {
                                     place.getLatitude(),
                                     place.getLongitude()
                             ))
+                            //.reviewCount(placeReviewRepository.countByPlaceId(place.getId()))
+                            //.keywords(place.getKeywords())
                             .imgUrl(place.getImages().isEmpty() ? null :
                                     googlePlacesService.getPhotoUrl(
                                             place.getImages().get(0).getPhotoReference(),
