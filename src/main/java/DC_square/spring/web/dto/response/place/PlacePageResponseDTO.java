@@ -18,6 +18,17 @@ public class PlacePageResponseDTO<T> {
     private int number;
 
     public static <T> PlacePageResponseDTO<T> of(List<T> content, int page, int size) {
+        if (content == null || content.isEmpty()) {
+            return PlacePageResponseDTO.<T>builder()
+                    .content(new ArrayList<>())
+                    .totalPages(0)
+                    .totalElements(0)
+                    .last(true)
+                    .first(true)
+                    .size(size)
+                    .number(page)
+                    .build();
+        }
         int totalElements = content.size();
         int fromIndex = page * size;
         int toIndex = Math.min(fromIndex + size, totalElements);
