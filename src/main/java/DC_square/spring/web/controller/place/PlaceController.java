@@ -1,5 +1,6 @@
 package DC_square.spring.web.controller.place;
 
+import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
@@ -28,23 +29,23 @@ public class PlaceController {
     private final JwtTokenProvider jwtTokenProvider;
 
     // 장소 전체 조회 API
-    @Operation(summary = "장소 전체 조회 API")
-    @PostMapping("search/{cityId}")
-    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> getPlaces(
-            @RequestBody LocationRequestDTO location,  // 사용자 현재 위치
-            @PathVariable("cityId") Long cityId,
-            @RequestParam(required = false) String keyword,
+    @Operation(summary = "키워드로 장소 검색 API")
+    @PostMapping("/search")
+    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> searchPlaces(
+            @RequestParam String keyword,
+            @RequestBody LocationRequestDTO location,
             @RequestParam(defaultValue = "0") int page
-
     ) {
-        PlacePageResponseDTO<PlaceResponseDTO> places = placeService.findPlaces(
-                location,
-                cityId,
-                keyword,
-                page,
-                10 // 한 페이지에 보여줄 장소 수
-        );
-        return ApiResponse.onSuccess(places);
+        return ApiResponse.onSuccess(placeService.searchPlacesByKeyword(keyword, location, page, 10));
+    }
+
+    @Operation(summary = "카테고리 기반 주변 장소 검색 API")
+    @PostMapping("/nearby")
+    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> searchNearbyPlaces(
+            @RequestBody LocationRequestDTO location,
+            @RequestParam(defaultValue = "0") int page
+    ) {
+        return ApiResponse.onSuccess(placeService.findNearbyPlaces(location, page, 10));
     }
 
     // 장소 생성 API
