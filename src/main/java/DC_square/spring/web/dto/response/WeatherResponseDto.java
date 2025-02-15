@@ -55,20 +55,11 @@ public class WeatherResponseDto {
         // D-day가 있고 날씨가 흐린 경우
         //기존 코드
         if (dday != null && status == WeatherStatus.CLOUDY) {
-
-        //테스트 (구름이 아닐 때도)
-//        if (dday != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
-            builder.ddayTitle(dday.getTitle())
-                    .ddayMessage("D-" + dday.getDaysLeft())
-                    .ddayDate(dday.getDay().format(formatter));
-
             setDdayMessage(builder, petType, dday);
-            return builder.build();
+        } else {
+            setWeatherMessage(builder, status, petType);
         }
 
-        // 날씨에 따른 메시지
-        setWeatherMessage(builder, status, petType);
         return builder.build();
     }
 
@@ -96,12 +87,20 @@ public class WeatherResponseDto {
                 builder.mainMessage("바람 부는날")
                         .subMessage(isDog ? "산책에 유의하세요" : "털날림 주의")
                         .imageUrl(isDog ? WeatherConstants.DOG_WIND_IMAGE : WeatherConstants.CAT_WIND_IMAGE);
+            case CLOUDY:
+                builder.mainMessage("흐린 날")
+                        .subMessage(isDog ? "산책하기 적당한 날" : "창밖 구경하기 좋은 날")
+                        .imageUrl(isDog ? WeatherConstants.DOG_SUN_IMAGE : WeatherConstants.CAT_SUN_IMAGE);
                 break;
         }
     }
 
     private static void setDdayMessage(WeatherResponseDtoBuilder builder, DogCat petType, Dday dday) {
         boolean isDog = petType == DogCat.DOG;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
+        builder.ddayTitle(dday.getTitle())
+                .ddayMessage("D-" + dday.getDaysLeft())
+                .ddayDate(dday.getDay().format(formatter));
 
         switch (dday.getType()) {
             case FOOD:
