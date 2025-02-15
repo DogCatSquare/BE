@@ -2,27 +2,22 @@ package DC_square.spring.service.place;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.domain.entity.place.PlaceDetail;
-import DC_square.spring.domain.entity.place.PlaceImage;
-import DC_square.spring.domain.entity.place.PlaceReview;
+import DC_square.spring.domain.entity.place.*;
 import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.repository.community.UserRepository;
-import DC_square.spring.repository.place.PlaceDetailRepository;
-import DC_square.spring.repository.place.PlaceReviewRepository;
-import DC_square.spring.repository.place.PlaceWishRepository;
+import DC_square.spring.repository.place.*;
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
-import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.enums.PlaceCategory;
-import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +40,7 @@ public class PlaceService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final EntityManager em;
+    private final PlaceViewRepository placeViewRepository;
 
     /**
      * 키워드로 장소 검색 (거리 제한 없음)
@@ -66,7 +62,7 @@ public class PlaceService {
         }
 
         List<PlaceResponseDTO> responseDTOs = results.stream()
-                .filter(this::isPetRelatedPlace)
+                //.filter(this::isPetRelatedPlace)
                 .map(result -> saveAndConvertToDTO(result, location))
                 .filter(Objects::nonNull)
                 .sorted((a, b) -> {
@@ -316,7 +312,6 @@ public class PlaceService {
     }
 
     private String normalizeProvinceName(String name) {
-        // Map.of 대신 new HashMap<>() 사용
         Map<String, String> provinceMap = new HashMap<>();
         provinceMap.put("서울", "서울특별시");
         provinceMap.put("부산", "부산광역시");
@@ -430,12 +425,19 @@ public class PlaceService {
 
     // 도시별 핫플레이스 조회
     public List<PlaceResponseDTO> findHotPlacesByCity(Long cityId, LocationRequestDTO location) {
-        PageRequest pageRequest = PageRequest.of(0, 5);
-        List<Object[]> results = placeRepository.findAllByCityIdOrderByWishCount(cityId, pageRequest);
+        LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+        PageRequest pageRequest = PageRequest.of(0, 4);
+
+        List<Object[]> results = placeViewRepository.findTopPlacesByViewCount(weekAgo, cityId);
+        //List<Object[]> results = placeRepository.findAllByCityIdOrderByWishCount(cityId, pageRequest);
 
         return results.stream()
+                .limit(4)
                 .map(result -> {
-                    Place place = (Place) result[0];
+                    Long placeId = (Long) result[0];
+                    Place place = placeRepository.findById(placeId)
+                            .orElseThrow(() -> new RuntimeException("Place not found"));
+
                     return PlaceResponseDTO.builder()
                             .id(place.getId())
                             .name(place.getName())
@@ -455,6 +457,23 @@ public class PlaceService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void increaseViewCount(Long placeId) {
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new RuntimeException("Place not found"));
+
+        // 기존 view 카운트 증가
+        place.setView(place.getView() + 1);
+
+        // 조회 기록 저장
+        PlaceView placeView = PlaceView.builder()
+                .place(place)
+                .viewedAt(LocalDateTime.now())
+                .build();
+
+        placeViewRepository.save(placeView);
     }
 
     // 장소 정보 업데이트

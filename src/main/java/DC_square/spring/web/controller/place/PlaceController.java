@@ -67,6 +67,7 @@ public class PlaceController {
             HttpServletRequest request
     ) {
         String token = jwtTokenProvider.resolveToken(request);
+        placeService.increaseViewCount(placeId);
         PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId, token, location);
         return ApiResponse.onSuccess(place);
     }
