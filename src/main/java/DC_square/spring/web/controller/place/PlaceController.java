@@ -45,7 +45,7 @@ public class PlaceController {
             @RequestBody LocationRequestDTO location,
             @RequestParam(defaultValue = "0") int page
     ) {
-        return ApiResponse.onSuccess(placeService.findNearbyPlaces(location, page, 10));
+        return ApiResponse.onSuccess(placeService.findNearbyPlaces(location, page, 20));
     }
 
     // 장소 생성 API

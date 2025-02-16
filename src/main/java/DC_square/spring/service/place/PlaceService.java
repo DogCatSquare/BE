@@ -204,19 +204,6 @@ public class PlaceService {
         return convertToResponseDTO(savedPlace, location);
     }
 
-    private boolean isPetRelatedPlace(Map<String, Object> placeData) {
-        String name = ((String) placeData.get("name")).toLowerCase();
-
-        List<String> petKeywords = Arrays.asList(
-                "애견", "펫", "동물", "쥬", "pet", "animal", "zoo",
-                "강아지", "고양이", "독", "도그", "dog", "cat", "멍", "댕", "냥",
-                "공원", "park", "veterinary"
-        );
-
-        return petKeywords.stream()
-                .anyMatch(keyword -> name.contains(keyword));
-    }
-
     private Place createPlaceFromGoogleData(Map<String, Object> placeData, Map<String, Object> detailResult, Pair<Province, City> regionInfo) {
         Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
         Map<String, Object> location = (Map<String, Object>) geometry.get("location");
@@ -334,13 +321,29 @@ public class PlaceService {
     //카테고리 필터 로직 (type으로 구분)
     private PlaceCategory determinePlaceCategory(Map<String, Object> placeData) {
         List<String> types = (List<String>) placeData.get("types");
-        if (types == null) return PlaceCategory.ETC;
+        String name = ((String) placeData.get("name")).toLowerCase();
 
-        if (types.contains("veterinary_care")) return PlaceCategory.HOSPITAL;
-        if (types.contains("cafe")) return PlaceCategory.CAFE;
-        if (types.contains("park")) return PlaceCategory.PARK;
-        if (types.contains("lodging")) return PlaceCategory.HOTEL;
-        if (types.contains("pet_store")) return PlaceCategory.ETC;
+        // 타입으로 먼저 체크
+        if (types != null) {
+            if (types.contains("veterinary_care")) return PlaceCategory.HOSPITAL;
+            if (types.contains("park")) return PlaceCategory.PARK;
+            if (types.contains("pet_store")) return PlaceCategory.ETC;
+        }
+
+        // 키워드 검색 결과의 경우 이름으로 카테고리 결정
+        if (name.contains("카페") || name.contains("cafe")) {
+            return PlaceCategory.CAFE;
+        }
+
+        if (name.contains("호텔") || name.contains("hotel")) {
+            return PlaceCategory.HOTEL;
+        }
+
+        // 이름에 없는 경우 Google Places API의 타입을 보조적으로 활용
+        if (types != null) {
+            if (types.contains("cafe")) return PlaceCategory.CAFE;
+            if (types.contains("lodging")) return PlaceCategory.HOTEL;
+        }
 
         return PlaceCategory.ETC;
 //        String name = ((String) placeData.get("name")).toLowerCase();
