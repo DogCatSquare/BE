@@ -21,11 +21,11 @@ public class JwtTokenProvider {
    // private final long tokenValidityInMilliseconds = 1000L * 60 * 60 * 24;
 
     //토큰 유효기간  설정
-    private final long accessTokenValidityInMilliseconds = 1000L * 60 * 2; // 2분
- //   private final long accessTokenValidityInMilliseconds = 1000L * 60 * 60* 24; // 24시간
+ //   private final long accessTokenValidityInMilliseconds = 1000L * 60 * 2; // 2분
+    private final long accessTokenValidityInMilliseconds = 1000L * 60 * 60* 24; // 24시
 
-    // private final long refreshTokenValidityInMilliseconds = 1000L * 60 * 60 * 24 * 14; // 2주
-   private final long refreshTokenValidityInMilliseconds = 1000L * 60 * 5; // 5분
+    private final long refreshTokenValidityInMilliseconds = 1000L * 60 * 60 * 24 * 14; // 2주
+  //  private final long refreshTokenValidityInMilliseconds = 1000L * 60 * 5; // 5분
 
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
