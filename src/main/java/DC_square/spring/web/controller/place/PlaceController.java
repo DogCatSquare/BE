@@ -48,7 +48,7 @@ public class PlaceController {
         return ApiResponse.onSuccess(placeService.findNearbyPlaces(location, page, 20));
     }
 
-    // 장소 생성 API
+    // 장소 생성 API (관리자용)
     @Operation(summary = "장소 생성 API")
     @PostMapping
     public ApiResponse<Long> createPlace(
@@ -56,6 +56,17 @@ public class PlaceController {
     ) {
         Long placeId = placeService.createPlace(request);
         return ApiResponse.onSuccess(placeId);
+    }
+
+    // 장소 정보 수정
+    @Operation(summary = "장소 정보 수정 API(데모데이용)")
+    @PostMapping("/{placeId}/update")
+    public ApiResponse<String> updatePlace(
+            @PathVariable("placeId") Long placeId,
+            @RequestBody PlaceCreateRequestDTO request
+    ) {
+        placeService.updatePlace(placeId, request);
+        return ApiResponse.onSuccess("장소 정보가 성공적으로 수정되었습니다.");
     }
 
     // 장소 상세 조회 API

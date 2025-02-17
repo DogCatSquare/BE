@@ -247,7 +247,6 @@ public class PlaceService {
                 .businessHours(businessHours)
                 .homepageUrl(detailResult != null ? (String) detailResult.get("website") : null)
                 .description(description)
-                .facilities(new ArrayList<>())
                 .build();
     }
 
@@ -530,6 +529,39 @@ public class PlaceService {
         placeDetailRepository.save(placeDetail);
 
         return savedPlace.getId();
+    }
+
+    // 장소 업데이트 (관리자용)
+    @Transactional
+    public void updatePlace(Long placeId, PlaceCreateRequestDTO request) {
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
+
+        // 기본 정보 업데이트
+        place.setName(request.getName());
+        place.setAddress(request.getAddress());
+        place.setCategory(request.getCategory());
+        place.setPhoneNumber(request.getPhoneNumber());
+        place.setOpen(request.getOpen());
+        place.setLongitude(request.getLongitude());
+        place.setLatitude(request.getLatitude());
+        place.setKeywords(request.getKeywords());
+
+        // PlaceDetail 정보 업데이트
+        PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
+                .orElseGet(() -> {
+                    PlaceDetail newDetail = new PlaceDetail();
+                    newDetail.setPlace(place);
+                    return newDetail;
+                });
+
+        placeDetail.setBusinessHours(request.getBusinessHours());
+        placeDetail.setHomepageUrl(request.getHomepageUrl());
+        placeDetail.setDescription(request.getDescription());
+        placeDetail.setAdditionalInfo(request.getAdditionalInfo());
+
+        placeRepository.save(place);
+        placeDetailRepository.save(placeDetail);
     }
 
     private Double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
