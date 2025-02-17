@@ -89,4 +89,16 @@ public class UserController {
         return ApiResponse.onSuccess(userService.updateUser(userEmail, updateDto, profileImage));
     }
 
+    @Operation(summary = "회원 탈퇴 API", description = "회원 정보를 삭제합니다.")
+    @DeleteMapping
+    public ApiResponse<String> deleteUser(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        String userEmail = jwtTokenProvider.getUserEmail(token);
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        userService.deleteUser(user.getId());
+        return ApiResponse.onSuccess("회원 탈퇴가 완료되었습니다.");
+    }
+
 }
