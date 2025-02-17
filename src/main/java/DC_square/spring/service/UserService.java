@@ -380,4 +380,21 @@ public class UserService {
         //String token = jwtTokenProvider.createToken(savedUser.getEmail());
         return UserResponseDto.from(savedUser);
     }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 연관된 D-day 삭제
+        ddayRepository.deleteAll(ddayRepository.findAllByUser(user));
+
+        // 연관된 반려동물 삭제
+        petRepository.deleteAll(petRepository.findAllByUser(user));
+
+        // 사용자 삭제 - 나머지 연관 엔티티 ->  cascade 삭제
+        userRepository.delete(user);
+    }
+
+
 }
