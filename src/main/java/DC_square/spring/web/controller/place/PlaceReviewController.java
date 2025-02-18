@@ -42,9 +42,11 @@ public class PlaceReviewController {
     @GetMapping
     public ApiResponse<PlacePageResponseDTO<PlaceReviewResponseDTO>> getReviews(
             @PathVariable("placeId") Long placeId,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(defaultValue = "0") int page,
+            HttpServletRequest request
     ) {
-        PlacePageResponseDTO<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(placeId, page, 10);
+        String token = jwtTokenProvider.resolveToken(request);
+        PlacePageResponseDTO<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(placeId, token, page, 10);
         return ApiResponse.onSuccess(reviews);
     }
 
