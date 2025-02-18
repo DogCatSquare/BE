@@ -46,12 +46,13 @@ public class Place {
     @PrePersist
     public void prePersist() {
         this.view = (this.view == null) ? 0 : this.view;
+        this.hidden = (this.hidden == null) ? false : this.hidden;
     }
 
     @Column(name = "google_place_id", unique = true)
     private String googlePlaceId;
 
-    @Column(name = "hidden")
+    @Column(name = "hidden", nullable = false)
     private Boolean hidden;
 
 //    @ManyToOne
