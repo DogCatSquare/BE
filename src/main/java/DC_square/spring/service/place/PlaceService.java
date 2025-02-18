@@ -489,12 +489,9 @@ public class PlaceService {
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
 
-        if (place.getKeywords() == null) {
-            place.setKeywords(new ArrayList<>());
-        }
-        if (updateDTO.getKeywords() != null) {
-            place.getKeywords().addAll(updateDTO.getKeywords());
-        }
+        place.setKeywords(updateDTO.getKeywords() != null ?
+                updateDTO.getKeywords() :
+                new ArrayList<>());
         placeRepository.save(place);
 
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
