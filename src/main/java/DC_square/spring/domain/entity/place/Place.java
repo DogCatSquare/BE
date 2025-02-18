@@ -51,6 +51,9 @@ public class Place {
     @Column(name = "google_place_id", unique = true)
     private String googlePlaceId;
 
+    @Column(name = "hidden")
+    private Boolean hidden;
+
 //    @ManyToOne
 //    @JoinColumn(name = "region_id", nullable = false)
 //    private Region region;
