@@ -30,7 +30,7 @@ public class BoardController {
     })
     @PostMapping
     public ApiResponse<BoardResponseDto> createBoard(
-            @Valid BoardRequestDto boardRequestDto
+            @Valid @RequestBody BoardRequestDto boardRequestDto
     ) {
         return ApiResponse.onSuccess(boardService.createdBoard(boardRequestDto));
     }
