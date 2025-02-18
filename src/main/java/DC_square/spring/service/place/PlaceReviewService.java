@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ public class PlaceReviewService {
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PlaceReviewReportService placeReviewReportService;
 
     public Long createPlaceReview(PlaceReviewCreateRequestDTO request, Long placeId, List<MultipartFile> images, String token) {
 
@@ -72,10 +74,35 @@ public class PlaceReviewService {
         return placeReviewRepository.save(placeReview).getId();
     }
 
-    public PlacePageResponseDTO<PlaceReviewResponseDTO> findPlaceReviews(Long placeId, int page, int size) {
+    public PlacePageResponseDTO<PlaceReviewResponseDTO> findPlaceReviews(Long placeId, String token, int page, int size) {
         List<PlaceReview> placeReviews = placeReviewRepository.findAllByPlaceId(placeId);
 
+        //신고 기능을 위한 코드
+        Long currentUserId = null;
+        List<Long> reportedReviewIds = new ArrayList<>();
+        List<Long> frequentlyReportedUserIds = new ArrayList<>();
+
+        if (token != null){
+            String userEmail = jwtTokenProvider.getUserEmail(token);
+            User currentUser = userRepository.findByEmail(userEmail).orElse(null);
+
+            if(currentUser != null){
+                currentUserId = currentUser.getId();
+                //사용자가 신고한 리뷰 ID 목록 가져오기
+                reportedReviewIds = placeReviewReportService.getReportedReviewIds(token);
+                //4회 이상 신고된 유저 ID 목록 가져오기
+                frequentlyReportedUserIds = placeReviewReportService.getFrequentlyReportedUserIds();
+
+            }
+        }
+
+        //
+        final List<Long> finalReportedReviewIds = reportedReviewIds;
+        final List<Long> finalFrequentlyReportedUserIds = frequentlyReportedUserIds;
+
         List<PlaceReviewResponseDTO> responseDTOs = placeReviews.stream()
+                .filter(review -> !finalReportedReviewIds.contains(review.getId()))
+                .filter(review -> !finalFrequentlyReportedUserIds.contains(review.getUser().getId()))
                 .map(placeReview -> PlaceReviewResponseDTO.builder()
                         .id(placeReview.getId())
                         .breed(placeReview.getUser().getPetList().get(0).getBreed())
