@@ -17,6 +17,8 @@ import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.util.Pair;
 
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -207,7 +210,7 @@ public class PlaceService {
     private Place createPlaceFromGoogleData(Map<String, Object> placeData, Map<String, Object> detailResult, Pair<Province, City> regionInfo) {
         Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
         Map<String, Object> location = (Map<String, Object>) geometry.get("location");
-        Map<String, Object> openingHours = (Map<String, Object>) placeData.get("opening_hours");
+        //Map<String, Object> openingHours = (Map<String, Object>) placeData.get("opening_hours");
 
         String phoneNumber = detailResult != null ? (String) detailResult.get("formatted_phone_number") : null;
 
@@ -219,7 +222,7 @@ public class PlaceService {
                 .latitude((Double) location.get("lat"))
                 .longitude((Double) location.get("lng"))
                 .googlePlaceId((String) placeData.get("place_id"))
-                .open(openingHours != null ? (Boolean) openingHours.get("open_now") : null)
+                //.open(openingHours != null ? (Boolean) openingHours.get("open_now") : null)
                 .images(new ArrayList<>())
                 .keywords(new ArrayList<>())
                 .province(regionInfo != null ? regionInfo.getFirst() : null)
@@ -374,6 +377,13 @@ public class PlaceService {
             );
         }
 
+        // 비즈니스 아워로 영업 여부 계산
+        boolean isCurrentlyOpen = false;
+        PlaceDetail placeDetail = placeDetailRepository.findByPlace(place).orElse(null);
+        if (placeDetail != null && placeDetail.getBusinessHours() != null) {
+            isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
+        }
+
         return PlaceResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
@@ -383,7 +393,7 @@ public class PlaceService {
                 .latitude(place.getLatitude())
                 .longitude(place.getLongitude())
                 .distance(distance)
-                .open(place.getOpen())
+                .open(isCurrentlyOpen)
                 .imgUrl(place.getImages().isEmpty() ? null :
                         googlePlacesService.getPhotoUrl(
                                 place.getImages().get(0).getPhotoReference(),
@@ -431,7 +441,6 @@ public class PlaceService {
         PageRequest pageRequest = PageRequest.of(0, 4);
 
         List<Object[]> results = placeViewRepository.findTopPlacesByViewCount(weekAgo, cityId);
-        //List<Object[]> results = placeRepository.findAllByCityIdOrderByWishCount(cityId, pageRequest);
 
         return results.stream()
                 .limit(4)
@@ -439,6 +448,13 @@ public class PlaceService {
                     Long placeId = (Long) result[0];
                     Place place = placeRepository.findById(placeId)
                             .orElseThrow(() -> new RuntimeException("Place not found"));
+
+                    // 비즈니스 아워로 영업 여부 계산
+                    boolean isCurrentlyOpen = false;
+                    PlaceDetail placeDetail = placeDetailRepository.findByPlace(place).orElse(null);
+                    if (placeDetail != null && placeDetail.getBusinessHours() != null) {
+                        isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
+                    }
 
                     return PlaceResponseDTO.builder()
                             .id(place.getId())
@@ -448,7 +464,7 @@ public class PlaceService {
                             //.phoneNumber(place.getPhoneNumber())
                             //.latitude(place.getLatitude())
                             //.longitude(place.getLongitude())
-                            .open(place.getOpen())
+                            .open(isCurrentlyOpen)
                             .distance(calculateDistance(
                                     location.getLatitude(),
                                     location.getLongitude(),
@@ -509,7 +525,7 @@ public class PlaceService {
                 .phoneNumber(request.getPhoneNumber())
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
-                .open(request.getOpen())
+                //.open(request.getOpen())
                 .keywords(request.getKeywords())
                 .build();
 
@@ -539,7 +555,7 @@ public class PlaceService {
         place.setAddress(request.getAddress());
         place.setCategory(request.getCategory());
         place.setPhoneNumber(request.getPhoneNumber());
-        place.setOpen(request.getOpen());
+        //place.setOpen(request.getOpen());
         place.setLongitude(request.getLongitude());
         place.setLatitude(request.getLatitude());
         place.setKeywords(request.getKeywords());
@@ -587,6 +603,12 @@ public class PlaceService {
         PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
                 .orElseThrow(() -> new RuntimeException("장소 상세 정보를 찾을 수 없습니다."));
 
+        // 비즈니스 아워로 영업 여부 계산
+        boolean isCurrentlyOpen = false;
+        if (placeDetail.getBusinessHours() != null) {
+            isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
+        }
+
         List<PlaceReview> recentReviews = placeReviewRepository.findTop2ByPlaceOrderByCreatedAtDesc(place.getId());
         List<PlaceReviewResponseDTO> recentReviewDtos = recentReviews.stream()
                 .map(review -> PlaceReviewResponseDTO.builder()
@@ -607,7 +629,7 @@ public class PlaceService {
                 .address(place.getAddress())
                 .category(place.getCategory().name())
                 .phoneNumber(place.getPhoneNumber())
-                .open(place.getOpen())
+                .open(isCurrentlyOpen)
                 .longitude(place.getLongitude())
                 .latitude(place.getLatitude())
                 .distance(distance)
@@ -623,5 +645,189 @@ public class PlaceService {
                 .keywords(place.getKeywords())
                 .additionalInfo(placeDetail.getAdditionalInfo())
                 .build();
+    }
+
+    public PlacePageResponseDTO<PlaceResponseDTO> findPlacesWithFilters(
+            LocationRequestDTO location,
+            Boolean is24Hours,
+            Boolean hasParking,
+            Boolean isCurrentlyOpen,
+            int page,
+            int size
+    ){
+        // 1. 먼저 주변 장소 검색 결과 가져오기
+        Map<String, Object> searchResults = googlePlacesService.searchNearbyPlaces(
+                location.getLatitude(),
+                location.getLongitude()
+        );
+
+        List<Map<String, Object>> results = (List<Map<String, Object>>) searchResults.get("results");
+
+        if (results == null || results.isEmpty()) {
+            return PlacePageResponseDTO.of(new ArrayList<>(), page, size);
+        }
+
+        // 2. 장소를 DTO로 변환하고 필터 적용
+        List<PlaceResponseDTO> responseDTOs = results.stream()
+                .map(result -> saveAndConvertToDTO(result, location))
+                .filter(Objects::nonNull)
+                .filter(placeDTO -> {
+                    // 필터가 적용되지 않은 경우 모든 장소 포함
+                    if (is24Hours == null && hasParking == null && isCurrentlyOpen == null) {
+                        return true;
+                    }
+
+                    Place place = placeRepository.findById(placeDTO.getId()).orElse(null);
+                    if (place == null) return false;
+                    PlaceDetail placeDetail = placeDetailRepository.findByPlace(place).orElse(null);
+
+                    // 24시간 운영 필터
+                    if (is24Hours != null && is24Hours) {
+                        boolean has24HoursKeyword = place.getKeywords() != null &&
+                                place.getKeywords().contains("24시간");
+                        boolean has24HoursInBusinessHours = placeDetail != null &&
+                                placeDetail.getBusinessHours() != null &&
+                                placeDetail.getBusinessHours().contains("24시간");
+                        return has24HoursKeyword || has24HoursInBusinessHours;
+                    }
+                    // 주차 가능 필터
+                    else if (hasParking != null && hasParking) {
+                        return place.getKeywords() != null && place.getKeywords().contains("주차가능");
+                    }
+                    // 현재 영업 중 필터
+                    else if (isCurrentlyOpen != null && isCurrentlyOpen) {
+                        return placeDetail != null &&
+                                placeDetail.getBusinessHours() != null &&
+                                isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
+                    }
+
+                    return true; // 필터가 없는 경우 모든 장소 반환
+                })
+                .sorted(Comparator.comparing(PlaceResponseDTO::getDistance))
+                .collect(Collectors.toList());
+
+        return PlacePageResponseDTO.of(responseDTOs, page, size);
+    }
+
+    private boolean isCurrentlyOpenFromBusinessHours(String businessHours) {
+        if (businessHours == null || businessHours.isEmpty()) {
+            return false;
+        }
+
+        try {
+            // 현재 서울 시간 가져오기
+            ZoneId seoulZone = ZoneId.of("Asia/Seoul");
+            LocalDateTime now = LocalDateTime.now(seoulZone);
+            DayOfWeek currentDay = now.getDayOfWeek();
+            int currentHour = now.getHour();
+            int currentMinute = now.getMinute();
+
+            // 한국어 요일 접두사 설정
+            String dayPrefix;
+            switch (currentDay) {
+                case MONDAY: dayPrefix = "월요일: "; break;
+                case TUESDAY: dayPrefix = "화요일: "; break;
+                case WEDNESDAY: dayPrefix = "수요일: "; break;
+                case THURSDAY: dayPrefix = "목요일: "; break;
+                case FRIDAY: dayPrefix = "금요일: "; break;
+                case SATURDAY: dayPrefix = "토요일: "; break;
+                case SUNDAY: dayPrefix = "일요일: "; break;
+                default: return false;
+            }
+
+            // businessHours 파싱 ("[월요일: 오전 11:00 ~ 오후 8:00, 화요일: ...]")
+            String[] days = businessHours.replace("[", "").replace("]", "").split(", ");
+
+            // 현재 요일의 영업시간 찾기
+            for (String day : days) {
+                if (day.startsWith(dayPrefix)) {
+                    // 24시간 영업하는 경우
+                    if (day.contains("24시간") || day.contains("24 hours")) {
+                        return true;
+                    }
+
+                    // 휴무인 경우
+                    if (day.contains("휴무") || day.contains("Closed")) {
+                        return false;
+                    }
+
+                    // 시간 파싱 (예: "오전 11:00 ~ 오후 8:00")
+                    String timeRange = day.substring(dayPrefix.length());
+                    if (timeRange.contains("~")) {
+                        String[] times = timeRange.split("~");
+                        String openTime = times[0].trim();
+                        String closeTime = times[1].trim();
+
+                        // 한국어 시간 형식 파싱
+                        int openHour = parseKoreanHour(openTime);
+                        int openMinute = parseKoreanMinute(openTime);
+                        int closeHour = parseKoreanHour(closeTime);
+                        int closeMinute = parseKoreanMinute(closeTime);
+
+                        // 자정을 넘어가는 경우 (예: 오후 10시 ~ 오전 2시)
+                        if (closeHour < openHour) {
+                            // 현재 시간이 오픈 시간 이후거나 마감 시간 이전
+                            return (currentHour > openHour || (currentHour == openHour && currentMinute >= openMinute)) ||
+                                    (currentHour < closeHour || (currentHour == closeHour && currentMinute <= closeMinute));
+                        } else {
+                            // 일반적인 경우
+                            return (currentHour > openHour || (currentHour == openHour && currentMinute >= openMinute)) &&
+                                    (currentHour < closeHour || (currentHour == closeHour && currentMinute <= closeMinute));
+                        }
+                    }
+                }
+            }
+
+            return false; // 해당 요일 정보를 찾지 못한 경우
+        } catch (Exception e) {
+            // 파싱 오류 발생 시 기본값 반환
+            return false;
+        }
+    }
+
+    /**
+     * 한국어 시간 문자열에서 시간 추출 (예: "오전 11:00" -> 11, "오후 8:00" -> 20)
+     */
+    private int parseKoreanHour(String timeStr) {
+        try {
+            timeStr = timeStr.trim();
+            int hour = 0;
+
+            // 시간 부분 추출
+            if (timeStr.contains(":")) {
+                String hourPart = timeStr.split(":")[0];
+                hour = Integer.parseInt(hourPart.replaceAll("[^0-9]", ""));
+            } else {
+                // 콜론이 없는 경우 (예: 오후 8시)
+                hour = Integer.parseInt(timeStr.replaceAll("[^0-9]", ""));
+            }
+
+            // 오전/오후 처리
+            if (timeStr.contains("오후") && hour < 12) {
+                hour += 12;
+            } else if (timeStr.contains("오전") && hour == 12) {
+                hour = 0;
+            }
+
+            return hour;
+        } catch (Exception e) {
+            return 0; // 기본값
+        }
+    }
+
+    /**
+     * 한국어 시간 문자열에서 분 추출
+     */
+    private int parseKoreanMinute(String timeStr) {
+        try {
+            timeStr = timeStr.trim();
+            if (timeStr.contains(":")) {
+                String minutePart = timeStr.split(":")[1];
+                return Integer.parseInt(minutePart.replaceAll("[^0-9]", ""));
+            }
+            return 0; // 분이 명시되지 않은 경우
+        } catch (Exception e) {
+            return 0; // 기본값
+        }
     }
 }

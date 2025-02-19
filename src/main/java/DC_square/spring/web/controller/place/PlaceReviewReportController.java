@@ -11,7 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "장소 리뷰 신고 관련 API", description = "장소 리뷰 신고 관련 API입니다.")
+@Tag(name = "PlaceReviewReport", description = "장소 리뷰 신고 관련 API입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/places/place-reviews")
@@ -22,7 +22,7 @@ public class PlaceReviewReportController {
     @Operation(summary = "리뷰 신고 API", description = "리뷰를 신고합니다.")
     @PostMapping("/{place-reviewId}/report")
     public ApiResponse<Long> reportReview(
-            @PathVariable Long placeReviewId,
+            @PathVariable("place-reviewId") Long placeReviewId,
             @Valid @RequestBody ReviewReportRequestDTO request,
             HttpServletRequest httpRequest
     ) {
