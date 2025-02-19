@@ -8,15 +8,20 @@ import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.constant.ImageConstants;
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.Pet;
+import DC_square.spring.domain.entity.community.Post;
 import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.District;
 import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.domain.enums.DdayType;
+import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
+import DC_square.spring.repository.WalkRepository.WalkWishRepository;
+import DC_square.spring.repository.community.*;
 import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.RegionRepository;
 import DC_square.spring.repository.PetRepository;
-import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.repository.place.PlaceReviewRepository;
+import DC_square.spring.repository.place.PlaceWishRepository;
 import DC_square.spring.repository.region.CityRepository;
 import DC_square.spring.repository.region.DistrictRepository;
 import DC_square.spring.repository.region.ProvinceRepository;
@@ -55,6 +60,14 @@ public class UserService {
     private final UuidRepository uuidRepository;
     private final AmazonS3Manager s3Manager;
     private final RegionService regionService;
+    private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final CommentRepository commentRepository;
+    private final MyBoardRepository myBoardRepository;
+    private final PlaceWishRepository placeWishRepository;
+    private final PlaceReviewRepository placeReviewRepository;
+    private final WalkWishRepository walkWishRepository;
+    private final WalkReviewRepository walkReviewRepository;
 
 
     @Transactional
@@ -385,6 +398,30 @@ public class UserService {
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        // 게시글의 좋아요 삭제
+        postLikeRepository.deleteAll(postLikeRepository.findAllByUser(user));
+
+        // 사용자의 게시글 조회
+        List<Post> userPosts = postRepository.findByUserId(user.getId());
+
+        // 각 게시글의 댓글 삭제
+        for (Post post : userPosts) {
+            commentRepository.deleteAll(commentRepository.findByPostId(post.getId()));
+        }
+
+        // 게시글 삭제
+        postRepository.deleteAll(userPosts);
+
+        // 커뮤니티 관련
+        myBoardRepository.deleteAll(myBoardRepository.findByUserOrderByIdAsc(user));
+
+        // 장소 관련
+        placeWishRepository.deleteAll(placeWishRepository.findAllByUserId(user.getId()));
+        placeReviewRepository.deleteAll(placeReviewRepository.findAllByUserId(user.getId()));
+
+        // 산책 관련
+        walkWishRepository.deleteAll(walkWishRepository.findByUserAndIsWished(user, true));
+        walkReviewRepository.deleteAll(walkReviewRepository.findAllByUserId(user.getId()));
 
         // 연관된 D-day 삭제
         ddayRepository.deleteAll(ddayRepository.findAllByUser(user));
