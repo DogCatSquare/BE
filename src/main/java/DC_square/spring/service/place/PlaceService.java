@@ -44,6 +44,7 @@ public class PlaceService {
     private final UserRepository userRepository;
     private final EntityManager em;
     private final PlaceViewRepository placeViewRepository;
+    private final ReviewReportRepository reviewReportRepository;
 
     /**
      * 키워드로 장소 검색 (거리 제한 없음)
@@ -603,6 +604,14 @@ public class PlaceService {
         PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
                 .orElseThrow(() -> new RuntimeException("장소 상세 정보를 찾을 수 없습니다."));
 
+        List<Long> reportedReviewIds = new ArrayList<>();
+        List<Long> frequentlyReportedUserIds = new ArrayList<>();
+
+        if (userId != null) {
+            reportedReviewIds.addAll(reviewReportRepository.findReportedReviewIdsByUserId(userId));
+            frequentlyReportedUserIds.addAll(reviewReportRepository.findUserIdsReportedFourOrMoreTimes());
+        }
+
         // 비즈니스 아워로 영업 여부 계산
         boolean isCurrentlyOpen = false;
         if (placeDetail.getBusinessHours() != null) {
@@ -610,7 +619,14 @@ public class PlaceService {
         }
 
         List<PlaceReview> recentReviews = placeReviewRepository.findTop2ByPlaceOrderByCreatedAtDesc(place.getId());
-        List<PlaceReviewResponseDTO> recentReviewDtos = recentReviews.stream()
+
+        // 신고된 리뷰와 자주 신고된 사용자의 리뷰 필터링
+        List<PlaceReview> filteredReviews = recentReviews.stream()
+                .filter(review -> !reportedReviewIds.contains(review.getId()))
+                .filter(review -> !frequentlyReportedUserIds.contains(review.getUser().getId()))
+                .collect(Collectors.toList());
+
+        List<PlaceReviewResponseDTO> recentReviewDtos = filteredReviews.stream()
                 .map(review -> PlaceReviewResponseDTO.builder()
                         .id(review.getId())
                         .content(review.getContent())
