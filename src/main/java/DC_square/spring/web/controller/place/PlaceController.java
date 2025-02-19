@@ -1,11 +1,8 @@
 package DC_square.spring.web.controller.place;
 
 import DC_square.spring.domain.enums.PlaceCategory;
-import DC_square.spring.web.dto.request.place.LocationRequestDTO;
-import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
-import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
+import DC_square.spring.web.dto.request.place.*;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
-import DC_square.spring.web.dto.request.place.PlacePageRequestDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import DC_square.spring.apiPayload.ApiResponse;
@@ -116,5 +113,23 @@ public class PlaceController {
             ){
         placeService.updatePlaceUserInfo(placeId, updateDTO);
         return ApiResponse.onSuccess("장소 정보가 성공적으로 업데이트 되었습니다.");
+    }
+
+    // 장소 전체 필터링 조회
+    @Operation(summary = "필터링된 장소 조회 API")
+    @PostMapping("/filter")
+    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> getFilteredPlaces(
+            @RequestBody FilteredPlaceRequestDTO filterRequest,
+            @RequestParam(defaultValue = "0") int page
+    ){
+        return ApiResponse.onSuccess(placeService.findPlacesWithFilters(
+                filterRequest.getLocation(),
+                filterRequest.getIs24Hours(),
+                filterRequest.getHasParking(),
+                filterRequest.getIsCurrentlyOpen(),
+                page,
+                10
+                )
+        );
     }
 }
