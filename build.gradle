@@ -62,6 +62,9 @@ dependencies {
 	//날씨 API 추가
 	implementation 'org.json:json:20231013'
 
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+
 }
 
 
