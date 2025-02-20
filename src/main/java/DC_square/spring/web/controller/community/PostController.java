@@ -138,5 +138,18 @@ public class PostController {
         return ApiResponse.onSuccess(userPosts);
     }
 
+    /**
+     * 모든 게시글 조회
+     */
+    @Operation(summary = "모든 게시글 조회",description = "모든 게사글을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @GetMapping("/posts/all")
+    public ApiResponse<List<PostResponseDto>> getAllPosts() {
+        List<PostResponseDto> allPosts = postService.getAllPosts();
+        return ApiResponse.onSuccess(allPosts);
+    }
+
 
 }

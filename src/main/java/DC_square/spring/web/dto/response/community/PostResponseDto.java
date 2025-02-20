@@ -14,6 +14,7 @@ public class PostResponseDto {
     private Long id;
     private String board;
     private String username;
+    private String animal_type;
     private String title;
     private String content;
     private String video_URL;

@@ -3,6 +3,7 @@ package DC_square.spring.service.community;
 import DC_square.spring.config.S3.AmazonS3Manager;
 import DC_square.spring.config.S3.Uuid;
 import DC_square.spring.config.S3.UuidRepository;
+import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.community.Board;
 import DC_square.spring.domain.entity.community.Post;
@@ -38,6 +39,8 @@ public class PostService {
      */
     public PostResponseDto createPost(List<MultipartFile> images,PostRequestDto postRequestDto, Long userId) {
 
+
+
         // images가 null인 경우 빈 리스트로 초기화
         List<String> imageUrls = (images != null) ? images.stream()
                 .map(image -> {
@@ -61,6 +64,9 @@ public class PostService {
         Board findBoard = boardRepository.findById(postRequestDto.getBoardId())
                 .orElseThrow(() -> new RuntimeException("해당 게시판이 없습니다."));
 
+        List<Pet> pets = user.getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+        String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
 
         //Post 엔티티
         Post post = Post.builder()
@@ -79,6 +85,8 @@ public class PostService {
         //저장
         Post savedPost = postRepository.save(post);
 
+
+
         //PostResponseDto로 반환
         return PostResponseDto.builder()
                 .id(savedPost.getId())
@@ -87,6 +95,7 @@ public class PostService {
                 .content(savedPost.getContent())
                 .video_URL(savedPost.getVideo_URL())
                 .images(savedPost.getCommunityImages())
+                .animal_type(animalType)
                 .like_count(savedPost.getLikeCount())
                 .username(savedPost.getUser().getNickname())
                 .comment_count(savedPost.getCommentCount())
@@ -110,6 +119,9 @@ public class PostService {
             thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
         }
 
+        List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+        String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
 
         return PostResponseDto.builder()
                 .id(post.getId())
@@ -117,6 +129,7 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .content(post.getContent())
+                .animal_type(animalType)
                 .video_URL(post.getVideo_URL())
                 .username(post.getUser().getNickname())
                 .thumbnail_URL(thumbnailUrl)
@@ -147,6 +160,8 @@ public class PostService {
             throw new IllegalArgumentException("해당 게시판에 게시글이 존재하지 않습니다.");
         }
 
+
+
         // PostResponseDto로 변환하여 반환
         return posts.stream()
                 .map(post -> {
@@ -157,6 +172,9 @@ public class PostService {
                         thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
                     }
 
+                    List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+                    String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
                     return PostResponseDto.builder()
                             .id(post.getId())
                             .board(post.getBoard().getBoardName())
@@ -164,6 +182,7 @@ public class PostService {
                             .content(post.getContent())
                             .video_URL(post.getVideo_URL())
                             .thumbnail_URL(thumbnailUrl)
+                            .animal_type(animalType)
                             .username(post.getUser().getNickname())
                             .profileImage_URL(post.getUser().getProfileImageUrl())
                             .images(post.getCommunityImages())
@@ -201,10 +220,59 @@ public class PostService {
                         thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
                     }
 
+                    List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+                    String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
                     return PostResponseDto.builder()
                             .id(post.getId())
                             .board(post.getBoard().getBoardName()) // 게시판 이름
                             .title(post.getTitle())
+                            .content(post.getContent())
+                            .video_URL(post.getVideo_URL())
+                            .thumbnail_URL(thumbnailUrl)
+                            .animal_type(animalType)
+                            .username(post.getUser().getNickname())
+                            .profileImage_URL(post.getUser().getProfileImageUrl())
+                            .images(post.getCommunityImages())
+                            .like_count(post.getLikeCount())
+                            .comment_count(post.getCommentCount())
+                            .createdAt(post.getCreated_at()) // 게시글 생성일
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 모든 게시물 전체 조회
+     */
+    public List<PostResponseDto> getAllPosts() {
+        //게시글 모두 조회
+        List<Post> posts = postRepository.findAll();
+
+        // 게시글이 없으면 예외 처리
+        if (posts.isEmpty()) {
+            throw new RuntimeException("게시글이 존재하지 않습니다.");
+        }
+
+        return posts.stream()
+                .map(post -> {
+                    // 유튜브 영상 ID 추출 (썸네일 URL 생성)
+                    String thumbnailUrl = null;
+                    if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
+                        String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
+                        thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+                    }
+
+                    List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+                    String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
+                    return PostResponseDto.builder()
+                            .id(post.getId())
+                            .board(post.getBoard().getBoardName())
+                            .id(post.getId())
+                            .board(post.getBoard().getBoardName()) // 게시판 이름
+                            .title(post.getTitle())
+                            .animal_type(animalType)
                             .content(post.getContent())
                             .video_URL(post.getVideo_URL())
                             .thumbnail_URL(thumbnailUrl)
@@ -265,6 +333,9 @@ public class PostService {
         // 게시글 저장 - DB에 반영
         Post savedPost = postRepository.save(post);
 
+        List<Pet> pets = savedPost.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+        String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
         // 수정된 게시글 응답 DTO 반환
         return PostResponseDto.builder()
                 .id(savedPost.getId())
@@ -273,6 +344,7 @@ public class PostService {
                 .content(savedPost.getContent())
                 .video_URL(savedPost.getVideo_URL())
                 .thumbnail_URL(thumbnailUrl)
+                .animal_type(animalType)
                 .username(savedPost.getUser().getNickname())
                 .images(savedPost.getCommunityImages()) // 수정된 이미지 목록
                 .like_count(savedPost.getLikeCount())
@@ -297,12 +369,17 @@ public class PostService {
         List<Post> popularPosts = postRepository.findByLikeCountGreaterThanEqualOrderByLikeCountDesc(10);
 
         return popularPosts.stream()
-                .map(post -> PostResponseDto.builder()
+                .map(post -> {
+                    List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+                    String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
+
+                    return PostResponseDto.builder()
                         .id(post.getId())
                         .board(post.getBoard().getBoardName()) // 게시판 이름
                         .username(post.getUser().getNickname()) // 사용자 이름
                         .title(post.getTitle())
                         .content(post.getContent())
+                        .animal_type(animalType)
                         .video_URL(post.getVideo_URL())
                         .thumbnail_URL(post.getVideo_URL()) // 비디오 썸네일 추가 (예시)
                         .profileImage_URL(post.getUser().getProfileImageUrl()) // 사용자 프로필 이미지
@@ -310,7 +387,8 @@ public class PostService {
                         .like_count(post.getLikeCount())
                         .comment_count(post.getCommentCount())
                         .createdAt(post.getCreated_at())
-                        .build())
+                        .build();
+                })
                 .collect(Collectors.toList());
     }
 }

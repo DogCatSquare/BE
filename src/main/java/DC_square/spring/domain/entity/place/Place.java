@@ -36,8 +36,8 @@ public class Place {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
 
-    @Column(name = "open") // NULL 허용
-    private Boolean open;
+    //@Column(name = "open") // NULL 허용
+    //private Boolean open;
 
     @Column(name = "view", nullable = false)
     private Integer view;

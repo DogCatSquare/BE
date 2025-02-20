@@ -46,8 +46,13 @@ public class PlaceReviewReportService {
         }
 
         //기타 선택 시 사유 입력 필수
-        if(request.getReportType() == ReportType.OTHER && request.getOtherReason() == null|| request.getOtherReason().length() < 10){
-            throw new IllegalArgumentException("기타 사유를 입력해주세요.");
+        if(request.getReportType() == ReportType.OTHER) {
+            if(request.getOtherReason() == null || request.getOtherReason().length() < 10 || request.getOtherReason().length() > 50) {
+                throw new IllegalArgumentException("기타 사유는 10자 이상 50자 이하로 입력해주세요.");
+            }
+        } else {
+            // For non-OTHER types, otherReason should be null
+            request.setOtherReason(null);
         }
 
         ReviewReport report = ReviewReport.builder()

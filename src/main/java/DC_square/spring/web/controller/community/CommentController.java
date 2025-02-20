@@ -55,8 +55,8 @@ public class CommentController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
     @DeleteMapping("/{commentId}")
-    public ApiResponse<Void> deleteComment(@PathVariable Long postId, @PathVariable Long commentId) {
-        commentService.deleteComment(postId, commentId);
+    public ApiResponse<Void> deleteComment(@PathVariable Long postId, @PathVariable Long commentId, @PathVariable Long userId) {
+        commentService.deleteComment(postId, commentId, userId);
         return ApiResponse.onSuccess(null);
     }
 }

@@ -92,7 +92,11 @@ public class CommentService {
      * 댓글 삭제 API (해당 게시글에 속하는 댓글인지 확인 후 삭제)
      */
     @Transactional
-    public void deleteComment(Long postId, Long commentId) {
+    public void deleteComment(Long postId, Long commentId, Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
         // 댓글 조회 (postId도 함께 검증)
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
