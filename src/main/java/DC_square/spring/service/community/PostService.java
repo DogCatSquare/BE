@@ -219,6 +219,47 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 모든 게시물 전체 조회
+     */
+    public List<PostResponseDto> getAllPosts() {
+        //게시글 모두 조회
+        List<Post> posts = postRepository.findAll();
+
+        // 게시글이 없으면 예외 처리
+        if (posts.isEmpty()) {
+            throw new RuntimeException("게시글이 존재하지 않습니다.");
+        }
+
+        return posts.stream()
+                .map(post -> {
+                    // 유튜브 영상 ID 추출 (썸네일 URL 생성)
+                    String thumbnailUrl = null;
+                    if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
+                        String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
+                        thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+                    }
+
+                    return PostResponseDto.builder()
+                            .id(post.getId())
+                            .board(post.getBoard().getBoardName())
+                            .id(post.getId())
+                            .board(post.getBoard().getBoardName()) // 게시판 이름
+                            .title(post.getTitle())
+                            .content(post.getContent())
+                            .video_URL(post.getVideo_URL())
+                            .thumbnail_URL(thumbnailUrl)
+                            .username(post.getUser().getNickname())
+                            .profileImage_URL(post.getUser().getProfileImageUrl())
+                            .images(post.getCommunityImages())
+                            .like_count(post.getLikeCount())
+                            .comment_count(post.getCommentCount())
+                            .createdAt(post.getCreated_at()) // 게시글 생성일
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
 
 
 
