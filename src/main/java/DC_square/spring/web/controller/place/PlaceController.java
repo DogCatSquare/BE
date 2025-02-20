@@ -83,13 +83,12 @@ public class PlaceController {
     // 마이 위시 장소 조회 API
     @Operation(summary = "마이 위시 장소 조회 API")
     @PostMapping("/wishlist")
-    public ApiResponse<PlacePageResponseDTO<PlaceResponseDTO>> getWishList(
+    public ApiResponse<List<PlaceResponseDTO>> getWishList(
             HttpServletRequest request,
-            @RequestBody LocationRequestDTO location,
-            @RequestParam(defaultValue = "0") int page
+            @RequestBody LocationRequestDTO location
     ) {
         String token = jwtTokenProvider.resolveToken(request);
-        PlacePageResponseDTO<PlaceResponseDTO> places = placeService.findWishList(token, location, page, 10);
+        List<PlaceResponseDTO> places = placeService.findWishList(token, location);
         return ApiResponse.onSuccess(places);
     }
 

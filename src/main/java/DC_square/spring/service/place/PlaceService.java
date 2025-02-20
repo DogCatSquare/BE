@@ -418,7 +418,7 @@ public class PlaceService {
     }
 
     // 위시리스트 조회
-    public PlacePageResponseDTO<PlaceResponseDTO> findWishList(String token, LocationRequestDTO location, int page, int size) {
+    public List<PlaceResponseDTO> findWishList(String token, LocationRequestDTO location) {
         String userEmail = jwtTokenProvider.getUserEmail(token);
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -429,11 +429,9 @@ public class PlaceService {
 
         List<Place> places = placeRepository.findAllById(placeIds);
 
-        List<PlaceResponseDTO> responseDTOs = places.stream()
+        return places.stream()
                 .map(place -> convertToResponseDTO(place, location))
                 .collect(Collectors.toList());
-
-        return PlacePageResponseDTO.of(responseDTOs, page, size);
     }
 
     // 도시별 핫플레이스 조회
