@@ -6,6 +6,8 @@ import DC_square.spring.domain.enums.Difficulty;
 import DC_square.spring.domain.enums.Special;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -66,6 +68,7 @@ public class Walk {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User createdBy;
 
     public void updateReviewCount(int count) {

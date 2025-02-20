@@ -13,6 +13,8 @@ import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.District;
 import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.domain.enums.DdayType;
+import DC_square.spring.repository.WalkRepository.WalkRepository;
+import DC_square.spring.repository.WalkRepository.WalkReviewLikeRepository;
 import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
 import DC_square.spring.repository.WalkRepository.WalkWishRepository;
 import DC_square.spring.repository.community.*;
@@ -68,6 +70,8 @@ public class UserService {
     private final PlaceReviewRepository placeReviewRepository;
     private final WalkWishRepository walkWishRepository;
     private final WalkReviewRepository walkReviewRepository;
+    private final WalkRepository walkRepository;
+    private final WalkReviewLikeRepository walkReviewLikeRepository;
 
 
     @Transactional
@@ -428,6 +432,16 @@ public class UserService {
 
         // 연관된 반려동물 삭제
         petRepository.deleteAll(petRepository.findAllByUser(user));
+
+        // 산책 관련 - Walk 데이터 삭제
+        // Walk 리뷰 좋아요 삭제
+        walkReviewLikeRepository.deleteAll(walkReviewLikeRepository.findByUserId(user.getId()));
+        // Walk 리뷰 삭제
+        walkReviewRepository.deleteAll(walkReviewRepository.findAllByUserId(user.getId()));
+        // Walk 위시리스트 삭제
+        walkWishRepository.deleteAll(walkWishRepository.findByUserAndIsWished(user, true));
+        // 사용자가 작성한 Walk 삭제
+        walkRepository.deleteAll(walkRepository.findByCreatedById(user.getId()));
 
         // 사용자 삭제 - 나머지 연관 엔티티 ->  cascade 삭제
         userRepository.delete(user);
