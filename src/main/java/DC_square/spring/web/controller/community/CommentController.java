@@ -26,12 +26,12 @@ public class CommentController {
      */
     @Operation(summary = "댓글 생성 API", description = "게시글id, 유저id를 꼭 넣어주세요")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
     @PostMapping("/users/{userId}")
     public ApiResponse<CommentResponseDto> createComment(@PathVariable Long postId,
-                                            @PathVariable Long userId,
-                                            @Valid @RequestBody CommentRequestDto commentRequestDto){
+                                                         @PathVariable Long userId,
+                                                         @Valid @RequestBody CommentRequestDto commentRequestDto) {
         return ApiResponse.onSuccess(commentService.createComment(postId, userId, commentRequestDto));
     }
 
@@ -40,11 +40,12 @@ public class CommentController {
      */
     @Operation(summary = "댓글 조회 API", description = "게시글id를 꼭 넣어주세요")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200",description = "OK, 성공")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
     @GetMapping
-    public ApiResponse<List<CommentResponseDto>> getComments(@PathVariable Long postId){
-        return ApiResponse.onSuccess(commentService.getComments(postId));
+    public ApiResponse<List<CommentResponseDto>> getComments(@PathVariable Long postId) {
+        List<CommentResponseDto> comments = commentService.getComments(postId);
+        return ApiResponse.onSuccess(comments);
     }
 
     /**
