@@ -106,6 +106,11 @@ public class CommentService {
             throw new RuntimeException("해당 게시글의 댓글이 아닙니다.");
         }
 
+        //본인이 작성한 댓글인지 확인
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("본인이 작성한 댓글만 삭제할 수 있습니다.");
+        }
+
         Post post = comment.getPost();
 
         // 댓글과 대댓글 삭제

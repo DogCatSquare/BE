@@ -78,9 +78,9 @@ public class PostController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    @DeleteMapping("/post/{postId}")
-    public ApiResponse<Void> deletePost(@PathVariable Long postId) {
-        postService.deletePost(postId);
+    @DeleteMapping("/post/{postId}/users/{userId}")
+    public ApiResponse<Void> deletePost(@PathVariable Long postId, @PathVariable Long userId) {
+        postService.deletePost(postId,userId);
         return ApiResponse.onSuccess(null);
     }
 
