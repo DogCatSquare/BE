@@ -358,7 +358,16 @@ public class PostService {
     /**
      * 게시글 삭제 API
      */
-    public void deletePost(Long postId) {
+    public void deletePost(Long postId,Long userId) {
+        //게시글 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("해당 게시물이 존재하지 않습니다"));
+
+        if(!post.getUser().getId().equals(userId)) {
+            throw new RuntimeException("본인이 작성한 게시물이 삭제할 수 있습니다.");
+        }
+
+        //삭제수행
         postRepository.deleteById(postId);
     }
 
