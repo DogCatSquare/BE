@@ -93,13 +93,13 @@ public class WalkController {
         return ApiResponse.onSuccess(null, "산책로 삭제에 성공했습니다.");
     }
 
-    @Operation(summary = "산책로 검색 API", description = "제목을 기준으로 산책로를 검색하는 API입니다.")
+    @Operation(summary = "특정 산책로의 목록 조회 api", description = "특정 산책로의 목록을 조회하는 API입니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 검색 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON400", description = "입력 데이터가 유효하지 않음"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "검색된 결과가 없음")
     })
-    @Parameter(name = "title", description = "검색할 산책로 제목", required = true)
+    @Parameter(name = "title", description = "조회할 산책로 제목", required = true)
     @GetMapping("/walks/search")
     public WalkResponseDto searchWalks(@RequestParam String title) {
         return walkService.searchWalks(title);

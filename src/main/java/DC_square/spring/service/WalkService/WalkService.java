@@ -143,8 +143,6 @@ public class WalkService {
                         .collect(Collectors.toList()))
                 .startAddress(startAddress)
                 .endAddress(endAddress)
-                .startAddress(startAddress)
-                .endAddress(endAddress)
                 .createdAt(walk.getCreatedAt())
                 .updatedAt(walk.getUpdatedAt())
                 .createdBy(WalkResponseDto.CreatedByDto.builder()
