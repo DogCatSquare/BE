@@ -36,6 +36,7 @@ public class WalkService {
     private final UserRepository userRepository;
     private final PetRepository petRepository;
     private final WalkSpecialRepository walkSpecialRepository;
+    private final ReverseGeocodingService reverseGeocodingService;
     private final JwtTokenProvider jwtTokenProvider;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
@@ -96,23 +97,31 @@ public class WalkService {
         Walk walk = walkRepository.findById(walkId)
                 .orElseThrow(() -> new IllegalArgumentException("Walk not found for id: " + walkId));
 
-        List<WalkResponseDto.CoordinateDto> startCoordinates = walk.getCoordinates().stream()
+        WalkResponseDto.CoordinateDto startCoordinate = walk.getCoordinates().stream()
                 .filter(coord -> coord.getSequence() == 1)
                 .map(coord -> WalkResponseDto.CoordinateDto.builder()
                         .latitude(coord.getLatitude())
                         .longitude(coord.getLongitude())
                         .sequence(coord.getSequence())
                         .build())
-                .collect(Collectors.toList());
+                .findFirst()
+                .orElse(null);
 
-        List<WalkResponseDto.CoordinateDto> endCoordinates = walk.getCoordinates().stream()
+        WalkResponseDto.CoordinateDto endCoordinate = walk.getCoordinates().stream()
                 .filter(coord -> coord.getSequence() == walk.getCoordinates().size())
                 .map(coord -> WalkResponseDto.CoordinateDto.builder()
                         .latitude(coord.getLatitude())
                         .longitude(coord.getLongitude())
                         .sequence(coord.getSequence())
                         .build())
-                .collect(Collectors.toList());
+                .findFirst()
+                .orElse(null);
+
+        String startAddress = (startCoordinate != null) ?
+                reverseGeocodingService.getAddressFromCoordinates(startCoordinate.getLatitude(), startCoordinate.getLongitude()) : "주소 없음";
+
+        String endAddress = (endCoordinate != null) ?
+                reverseGeocodingService.getAddressFromCoordinates(endCoordinate.getLatitude(), endCoordinate.getLongitude()) : "주소 없음";
 
         User createdByUser = walk.getCreatedBy();
         Pet pet = petRepository.findByUser(createdByUser);
@@ -132,8 +141,8 @@ public class WalkService {
                                 .customValue(special.getSpecialType() == Special.OTHER ? special.getCustomValue() : null)
                                 .build())
                         .collect(Collectors.toList()))
-                .startCoordinates(startCoordinates)
-                .endCoordinates(endCoordinates)
+                .startAddress(startAddress)
+                .endAddress(endAddress)
                 .createdAt(walk.getCreatedAt())
                 .updatedAt(walk.getUpdatedAt())
                 .createdBy(WalkResponseDto.CreatedByDto.builder()

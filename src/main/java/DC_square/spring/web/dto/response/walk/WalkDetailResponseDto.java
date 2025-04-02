@@ -17,9 +17,10 @@ public class WalkDetailResponseDto {
     private Double distance;
     private String difficulty;
     private List<WalkResponseDto.SpecialDto> special;
-    private List<WalkResponseDto.CoordinateDto> startCoordinates;
-    private List<WalkResponseDto.CoordinateDto> endCoordinates;
-    //private List<ImageDto> images;
+    private List<WalkResponseDto.CoordinateDto> startCoordinate;
+    private List<WalkResponseDto.CoordinateDto> endCoordinate;
+    private String startAddress;
+    private String endAddress;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private WalkResponseDto.CreatedByDto createdBy;
