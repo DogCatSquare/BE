@@ -1,6 +1,6 @@
 package DC_square.spring.mapper;
 
-import DC_square.spring.domain.entity.Notification.Notification;
+import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.web.dto.response.notification.NotificationResponseDto;
 
 public class NotificationMapper {

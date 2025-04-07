@@ -1,4 +1,4 @@
-package DC_square.spring.domain.entity.Notification;
+package DC_square.spring.domain.entity.notification;
 
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.enums.NotificationType;

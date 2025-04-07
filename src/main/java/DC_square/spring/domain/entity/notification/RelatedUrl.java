@@ -1,4 +1,4 @@
-package DC_square.spring.domain.entity.Notification;
+package DC_square.spring.domain.entity.notification;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

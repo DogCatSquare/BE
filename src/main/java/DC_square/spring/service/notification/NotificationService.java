@@ -1,6 +1,6 @@
 package DC_square.spring.service.notification;
 
-import DC_square.spring.domain.entity.Notification.Notification;
+import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.NotificationRepository.EmitterRepository;
