@@ -80,7 +80,7 @@ public class CommentService {
                     NotificationType.COMMENT,
                     content,
                     url,
-                    post.getBoardName(),
+                    post.getBoard().getBoardName(),
                     commentRequestDto.getContent(),
                     user.getNickname(),
                     post.getTitle()
