@@ -12,6 +12,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Getter
 @Entity
 @NoArgsConstructor
@@ -45,8 +46,9 @@ public class Notification {
     @Embedded
     private RelatedUrl url;
 
+    @Builder.Default
     @Column(nullable = false)
-    private Boolean isRead;
+    private Boolean read = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -68,7 +70,7 @@ public class Notification {
         this.notificationType = notificationType;
         this.content = new NotificationContent(content);
         this.url = new RelatedUrl(url);
-        this.isRead = false;
+        this.read = false;
         this.boardName = boardName;
         this.postTitle = postTitle;
         this.commenterName = commenterName;
@@ -86,8 +88,8 @@ public class Notification {
         return Notification.builder()
                 .user(user)
                 .notificationType(NotificationType.COMMENT)
-                .content(content)
-                .url(url)
+                .content(new NotificationContent(content))
+                .url(new RelatedUrl(url))
                 .boardName(boardName)
                 .postTitle(postTitle)
                 .commenterName(commenterName)
@@ -101,8 +103,8 @@ public class Notification {
         return Notification.builder()
                 .user(user)
                 .notificationType(NotificationType.DDAY)
-                .content(content)
-                .url(url)
+                .content(new NotificationContent(content))
+                .url(new RelatedUrl(url))
                 .ddayName(ddayName)
                 .daysRemaining(daysRemaining)
                 .build();
@@ -117,7 +119,7 @@ public class Notification {
     }
 
     public void read(){
-        isRead = true;
+        read = true;
     }
 
     @PrePersist

@@ -2,6 +2,8 @@ package DC_square.spring.service.notification;
 
 import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.entity.User;
+import DC_square.spring.domain.entity.notification.NotificationContent;
+import DC_square.spring.domain.entity.notification.RelatedUrl;
 import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.NotificationRepository.EmitterRepository;
 import DC_square.spring.repository.NotificationRepository.EmitterRepositoryImpl;
@@ -41,8 +43,12 @@ public class NotificationService {
         return emitter;
     }
 
-    public void send(User user, NotificationType notificationType, String content, String url) {
-        Notification notification = notificationRepository.save(createNotification(user, notificationType, content, url));
+    public void send(User user, NotificationType notificationType, String content, String url,
+                     String boardName, String commentContent, String commenterName, String postTitle) {
+        Notification notification = notificationRepository.save(
+                createCommentNotification(user, notificationType, content, url,
+                        boardName, commentContent, commenterName, postTitle));
+
         String memberId = String.valueOf(user.getId());
 
         Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByMemberId(memberId);
@@ -65,12 +71,19 @@ public class NotificationService {
         }
     }
 
-    private Notification createNotification(User user, NotificationType type, String content, String url) {
+    private Notification createCommentNotification(User user, NotificationType type, String content, String url,
+                                            String boardName, String commentContent, String commenterName, String postTitle) {
         return Notification.builder()
                 .user(user)
                 .notificationType(type)
-                .content(content)
-                .url(url)
+                .content(new NotificationContent(content))
+                .url(new RelatedUrl(url))
+                .boardName(boardName)
+                .commentContent(commentContent)
+                .commenterName(commenterName)
+                .postTitle(postTitle)
+                .read(false)
                 .build();
     }
+
 }
