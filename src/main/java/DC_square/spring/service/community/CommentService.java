@@ -73,7 +73,7 @@ public class CommentService {
 
         if (!receiver.equals(user)) {
             String url = "/api/post/" + post.getId();
-            String content = "[" + post.getTitle() + "]에 " + user.getNickname() + "님의 댓글이 달렸습니다.";
+            String content = user.getNickname() + "님이" + "[" + post.getTitle() + "]에 댓글을 남겼습니다. 지금 바로 확인해 보세요!";
 
             notificationService.send(
                     receiver,

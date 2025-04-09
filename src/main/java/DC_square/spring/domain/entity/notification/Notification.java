@@ -3,10 +3,7 @@ package DC_square.spring.domain.entity.notification;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.enums.NotificationType;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -14,6 +11,7 @@ import java.time.LocalDateTime;
 
 @Builder
 @Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -60,7 +58,9 @@ public class Notification {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
     @Builder
@@ -121,6 +121,10 @@ public class Notification {
 
     public void read(){
         read = true;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     @PrePersist

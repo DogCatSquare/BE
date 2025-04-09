@@ -68,19 +68,6 @@ public class DdayService {
                 dday.setDay(lastDday);
                 updatedDdays.add(dday);
             }
-
-//            if (dday.getIsAlarm()) {
-//                int remainingDays = (int) today.until(dday.getDay()).getDays();
-//
-//                if (remainingDays <= 3 && remainingDays >= 0) {
-//                    User receiver = user;
-//
-//                    String url = "/dday";
-//                    String content = "[" + dday.getTitle() + "] D-day가 " + remainingDays + "일 남았습니다.";
-//
-//                    notificationService.send(receiver, NotificationType.DDAY, content, url);
-//                }
-//            }
         }
 
         if (!updatedDdays.isEmpty()) {
