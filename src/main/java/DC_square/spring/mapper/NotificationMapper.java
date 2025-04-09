@@ -16,7 +16,7 @@ public class NotificationMapper {
                 .daysRemaining(notification.getDaysRemaining())
                 .content(notification.getContent())
                 .url(notification.getUrl())
-                .isRead(notification.getIsRead())
+                .isRead(notification.getRead())
                 .notificationType(notification.getNotificationType())
                 .createdAt(notification.getCreatedAt())
                 .updatedAt(notification.getUpdatedAt())

@@ -48,7 +48,7 @@ public class Notification {
     private RelatedUrl url;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(name = "is_read", nullable = false)
     private Boolean read = false;
 
     @Enumerated(EnumType.STRING)
