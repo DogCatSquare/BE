@@ -1,5 +1,6 @@
 package DC_square.spring.domain.entity.notification;
 
+import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.enums.NotificationType;
 import jakarta.persistence.*;
@@ -7,6 +8,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -21,10 +23,10 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String boardName;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String postTitle;
 
     @Column
@@ -33,10 +35,10 @@ public class Notification {
     @Column
     private String commentContent;
 
-    @Column
+    @Column(nullable = false)
     private String ddayName;
 
-    @Column
+    @Column(nullable = false)
     private Integer daysRemaining;
 
     @Embedded
@@ -109,6 +111,13 @@ public class Notification {
                 .ddayName(ddayName)
                 .daysRemaining(daysRemaining)
                 .build();
+    }
+
+    public static int calculateDaysRemaining(Dday dday) {
+        if (dday == null || dday.getDay() == null) {
+            return 0;
+        }
+        return (int) LocalDate.now().until(dday.getDay()).getDays();
     }
 
     public String getContent() {

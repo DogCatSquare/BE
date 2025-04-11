@@ -75,7 +75,7 @@ public class CommentService {
             String url = "/api/post/" + post.getId();
             String content = user.getNickname() + "님이" + "[" + post.getTitle() + "]에 댓글을 남겼습니다. 지금 바로 확인해 보세요!";
 
-            notificationService.send(
+            notificationService.sendCommentNotification(
                     receiver,
                     NotificationType.COMMENT,
                     content,

@@ -2,6 +2,7 @@ package DC_square.spring.service.dday;
 
 import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.User;
+import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.enums.DdayType;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.dday.DdayRepository;
@@ -11,6 +12,7 @@ import DC_square.spring.web.dto.response.dday.DdayResponseDto;
 import DC_square.spring.service.notification.NotificationService;
 import DC_square.spring.domain.enums.NotificationType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static DC_square.spring.domain.entity.notification.Notification.createDdayNotification;
 
 @Service
 @RequiredArgsConstructor
@@ -78,6 +82,7 @@ public class DdayService {
                 .map(DdayResponseDto::from)
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public DdayResponseDto updateDday(Long userId, Long ddayId, DdayUpdateRequestDto request) {
         Dday dday = ddayRepository.findById(ddayId)
@@ -121,9 +126,48 @@ public class DdayService {
 
         ddayRepository.delete(dday);
     }
+
     public List<Dday> getDdayEntitiesByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         return ddayRepository.findAllByUserOrderByDayAsc(user);
+    }
+
+    @Scheduled(cron = "0 00 09 * * *")
+    @Transactional
+    public void sendDdayNotification() {
+        List<Dday> allDdays = ddayRepository.findAll();
+
+        for (Dday dday : allDdays) {
+            if (Boolean.TRUE.equals(dday.getIsAlarm())) {
+                continue;
+            }
+
+            int daysRemaining = Notification.calculateDaysRemaining(dday);
+
+            if (daysRemaining <= 3 && daysRemaining >= 0) {
+                String content;
+
+                if (daysRemaining == 0) {
+                    content = String.format("%s 날입니다!", dday.getTitle());
+                } else {
+                    content = String.format("%s까지 %d일 남았어요!", dday.getTitle(), daysRemaining);
+                }
+
+                String url = "/dday";
+                User user = dday.getUser();
+
+                notificationService.sendDdayNotification(
+                        user,
+                        content,
+                        dday,
+                        url
+                );
+
+                dday.setIsAlarm(true);
+            }
+        }
+
+        ddayRepository.saveAll(allDdays);
     }
 }

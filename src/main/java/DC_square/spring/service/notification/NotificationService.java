@@ -1,5 +1,6 @@
 package DC_square.spring.service.notification;
 
+import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.notification.NotificationContent;
@@ -8,6 +9,7 @@ import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.NotificationRepository.EmitterRepository;
 import DC_square.spring.repository.NotificationRepository.EmitterRepositoryImpl;
 import DC_square.spring.repository.NotificationRepository.NotificationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import DC_square.spring.mapper.NotificationMapper;
@@ -15,6 +17,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
+
+import static DC_square.spring.domain.entity.notification.Notification.calculateDaysRemaining;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +47,7 @@ public class NotificationService {
         return emitter;
     }
 
-    public void send(User user, NotificationType notificationType, String content, String url,
+    public void sendCommentNotification(User user, NotificationType notificationType, String content, String url,
                      String boardName, String commentContent, String commenterName, String postTitle) {
         Notification notification = notificationRepository.save(
                 createCommentNotification(user, notificationType, content, url,
@@ -72,7 +76,7 @@ public class NotificationService {
     }
 
     private Notification createCommentNotification(User user, NotificationType type, String content, String url,
-                                            String boardName, String commentContent, String commenterName, String postTitle) {
+                                                   String boardName, String commentContent, String commenterName, String postTitle) {
         return Notification.builder()
                 .user(user)
                 .notificationType(type)
@@ -86,4 +90,39 @@ public class NotificationService {
                 .build();
     }
 
+    private Notification createDdayNotification(User user, String content, Dday dday, String url) {
+        int daysRemaining = calculateDaysRemaining(dday);
+        return Notification.createDdayNotification(
+                user,
+                content,
+                url,
+                dday.getTitle(),
+                daysRemaining
+        );
+    }
+
+    @Transactional
+    public void sendDdayNotification(User user, String content, Dday dday, String url) {
+        Notification notification = notificationRepository.save(
+                Notification.builder()
+                        .user(user)
+                        .notificationType(NotificationType.DDAY)
+                        .content(new NotificationContent(content))
+                        .url(new RelatedUrl(url))
+                        .ddayName(dday.getTitle())
+                        .daysRemaining(calculateDaysRemaining(dday))
+                        .read(false)
+                        .build()
+        );
+
+        String memberId = String.valueOf(user.getId());
+
+        Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByMemberId(memberId);
+        sseEmitters.forEach(
+                (key, emitter) -> {
+                    emitterRepository.saveEventCache(key, notification);
+                    sendToClient(emitter, key, NotificationMapper.NotificationtoResponseNotificationDto(notification));
+                }
+        );
+    }
 }
