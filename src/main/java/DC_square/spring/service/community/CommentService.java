@@ -4,9 +4,11 @@ import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.community.Comment;
 import DC_square.spring.domain.entity.community.Post;
+import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.community.CommentRepository;
 import DC_square.spring.repository.community.PostRepository;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.service.notification.NotificationService;
 import DC_square.spring.web.dto.request.community.CommentRequestDto;
 import DC_square.spring.web.dto.response.community.CommentResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * 댓글 생성 API
@@ -61,6 +64,28 @@ public class CommentService {
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
 
+        User receiver;
+        if (comment.getParent() != null) {
+            receiver = comment.getParent().getUser(); // 대댓글이면 원댓글 작성자
+        } else {
+            receiver = post.getUser();
+        }
+
+        if (!receiver.equals(user)) {
+            String url = "/api/post/" + post.getId();
+            String content = user.getNickname() + "님이" + "[" + post.getTitle() + "]에 댓글을 남겼습니다. 지금 바로 확인해 보세요!";
+
+            notificationService.sendCommentNotification(
+                    receiver,
+                    NotificationType.COMMENT,
+                    content,
+                    url,
+                    post.getBoard().getBoardName(),
+                    commentRequestDto.getContent(),
+                    user.getNickname(),
+                    post.getTitle()
+            );
+        }
 
         return convertToDto(savedComment, user);
     }

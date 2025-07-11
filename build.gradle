@@ -64,7 +64,8 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
-
+	//SSE
+	implementation 'org.springframework.boot:spring-boot-starter-web-services'
 }
 
 
