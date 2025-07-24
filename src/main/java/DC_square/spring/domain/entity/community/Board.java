@@ -1,5 +1,6 @@
 package DC_square.spring.domain.entity.community;
 
+import DC_square.spring.domain.enums.BoardType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -21,8 +22,9 @@ public class Board {
     @Column(name = "board_id")
     private Long id;
 
-    @Column(name = "title",nullable = false)
-    private String boardName;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "board_type",nullable = false)
+    private BoardType boardType;
 
     @Column(name = "content",nullable = false)
     private String content;

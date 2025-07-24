@@ -1,5 +1,6 @@
 package DC_square.spring.web.dto.response.community;
 
+import DC_square.spring.domain.enums.BoardType;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ public class BoardResponseDto {
 
     private Long id;
 
-    private String boardName;
+    private String boardType;
 
     private String content;
 

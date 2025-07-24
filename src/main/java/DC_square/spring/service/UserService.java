@@ -65,7 +65,6 @@ public class UserService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
-    private final MyBoardRepository myBoardRepository;
     private final PlaceWishRepository placeWishRepository;
     private final PlaceReviewRepository placeReviewRepository;
     private final WalkWishRepository walkWishRepository;
@@ -417,7 +416,7 @@ public class UserService {
         postRepository.deleteAll(userPosts);
 
         // 커뮤니티 관련
-        myBoardRepository.deleteAll(myBoardRepository.findByUserOrderByIdAsc(user));
+//        myBoardRepository.deleteAll(myBoardRepository.findByUserOrderByIdAsc(user));
 
         // 장소 관련
         placeWishRepository.deleteAll(placeWishRepository.findAllByUserId(user.getId()));

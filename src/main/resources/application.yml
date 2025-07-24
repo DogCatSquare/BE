@@ -85,9 +85,4 @@ jwt:
 weather:
   service-key: ${WEATHER_SERVICE_KEY}
 
-#  springdoc:
-#    api-docs:
-#      enabled: true
-#    swagger-ui:
-#      enabled: true
-#      path: /swagger-ui.html
+

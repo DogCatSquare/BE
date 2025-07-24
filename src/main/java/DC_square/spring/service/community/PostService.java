@@ -40,8 +40,6 @@ public class PostService {
      */
     public PostResponseDto createPost(List<MultipartFile> images,PostRequestDto postRequestDto, Long userId) {
 
-
-
         // images가 null인 경우 빈 리스트로 초기화
         List<String> imageUrls = (images != null) ? images.stream()
                 .map(image -> {
@@ -62,10 +60,9 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("해당 사용자 조회할 수 없습니다."));
 
-        Board findBoard = boardRepository.findById(postRequestDto.getBoardId())
-                .orElseThrow(() -> new RuntimeException("해당 게시판이 없습니다."));
+      Board findBoard = boardRepository.findByBoardType(postRequestDto.getBoardType());
 
-        List<Pet> pets = user.getPetList(); // 사용자로부터 반려동물 목록을 가져옴
+      List<Pet> pets = user.getPetList(); // 사용자로부터 반려동물 목록을 가져옴
         String animalType = (pets.isEmpty()) ? "알 수 없음" : pets.get(0).getBreed(); // 첫 번째 반려동물의 품종
 
 
@@ -91,7 +88,7 @@ public class PostService {
         //PostResponseDto로 반환
         return PostResponseDto.builder()
                 .id(savedPost.getId())
-                .board(savedPost.getBoard().getBoardName())
+                .boardType(savedPost.getBoard().getBoardType().getDisplayName())
                 .title(savedPost.getTitle())
                 .content(savedPost.getContent())
                 .video_URL(savedPost.getVideo_URL())
@@ -126,7 +123,7 @@ public class PostService {
 
         return PostResponseDto.builder()
                 .id(post.getId())
-                .board(post.getBoard().getBoardName())
+                .boardType(post.getBoard().getBoardType().getDisplayName())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .content(post.getContent())
@@ -178,7 +175,7 @@ public class PostService {
 
                     return PostResponseDto.builder()
                             .id(post.getId())
-                            .board(post.getBoard().getBoardName())
+                            .boardType(post.getBoard().getBoardType().getDisplayName())
                             .title(post.getTitle())
                             .content(post.getContent())
                             .video_URL(post.getVideo_URL())
@@ -226,7 +223,7 @@ public class PostService {
 
                     return PostResponseDto.builder()
                             .id(post.getId())
-                            .board(post.getBoard().getBoardName()) // 게시판 이름
+                            .boardType(post.getBoard().getBoardType().getDisplayName()) // 게시판 이름
                             .title(post.getTitle())
                             .content(post.getContent())
                             .video_URL(post.getVideo_URL())
@@ -269,9 +266,8 @@ public class PostService {
 
                     return PostResponseDto.builder()
                             .id(post.getId())
-                            .board(post.getBoard().getBoardName())
+                            .boardType(post.getBoard().getBoardType().getDisplayName())
                             .id(post.getId())
-                            .board(post.getBoard().getBoardName()) // 게시판 이름
                             .title(post.getTitle())
                             .animal_type(animalType)
                             .content(post.getContent())
@@ -340,7 +336,7 @@ public class PostService {
         // 수정된 게시글 응답 DTO 반환
         return PostResponseDto.builder()
                 .id(savedPost.getId())
-                .board(savedPost.getBoard().getBoardName())
+                .boardType(savedPost.getBoard().getBoardType().getDisplayName())
                 .title(savedPost.getTitle())
                 .content(savedPost.getContent())
                 .video_URL(savedPost.getVideo_URL())
@@ -385,7 +381,7 @@ public class PostService {
 
                     return PostResponseDto.builder()
                         .id(post.getId())
-                        .board(post.getBoard().getBoardName()) // 게시판 이름
+                        .boardType(post.getBoard().getBoardType().getDisplayName()) // 게시판 이름
                         .username(post.getUser().getNickname()) // 사용자 이름
                         .title(post.getTitle())
                         .content(post.getContent())
