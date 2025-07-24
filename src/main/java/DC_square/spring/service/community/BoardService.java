@@ -2,10 +2,12 @@ package DC_square.spring.service.community;
 
 import DC_square.spring.domain.entity.community.Board;
 import DC_square.spring.domain.entity.community.Keyword;
+import DC_square.spring.domain.enums.BoardType;
 import DC_square.spring.repository.community.BoardRepository;
 import DC_square.spring.web.dto.request.community.BoardRequestDto;
 import DC_square.spring.web.dto.response.community.BoardResponseDto;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +28,7 @@ public class BoardService {
     public BoardResponseDto createdBoard(BoardRequestDto boardRequestDto) {
         //Board 엔티티 생성
         Board board = Board.builder()
-                .boardName(boardRequestDto.getBoardName())
+                .boardType(boardRequestDto.getBoardType())
                 .content(boardRequestDto.getContent())
                 .createdDate(LocalDateTime.now())
                 .build();
@@ -49,7 +51,7 @@ public class BoardService {
         //BoardResponseDto 생성해서 반환
         return BoardResponseDto.builder()
                 .id(savedBoard.getId())
-                .boardName(savedBoard.getBoardName())
+                .boardType(savedBoard.getBoardType().getDisplayName())
                 .content(savedBoard.getContent())
                 .keywords(keywordList.stream()
                         .map(Keyword::getKeyword)
@@ -71,7 +73,7 @@ public class BoardService {
 
         return BoardResponseDto.builder()
                 .id(board.getId())
-                .boardName(board.getBoardName())
+                .boardType(board.getBoardType().getDisplayName())
                 .content(board.getContent())
                 .keywords(keywords)
                 .createdAt(board.getCreatedDate())
@@ -84,7 +86,7 @@ public class BoardService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시판 id가 존재하지 않습니다."));
 
         // 2. Board 이름과 내용 업데이트
-        board.setBoardName(boardRequestDto.getBoardName());
+        board.setBoardType(boardRequestDto.getBoardType());
         board.setContent(boardRequestDto.getContent());
         board.setCreatedDate(LocalDateTime.now());
 
@@ -107,7 +109,7 @@ public class BoardService {
         // 5. BoardResponseDto 생성 및 반환
         return BoardResponseDto.builder()
                 .id(updatedBoard.getId())
-                .boardName(updatedBoard.getBoardName())
+                .boardType(updatedBoard.getBoardType().getDisplayName())
                 .content(updatedBoard.getContent())
                 .keywords(updatedBoard.getKeywordList().stream()
                         .map(Keyword::getKeyword)
@@ -120,22 +122,24 @@ public class BoardService {
      * 게시판 검색 API(조회)
      */
     public List<BoardResponseDto> searchBoardByName(String boardName) {
-        List<Board> boards = boardRepository.findByBoardNameContainingIgnoreCase(boardName);
-        if(boards.isEmpty()) {
-            throw new EntityNotFoundException("해당 이름을 포함하는 게시판을 찾을 수 없습니다: " + boardName);
+        BoardType boardType;
+        try {
+            boardType = BoardType.valueOf(boardName); // 문자열을 enum으로 변환
+        } catch (IllegalArgumentException e) {
+            throw new EntityNotFoundException("존재하지 않는 게시판 타입입니다: " + boardName);
         }
 
-        return boards.stream()
-                .map(board -> BoardResponseDto.builder()
-                        .id(board.getId())
-                        .boardName(board.getBoardName())
-                        .content(board.getContent())
-                        .keywords(board.getKeywordList().stream()
-                                .map(Keyword::getKeyword)
-                                .collect(Collectors.toList()))
-                        .createdAt(board.getCreatedDate())
-                        .build())
-                .collect(Collectors.toList());
+        Board board = boardRepository.findByBoardType(boardType);
+
+        return List.of(BoardResponseDto.builder()
+            .id(board.getId())
+            .boardType(board.getBoardType().getDisplayName())
+            .content(board.getContent())
+            .keywords(board.getKeywordList().stream()
+                .map(Keyword::getKeyword)
+                .collect(Collectors.toList()))
+            .createdAt(board.getCreatedDate())
+            .build());
     }
 
     /**
@@ -146,7 +150,7 @@ public class BoardService {
         return boards.stream()
                 .map(board -> BoardResponseDto.builder()
                         .id(board.getId())
-                        .boardName(board.getBoardName())
+                        .boardType(board.getBoardType().getDisplayName())
                         .content(board.getContent())
                         .keywords(board.getKeywordList().stream()
                                 .map(Keyword::getKeyword)

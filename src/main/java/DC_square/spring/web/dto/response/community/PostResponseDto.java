@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PostResponseDto {
     private Long id;
-    private String board;
+    private String boardType;
     private String username;
     private String animal_type;
     private String title;
