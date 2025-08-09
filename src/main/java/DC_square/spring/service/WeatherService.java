@@ -122,13 +122,12 @@ public class WeatherService {
                     .getJSONObject("items")
                     .getJSONArray("item");
 
-            // 4. 날씨 데이터 추출
-            String tmp = null, pty = null, sky = null, wsd = null,tmn=null,tmx=null,pop = null;
-            int currentHour = now.getHour();
+            // 4. 날씨 데이터 추출 (항목별 가장 가까운 시간 찾기 방식)
+            String tmp = null, tmn = null, tmx = null;
+            String pty = null, sky = null, wsd = null, pop = null;
 
-// 가장 최근의 예보 시간을 찾기 위한 변수들
-            int closestHour = 0;
-            int minTimeDiff = 24; // 시간 차이 초기값
+            int currentHour = now.getHour();
+            int minDiffTMP = 24, minDiffPTY = 24, minDiffSKY = 24, minDiffPOP = 24, minDiffWSD = 24;
 
             for (int i = 0; i < items.length(); i++) {
                 JSONObject item = items.getJSONObject(i);
@@ -136,39 +135,52 @@ public class WeatherService {
                 String value = item.getString("fcstValue");
                 String fcstTime = item.getString("fcstTime");
 
-                // 예보 시간을 정수로 변환 (예: "1500" -> 15)
                 int forecastHour = Integer.parseInt(fcstTime.substring(0, 2));
+                int timeDiff = (currentHour - forecastHour + 24) % 24;
 
                 switch (category) {
                     case WeatherConstants.TEMPERATURE:
-                        // 현재 시간과 가장 가까운 이전 예보 시간 찾기
-                        int timeDiff = (currentHour - forecastHour + 24) % 24;
-                        if (timeDiff < minTimeDiff && timeDiff >= 0) {
-                            minTimeDiff = timeDiff;
-                            closestHour = forecastHour;
+                        if (timeDiff < minDiffTMP) {
+                            minDiffTMP = timeDiff;
                             tmp = value;
                         }
                         break;
                     case WeatherConstants.MAX_TEMP:
-                        tmx = value;
+                        tmx = value;  // 하루 1~2회 제공 → 시간 상관 없음
                         break;
                     case WeatherConstants.MIN_TEMP:
                         tmn = value;
                         break;
                     case WeatherConstants.RAIN_TYPE:
-                        if (forecastHour == closestHour) pty = value;
+                        if (timeDiff < minDiffPTY) {
+                            minDiffPTY = timeDiff;
+                            pty = value;
+                        }
                         break;
                     case WeatherConstants.SKY:
-                        if (forecastHour == closestHour) sky = value;
+                        if (timeDiff < minDiffSKY) {
+                            minDiffSKY = timeDiff;
+                            sky = value;
+                        }
                         break;
                     case WeatherConstants.WIND_SPEED:
-                        if (forecastHour == closestHour) wsd = value;
+                        if (timeDiff < minDiffWSD) {
+                            minDiffWSD = timeDiff;
+                            wsd = value;
+                        }
                         break;
                     case WeatherConstants.RAIN_PROBABILITY:
-                        if (forecastHour == closestHour) pop = value;
+                        if (timeDiff < minDiffPOP) {
+                            minDiffPOP = timeDiff;
+                            pop = value;
+                        }
                         break;
                 }
             }
+
+            log.info("Parsed weather values -> TMP: {}, PTY: {}, SKY: {}, WSD: {}, POP: {}, TMX: {}, TMN: {}",
+                    tmp, pty, sky, wsd, pop, tmx, tmn);
+
 
             // 5. 날씨 상태 결정
             WeatherStatus status = WeatherStatus.fromWeatherData(pty, sky, Double.parseDouble(wsd));
