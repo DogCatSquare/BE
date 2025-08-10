@@ -22,4 +22,7 @@ public class FcmMessageRequestDto {
 
     @Schema(description = "메시지 내용")
     private String content;
+
+    @Schema(description = "FCM 토큰")
+    private String fcmToken;
 }

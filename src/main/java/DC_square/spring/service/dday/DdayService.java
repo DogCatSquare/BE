@@ -8,6 +8,8 @@ import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.web.dto.request.dday.DdayRequestDto;
 import DC_square.spring.web.dto.request.dday.DdayUpdateRequestDto;
 import DC_square.spring.web.dto.response.dday.DdayResponseDto;
+import DC_square.spring.service.notification.NotificationService;
+import DC_square.spring.domain.enums.NotificationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,13 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DdayService {
     private final DdayRepository ddayRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public DdayResponseDto createDday(Long userId, DdayRequestDto request) {
@@ -127,6 +129,4 @@ public class DdayService {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         return ddayRepository.findAllByUserOrderByDayAsc(user);
     }
-
-
-        }
+}

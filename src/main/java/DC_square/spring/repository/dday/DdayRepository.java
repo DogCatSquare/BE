@@ -10,4 +10,5 @@ import java.util.List;
 public interface DdayRepository extends JpaRepository<Dday, Long> {
     List<Dday> findAllByUser(User user);
     List<Dday> findAllByUserOrderByDayAsc(User user);
+    List<Dday> findAllByIsAlarmTrue();
 }

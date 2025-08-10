@@ -1,6 +1,7 @@
 package DC_square.spring.web.controller;
 
-import DC_square.spring.service.FirebaseMessageService;
+import DC_square.spring.service.notification.FirebaseMessageService;
+import DC_square.spring.service.notification.FirebaseMessageService;
 import DC_square.spring.web.dto.request.notification.FcmMessageRequestDto;
 import DC_square.spring.web.dto.request.notification.FcmTokenRequestDto;
 import jakarta.validation.Valid;
@@ -34,4 +35,3 @@ public class FirebaseController {
         return ResponseEntity.ok("FCM token registered successfully");
     }
 }
-

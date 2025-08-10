@@ -1,5 +1,6 @@
-package DC_square.spring.service;
+package DC_square.spring.service.notification;
 
+import DC_square.spring.service.UserService;
 import DC_square.spring.web.dto.request.notification.FcmMessageRequestDto;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
