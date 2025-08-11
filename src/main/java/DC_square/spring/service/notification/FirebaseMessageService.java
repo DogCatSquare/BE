@@ -26,7 +26,7 @@ public class FirebaseMessageService {
         }
 
         Message message = Message.builder()
-                .setTopic("test")
+                .setToken(userFirebaseToken)
                 .setNotification(
                         Notification.builder()
                                 .setTitle(requestDto.getTitle())
