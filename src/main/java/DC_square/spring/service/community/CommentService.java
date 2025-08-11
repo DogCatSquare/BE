@@ -4,16 +4,19 @@ import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.community.Comment;
 import DC_square.spring.domain.entity.community.Post;
+import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.community.CommentRepository;
 import DC_square.spring.repository.community.PostRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.community.CommentRequestDto;
 import DC_square.spring.web.dto.response.community.CommentResponseDto;
+import DC_square.spring.service.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +28,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * 댓글 생성 API
@@ -61,7 +65,23 @@ public class CommentService {
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
 
+        sendCommentNotification(user, post, commentRequestDto.getContent());
+
         return convertToDto(savedComment, user);
+    }
+
+    private void sendCommentNotification(User commentWriter, Post post, String commentContent) {
+        String boardName = post.getTitle();
+        String title = boardName;
+        String body = commentWriter.getNickname() + "님이 [" + post.getTitle() + "]에 댓글을 남겼습니다. 지금 바로 확인해보세요\n" +
+                commentContent;
+
+        notificationService.sendNotificationAndSave(
+                NotificationType.COMMENT,
+                post.getUser(),
+                title,
+                body
+        );
     }
 
     /**

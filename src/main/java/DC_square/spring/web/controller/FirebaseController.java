@@ -2,6 +2,7 @@ package DC_square.spring.web.controller;
 
 import DC_square.spring.service.notification.FirebaseMessageService;
 import DC_square.spring.service.notification.FirebaseMessageService;
+import DC_square.spring.service.notification.NotificationService;
 import DC_square.spring.web.dto.request.notification.FcmMessageRequestDto;
 import DC_square.spring.web.dto.request.notification.FcmTokenRequestDto;
 import jakarta.validation.Valid;
@@ -17,16 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class FirebaseController {
 
     private final FirebaseMessageService firebaseMessageService;
+    private final NotificationService notificationService;
 
     @Autowired
-    public FirebaseController(FirebaseMessageService firebaseMessageService) {
+    public FirebaseController(FirebaseMessageService firebaseMessageService,
+                              NotificationService notificationService) {
         this.firebaseMessageService = firebaseMessageService;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("/sendMessage")
-    public ResponseEntity<String> sendMessage(@Valid @RequestBody FcmMessageRequestDto requestDto) {
-        String response = firebaseMessageService.sendMessage(requestDto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<String> sendNotification(@RequestBody @Valid FcmMessageRequestDto requestDto) {
+        notificationService.sendNotificationAndSave(requestDto);
+        return ResponseEntity.ok("Notification sent and saved successfully");
     }
 
     @PostMapping("/registerToken")

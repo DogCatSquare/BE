@@ -1,16 +1,11 @@
 package DC_square.spring.service.notification;
 
-import DC_square.spring.domain.entity.Dday;
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.domain.entity.notification.Notification;
-import DC_square.spring.domain.entity.notification.NotificationContent;
-import DC_square.spring.domain.entity.notification.RelatedUrl;
+import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.NotificationRepository;
-import DC_square.spring.mapper.NotificationMapper;
-import DC_square.spring.service.notification.FirebaseMessageService;
+import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.notification.FcmMessageRequestDto;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,71 +15,44 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final FirebaseMessageService firebaseMessageService;
+    private final UserRepository userRepository;
 
-    private Notification createCommentNotification(User user, NotificationType type, String content, String url,
-                                                   String boardName, String commentContent, String commenterName, String postTitle) {
-        return Notification.builder()
-                .user(user)
-                .notificationType(type)
-                .content(new NotificationContent(content))
-                .url(new RelatedUrl(url))
-                .boardName(boardName)
-                .commentContent(commentContent)
-                .commenterName(commenterName)
-                .postTitle(postTitle)
-                .read(false)
+    public void sendNotificationAndSave(FcmMessageRequestDto requestDto) {
+        // 1. FCM 메시지 전송
+        firebaseMessageService.sendMessage(requestDto);
+
+        // 2. User 객체 조회
+        var user = userRepository.findById(requestDto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID: " + requestDto.getId()));
+
+        // 3. Notification 객체 생성
+        Notification notification = Notification.builder()
+                .user(user) // ✅ User 객체 전달
+                .notificationType(requestDto.getNotificationType())
+                .title(requestDto.getTitle())
+                .content(requestDto.getContent())
                 .build();
+
+        // 4. 저장
+        notificationRepository.save(notification);
     }
 
-    private Notification createDdayNotification(User user, String content, Dday dday, String url) {
-        int daysRemaining = Notification.calculateDaysRemaining(dday);
-        return Notification.createDdayNotification(
-                user,
-                content,
-                url,
-                dday.getTitle(),
-                daysRemaining
-        );
-    }
+    // 오버로드 메서드 - CommentService에서 사용하는 형태
+    public void sendNotificationAndSave(
+            NotificationType notificationType,
+            User targetUser,
+            String title,
+            String content) {
 
-    @Transactional
-    public void sendCommentNotification(User user, NotificationType notificationType, String content, String url,
-                                        String boardName, String commentContent, String commenterName, String postTitle) {
-        Notification notification = notificationRepository.save(
-                createCommentNotification(user, notificationType, content, url, boardName, commentContent, commenterName, postTitle));
+        // FcmMessageRequestDto 생성
+        FcmMessageRequestDto requestDto = FcmMessageRequestDto.builder()
+                .id(targetUser.getId())
+                .notificationType(notificationType)
+                .title(title)
+                .content(content)
+                .build();
 
-        String fcmToken = user.getFcmToken();
-        if (fcmToken != null && !fcmToken.isEmpty()) {
-            String title = boardName;
-            FcmMessageRequestDto requestDto = new FcmMessageRequestDto(
-                    user.getId(),
-                    notification.getNotificationType(),
-                    title,
-                    content,
-                    fcmToken
-            );
-            firebaseMessageService.sendMessage(requestDto);
-        }
-    }
-
-    @Transactional
-    public void sendDdayNotification(User user, String content, Dday dday, String url) {
-        Notification notification = notificationRepository.save(
-                createDdayNotification(user, content, dday, url)
-        );
-
-        String fcmToken = user.getFcmToken();
-        if (fcmToken != null && !fcmToken.isEmpty()) {
-            String title = dday.getTitle();
-            FcmMessageRequestDto requestDto = new FcmMessageRequestDto(
-                    user.getId(),
-                    notification.getNotificationType(),
-                    title,
-                    content,
-                    fcmToken
-            );
-            firebaseMessageService.sendMessage(requestDto);
-        }
+        // 기존 메서드 호출
+        sendNotificationAndSave(requestDto);
     }
 }
-
