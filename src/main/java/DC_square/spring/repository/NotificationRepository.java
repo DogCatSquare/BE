@@ -1,4 +1,4 @@
-package DC_square.spring.repository.NotificationRepository;
+package DC_square.spring.repository;
 
 import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.entity.User;

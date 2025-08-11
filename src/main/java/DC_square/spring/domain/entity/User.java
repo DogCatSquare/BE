@@ -64,4 +64,5 @@ private District district;
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    private String fcmToken;
 }

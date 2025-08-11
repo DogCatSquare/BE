@@ -4,6 +4,7 @@ import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.security.CustomUserDetails;
 import DC_square.spring.service.UserService;
 import DC_square.spring.web.dto.request.LoginRequestDto;
 import DC_square.spring.web.dto.request.UserRequestDto;
@@ -19,6 +20,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

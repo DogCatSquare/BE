@@ -85,4 +85,10 @@ jwt:
 weather:
   service-key: ${WEATHER_SERVICE_KEY}
 
+fcm:
+  cert:
+    path: src/main/resources/firebase/dogcatsquare-7fb36-firebase-adminsdk-fbsvc-58c7b20a51.json
+
+
+
 
