@@ -11,12 +11,14 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Weather", description = "날씨 관련 API")
 @RestController
 @RequestMapping("/api/weather")
 @RequiredArgsConstructor
+@Slf4j
 public class WeatherController {
     private final WeatherService weatherService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -38,6 +40,10 @@ public class WeatherController {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        return ApiResponse.onSuccess(weatherService.getCurrentWeather(user.getId()));
+        WeatherResponseDto weatherResponse = weatherService.getCurrentWeather(user.getId());
+
+        log.info("Weather 조회 API 응답값: {}", weatherResponse);
+
+        return ApiResponse.onSuccess(weatherResponse);
     }
 }

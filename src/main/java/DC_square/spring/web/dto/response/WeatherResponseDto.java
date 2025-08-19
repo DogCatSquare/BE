@@ -6,11 +6,13 @@ import DC_square.spring.domain.enums.DogCat;
 import DC_square.spring.domain.enums.WeatherStatus;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.format.DateTimeFormatter;
 
 @Getter
 @Builder
+@ToString
 public class WeatherResponseDto {
     private String mainMessage;     // 메인 메시지
     private String subMessage;      // 보조 메시지
@@ -25,6 +27,23 @@ public class WeatherResponseDto {
     private String ddayTitle;       // D-day 제목
     private String ddayMessage;     // D-day 메시지 (D-3)
     private String ddayDate;        // 날짜 (2024년 2월 10일)
+
+    @Override
+    public String toString() {
+        return "WeatherResponseDto{" +
+                "mainMessage='" + mainMessage + '\'' +
+                ", subMessage='" + subMessage + '\'' +
+                ", location='" + location + '\'' +
+                ", currentTemp='" + currentTemp + '\'' +
+                ", maxTemp='" + maxTemp + '\'' +
+                ", minTemp='" + minTemp + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", rainProbability='" + rainProbability + '\'' +
+                ", ddayTitle='" + ddayTitle + '\'' +
+                ", ddayMessage='" + ddayMessage + '\'' +
+                ", ddayDate='" + ddayDate + '\'' +
+                '}';
+    }
 
     public static WeatherResponseDto from(
             WeatherStatus status,
