@@ -6,8 +6,8 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class FirebaseInitialization {
@@ -15,14 +15,18 @@ public class FirebaseInitialization {
     @PostConstruct
     public void initialize() {
         try {
-            InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
+            String firebaseConfig = System.getenv("FIREBASE_CONFIG");
 
-            if (serviceAccount == null) {
-                throw new RuntimeException("firebase-service-account.json 파일을 resources 폴더에서 찾을 수 없습니다.");
+            if (firebaseConfig == null || firebaseConfig.isEmpty()) {
+                throw new RuntimeException("환경변수 FIREBASE_CONFIG가 설정되어 있지 않습니다.");
             }
 
+            GoogleCredentials credentials = GoogleCredentials.fromStream(
+                    new ByteArrayInputStream(firebaseConfig.getBytes(StandardCharsets.UTF_8))
+            );
+
             FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setCredentials(credentials)
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
@@ -31,7 +35,8 @@ public class FirebaseInitialization {
             } else {
                 System.out.println("FirebaseApp 이미 초기화되어 있음");
             }
-        } catch (IOException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Firebase 초기화 중 오류 발생: " + e.getMessage());
         }
