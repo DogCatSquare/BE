@@ -140,7 +140,7 @@ public class DdayService {
             long daysRemaining = ChronoUnit.DAYS.between(today, dday.getDay());
             log.info("D-day: {}, 남은 일수: {}", dday.getTitle(), daysRemaining);
 
-            if (daysRemaining >= 0 && daysRemaining <= 365) {
+            if (daysRemaining >= 0 && daysRemaining <= 7) {
                 String title = "주기 알림";
                 String body = daysRemaining == 0
                         ? dday.getTitle() + " 디데이입니다!"
