@@ -84,5 +84,3 @@ jwt:
 # 기상청 api
 weather:
   service-key: ${WEATHER_SERVICE_KEY}
-
-
