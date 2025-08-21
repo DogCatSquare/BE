@@ -17,10 +17,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make application.yml  # application.yml 파일 생성
+      - name: Make application.yml and firebase config  # application.yml 파일 생성 + firebase 설정 파일
         run: |
           cd ./src/main/resources
           echo "${{ secrets.APPLICATION_YML }}" > ./application.yml
+          echo "${{ secrets.FIREBASE_CONFIG }}" > ./firebase-service-account.json
         shell: bash
 
       - name: Grant execute permission for gradlew  # gradlew 실행 권한 부여
@@ -53,14 +54,19 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
+          echo "$FIREBASE_CONFIG" > firebase-service-account.json
           jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
           scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/serverTest.jar
+          scp -i private_key.pem -o StrictHostKeyChecking=no firebase-service-account.json $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
             pgrep java | xargs -r kill -15  # 기존에 실행 중인 Java 프로세스 종료
             sleep 10
+            export GOOGLE_APPLICATION_CREDENTIALS=/home/$EC2_USERNAME/firebase-service-account.json
             nohup java -jar /home/$EC2_USERNAME/serverTest.jar > app.log 2>&1 &  # 새 버전 애플리케이션 실행
           "
           rm -f private_key.pem  # 민감한 정보 삭제
+          rm -f firebase-service-account.json
