@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class FirebaseInitialization {
-
     @PostConstruct
     public void initialize() {
         try {
