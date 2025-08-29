@@ -1,128 +1,51 @@
 package DC_square.spring.service.notification;
 
-import DC_square.spring.domain.entity.Dday;
-import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.domain.entity.notification.NotificationContent;
-import DC_square.spring.domain.entity.notification.RelatedUrl;
+import DC_square.spring.domain.entity.notification.Notification;
 import DC_square.spring.domain.enums.NotificationType;
-import DC_square.spring.repository.NotificationRepository.EmitterRepository;
-import DC_square.spring.repository.NotificationRepository.EmitterRepositoryImpl;
-import DC_square.spring.repository.NotificationRepository.NotificationRepository;
-import jakarta.transaction.Transactional;
+import DC_square.spring.repository.NotificationRepository;
+import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.web.dto.request.notification.FcmMessageRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import DC_square.spring.mapper.NotificationMapper;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.util.Map;
-
-import static DC_square.spring.domain.entity.notification.Notification.calculateDaysRemaining;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-    private final EmitterRepository emitterRepository = new EmitterRepositoryImpl();
+
     private final NotificationRepository notificationRepository;
+    private final FirebaseMessageService firebaseMessageService;
+    private final UserRepository userRepository;
 
-    private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+    public void sendNotificationAndSave(FcmMessageRequestDto requestDto) {
+        firebaseMessageService.sendMessage(requestDto);
 
-    public SseEmitter subscribe(Long memberId, String lastEventId) {
-        String emitterId = memberId + "_" + System.currentTimeMillis();
-        SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
+        var user = userRepository.findById(requestDto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저 ID: " + requestDto.getId()));
 
-        emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
-        emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
-
-        sendToClient(emitter, emitterId, "EventStream Created. [memberId=" + memberId + "]");
-
-        if (!lastEventId.isEmpty()) {
-            Map<String, Object> events = emitterRepository.findAllEventCacheStartWithByMemberId(String.valueOf(memberId));
-            events.entrySet().stream()
-                    .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
-                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getValue()));
-        }
-
-        return emitter;
-    }
-
-    public void sendCommentNotification(User user, NotificationType notificationType, String content, String url,
-                     String boardName, String commentContent, String commenterName, String postTitle) {
-        Notification notification = notificationRepository.save(
-                createCommentNotification(user, notificationType, content, url,
-                        boardName, commentContent, commenterName, postTitle));
-
-        String memberId = String.valueOf(user.getId());
-
-        Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByMemberId(memberId);
-        sseEmitters.forEach(
-                (key, emitter) -> {
-                    emitterRepository.saveEventCache(key, notification);
-                    sendToClient(emitter, key, NotificationMapper.NotificationtoResponseNotificationDto(notification));
-                }
-        );
-    }
-
-    private void sendToClient(SseEmitter emitter, String emitterId, Object data) {
-        try {
-            emitter.send(SseEmitter.event()
-                    .id(emitterId)
-                    .data(data));
-        } catch (IOException exception) {
-            emitterRepository.deleteById(emitterId);
-            throw new RuntimeException("알림 전송 중 오류가 발생했습니다.");
-        }
-    }
-
-    private Notification createCommentNotification(User user, NotificationType type, String content, String url,
-                                                   String boardName, String commentContent, String commenterName, String postTitle) {
-        return Notification.builder()
+        Notification notification = Notification.builder()
                 .user(user)
-                .notificationType(type)
-                .content(new NotificationContent(content))
-                .url(new RelatedUrl(url))
-                .boardName(boardName)
-                .commentContent(commentContent)
-                .commenterName(commenterName)
-                .postTitle(postTitle)
-                .read(false)
+                .notificationType(requestDto.getNotificationType())
+                .title(requestDto.getTitle())
+                .content(requestDto.getContent())
                 .build();
+
+        notificationRepository.save(notification);
     }
 
-    private Notification createDdayNotification(User user, String content, Dday dday, String url) {
-        int daysRemaining = calculateDaysRemaining(dday);
-        return Notification.createDdayNotification(
-                user,
-                content,
-                url,
-                dday.getTitle(),
-                daysRemaining
-        );
-    }
+    public void sendNotificationAndSave(
+            NotificationType notificationType,
+            User targetUser,
+            String title,
+            String content) {
 
-    @Transactional
-    public void sendDdayNotification(User user, String content, Dday dday, String url) {
-        Notification notification = notificationRepository.save(
-                Notification.builder()
-                        .user(user)
-                        .notificationType(NotificationType.DDAY)
-                        .content(new NotificationContent(content))
-                        .url(new RelatedUrl(url))
-                        .ddayName(dday.getTitle())
-                        .daysRemaining(calculateDaysRemaining(dday))
-                        .read(false)
-                        .build()
-        );
+        FcmMessageRequestDto requestDto = FcmMessageRequestDto.builder()
+                .id(targetUser.getId())
+                .notificationType(notificationType)
+                .title(title)
+                .content(content)
+                .build();
 
-        String memberId = String.valueOf(user.getId());
-
-        Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterStartWithByMemberId(memberId);
-        sseEmitters.forEach(
-                (key, emitter) -> {
-                    emitterRepository.saveEventCache(key, notification);
-                    sendToClient(emitter, key, NotificationMapper.NotificationtoResponseNotificationDto(notification));
-                }
-        );
+        sendNotificationAndSave(requestDto);
     }
 }

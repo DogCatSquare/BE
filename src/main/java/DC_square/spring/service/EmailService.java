@@ -28,8 +28,8 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        helper.setFrom(senderEmail);
-        helper.setTo(email);
+        helper.setFrom(senderEmail.trim());
+        helper.setTo(email.trim());
         helper.setSubject("댕냥스퀘어 이메일 인증 코드입니다.");
         helper.setText(createEmailContent(verificationCode), true);
 

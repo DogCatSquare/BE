@@ -36,6 +36,7 @@ import DC_square.spring.web.dto.response.UserResponseDto;
 import DC_square.spring.web.dto.response.user.LoginResponseDto;
 import DC_square.spring.web.dto.response.user.UserInqueryResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -451,6 +452,20 @@ public class UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다."))
                 .getId();
+    }
+
+    @Transactional
+    public void saveFirebaseToken(Long id, String fcmToken) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
+    }
+
+    public String findFirebaseTokenById(Long id) {
+        return userRepository.findById(id)
+                .map(User::getFcmToken)
+                .orElseThrow(() -> new UsernameNotFoundException("Firebase token not found for user: " + id));
     }
 
 }

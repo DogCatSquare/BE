@@ -38,7 +38,7 @@ public class Dday {
 
     @Builder.Default
     @Column(nullable = false)
-    private Boolean isAlarm = false;
+    private Boolean isAlarm = true;
 
     public void setDefaultImageUrl() {
         switch(this.type) {

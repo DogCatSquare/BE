@@ -16,7 +16,7 @@ public class PlaceImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "photo_reference", nullable = false)
+    @Column(name = "photo_reference", nullable = false, columnDefinition = "LONGTEXT")
     private String photoReference;
 
     @Column(name = "width")
