@@ -16,6 +16,9 @@ public class FirebaseInitialization {
     public void initialize() {
         try {
             String firebaseConfig = System.getenv("FIREBASE_CONFIG");
+            if (firebaseConfig != null) {
+                firebaseConfig = firebaseConfig.replace("\\n", "\n");
+            }
 
             if (firebaseConfig == null || firebaseConfig.isEmpty()) {
                 throw new RuntimeException("환경변수 FIREBASE_CONFIG가 설정되어 있지 않습니다.");

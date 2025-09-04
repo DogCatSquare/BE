@@ -37,6 +37,11 @@ jobs:
           name: serverTest
           path: build/libs/*.jar
 
+      - name: Set FIREBASE_CONFIG env
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+        run: echo "Firebase config env set"
+
   deploy:
     needs: build  # build 작업이 성공적으로 완료된 후 실행
     runs-on: ubuntu-22.04
