@@ -64,11 +64,9 @@ public class PlaceService {
         Map<String, Double> similarityScores = new HashMap<>();
         for (Map<String, Object> result : results) {
             String name = (String) result.get("name");
-            log.info(name);
             double similarity = calculateSimilarity(name.toLowerCase(), keyword.toLowerCase());
             similarityScores.put(name, similarity);
         }
-        log.info(similarityScores.toString());
 
         List<PlaceResponseDTO> responseDTOs = results.stream()
                 //.filter(this::isPetRelatedPlace)
@@ -76,7 +74,6 @@ public class PlaceService {
                 .filter(Objects::nonNull)
                 .sorted((a, b) -> {
                     // 1. 먼저 유사도로 비교
-                    log.info(a.getName());
                     double similarityA = similarityScores.get(a.getName());
                     double similarityB = similarityScores.get(b.getName());
                     int similarityCompare = Double.compare(similarityB, similarityA);
