@@ -191,13 +191,13 @@ public class PlaceService {
         String googlePlaceId = (String) placeData.get("place_id");
 
         Place existingPlace = placeRepository.findByGooglePlaceId(googlePlaceId).orElse(null);
-        if (existingPlace != null) {
-            return convertToResponseDTO(existingPlace, location);
-        }
 
         Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
-
         Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
+        if (existingPlace != null) {
+            saveGooglePlaceImages(detailResult, existingPlace);
+            return convertToResponseDTO(existingPlace, location);
+        }
 
         String address = (String) detailResult.get("formatted_address");
         Pair<Province, City> regionInfo = extractRegionInfo(address);
@@ -263,7 +263,7 @@ public class PlaceService {
         if (detailResult == null || !detailResult.containsKey("photos")) {
             return;
         }
-
+        place.getImages().clear();
         List<Map<String, Object>> photos = (List<Map<String, Object>>) detailResult.get("photos");
         for (Map<String, Object> photo : photos) {
             PlaceImage placeImage = PlaceImage.builder()
@@ -389,17 +389,6 @@ public class PlaceService {
         if (placeDetail != null && placeDetail.getBusinessHours() != null) {
             isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
         }
-
-        Map<String,Object> googlePlaceDetails = googlePlacesService.getPlaceDetails(place.getGooglePlaceId());
-        List<Object> placePhotos = ((List<Object>)((Map<String,Object>)googlePlaceDetails.get("result")).get("photos"));
-        Map<String,Object> topPhoto;
-        if(placePhotos == null) {
-            topPhoto = new HashMap<>();
-        } else{
-            topPhoto = ((Map<String,Object>) placePhotos.get(0));
-        }
-
-
         return PlaceResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
@@ -410,10 +399,10 @@ public class PlaceService {
                 .longitude(place.getLongitude())
                 .distance(distance)
                 .open(isCurrentlyOpen)
-                .imgUrl(topPhoto.isEmpty() ? null :
+                .imgUrl(place.getImages().isEmpty() ? null :
                         googlePlacesService.getPhotoUrl(
-                                (String) topPhoto.get("photo_reference"),
-                                (Integer) topPhoto.get("width")
+                                place.getImages().get(0).getPhotoReference(),
+                                place.getImages().get(0).getWidth()
                         ))
                 .reviewCount(placeReviewRepository.countByPlaceId(place.getId()))
                 .keywords(place.getKeywords())
@@ -429,9 +418,9 @@ public class PlaceService {
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
         Map<String, Object> googlePlaceDetails = googlePlacesService.getPlaceDetails(placeDetail.getPlace().getGooglePlaceId());
-        List<Object> placePhotos = ((List<Object>)((Map<String,Object>)googlePlaceDetails.get("result")).get("photos"));
-        if(placePhotos == null) placePhotos = new ArrayList<>();
-        return convertToDetailDTO(placeDetail.getPlace(), location, user.getId(), placePhotos);
+        Map<String, Object> detailResult = (Map<String, Object>) googlePlaceDetails.get("result");
+        saveGooglePlaceImages(detailResult,placeDetail.getPlace());
+        return convertToDetailDTO(placeDetail.getPlace(), location, user.getId());
     }
 
     // 위시리스트 조회
@@ -606,7 +595,7 @@ public class PlaceService {
         return R * c; // km 단위로 변환
     }
 
-    private PlaceDetailResponseDTO convertToDetailDTO(Place place, LocationRequestDTO location, Long userId, List<Object>placePhotos) {
+    private PlaceDetailResponseDTO convertToDetailDTO(Place place, LocationRequestDTO location, Long userId) {
         Double distance = calculateDistance(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -665,9 +654,9 @@ public class PlaceService {
                 .longitude(place.getLongitude())
                 .latitude(place.getLatitude())
                 .distance(distance)
-                .imageUrls(placePhotos.stream().map(image -> googlePlacesService.getPhotoUrl(
-                                ((String)((Map<String,Object>)image).get("photo_reference")),((Integer)((Map<String,Object>)image).get("width"))
-                        )).collect(Collectors.toList()))
+                .imageUrls(place.getImages().stream()
+                        .map(image -> googlePlacesService.getPhotoUrl(image.getPhotoReference(), image.getWidth()))
+                        .collect(Collectors.toList()))
                 .isWished(userId != null && placeWishRepository.existsByPlaceIdAndUserId(place.getId(), userId))
                 .businessHours(placeDetail.getBusinessHours())
                 .homepageUrl(placeDetail.getHomepageUrl())
@@ -861,5 +850,21 @@ public class PlaceService {
         } catch (Exception e) {
             return 0; // 기본값
         }
+    }
+
+    /**
+     *  구글 Place Detail로 부터 사진 정보 추출 헬퍼 함수
+     */
+    private List<Map<String, Object>> extractPhotos(Map<String, Object> details) {
+        Object result = details.get("result");
+        if (!(result instanceof Map<?,?> resultMap)) return List.of();
+
+        Object photos = resultMap.get("photos");
+        if (!(photos instanceof List<?> list)) return List.of();
+
+        return list.stream()
+                .filter(Map.class::isInstance)
+                .map(m -> (Map<String,Object>) m)
+                .toList();
     }
 }
