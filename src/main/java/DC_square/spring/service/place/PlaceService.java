@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -61,9 +64,11 @@ public class PlaceService {
         Map<String, Double> similarityScores = new HashMap<>();
         for (Map<String, Object> result : results) {
             String name = (String) result.get("name");
+            log.info(name);
             double similarity = calculateSimilarity(name.toLowerCase(), keyword.toLowerCase());
             similarityScores.put(name, similarity);
         }
+        log.info(similarityScores.toString());
 
         List<PlaceResponseDTO> responseDTOs = results.stream()
                 //.filter(this::isPetRelatedPlace)
@@ -71,6 +76,7 @@ public class PlaceService {
                 .filter(Objects::nonNull)
                 .sorted((a, b) -> {
                     // 1. 먼저 유사도로 비교
+                    log.info(a.getName());
                     double similarityA = similarityScores.get(a.getName());
                     double similarityB = similarityScores.get(b.getName());
                     int similarityCompare = Double.compare(similarityB, similarityA);
@@ -172,7 +178,6 @@ public class PlaceService {
         if (results == null || results.isEmpty()) {
             return PlacePageResponseDTO.of(new ArrayList<>(), page, size);
         }
-
         List<PlaceResponseDTO> responseDTOs = results.stream()
                 .map(result -> saveAndConvertToDTO(result, location))
                 .filter(Objects::nonNull)
@@ -385,6 +390,16 @@ public class PlaceService {
             isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
         }
 
+        Map<String,Object> googlePlaceDetails = googlePlacesService.getPlaceDetails(place.getGooglePlaceId());
+        List<Object> placePhotos = ((List<Object>)((Map<String,Object>)googlePlaceDetails.get("result")).get("photos"));
+        Map<String,Object> topPhoto;
+        if(placePhotos == null) {
+            topPhoto = new HashMap<>();
+        } else{
+            topPhoto = ((Map<String,Object>) placePhotos.get(0));
+        }
+
+
         return PlaceResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
@@ -395,10 +410,10 @@ public class PlaceService {
                 .longitude(place.getLongitude())
                 .distance(distance)
                 .open(isCurrentlyOpen)
-                .imgUrl(place.getImages().isEmpty() ? null :
+                .imgUrl(topPhoto.isEmpty() ? null :
                         googlePlacesService.getPhotoUrl(
-                                place.getImages().get(0).getPhotoReference(),
-                                place.getImages().get(0).getWidth()
+                                (String) topPhoto.get("photo_reference"),
+                                (Integer) topPhoto.get("width")
                         ))
                 .reviewCount(placeReviewRepository.countByPlaceId(place.getId()))
                 .keywords(place.getKeywords())
@@ -413,8 +428,10 @@ public class PlaceService {
 
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
-
-        return convertToDetailDTO(placeDetail.getPlace(), location, user.getId());
+        Map<String, Object> googlePlaceDetails = googlePlacesService.getPlaceDetails(placeDetail.getPlace().getGooglePlaceId());
+        List<Object> placePhotos = ((List<Object>)((Map<String,Object>)googlePlaceDetails.get("result")).get("photos"));
+        if(placePhotos == null) placePhotos = new ArrayList<>();
+        return convertToDetailDTO(placeDetail.getPlace(), location, user.getId(), placePhotos);
     }
 
     // 위시리스트 조회
@@ -589,14 +606,13 @@ public class PlaceService {
         return R * c; // km 단위로 변환
     }
 
-    private PlaceDetailResponseDTO convertToDetailDTO(Place place, LocationRequestDTO location, Long userId) {
+    private PlaceDetailResponseDTO convertToDetailDTO(Place place, LocationRequestDTO location, Long userId, List<Object>placePhotos) {
         Double distance = calculateDistance(
                 location.getLatitude(),
                 location.getLongitude(),
                 place.getLatitude(),
                 place.getLongitude()
         );
-
         int reviewCount = placeReviewRepository.countByPlaceId(place.getId());
 
         PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
@@ -624,6 +640,8 @@ public class PlaceService {
                 .filter(review -> !frequentlyReportedUserIds.contains(review.getUser().getId()))
                 .collect(Collectors.toList());
 
+
+
         List<PlaceReviewResponseDTO> recentReviewDtos = filteredReviews.stream()
                 .map(review -> PlaceReviewResponseDTO.builder()
                         .id(review.getId())
@@ -647,9 +665,9 @@ public class PlaceService {
                 .longitude(place.getLongitude())
                 .latitude(place.getLatitude())
                 .distance(distance)
-                .imageUrls(place.getImages().stream()
-                        .map(image -> googlePlacesService.getPhotoUrl(image.getPhotoReference(), image.getWidth()))
-                        .collect(Collectors.toList()))
+                .imageUrls(placePhotos.stream().map(image -> googlePlacesService.getPhotoUrl(
+                                ((String)((Map<String,Object>)image).get("photo_reference")),((Integer)((Map<String,Object>)image).get("width"))
+                        )).collect(Collectors.toList()))
                 .isWished(userId != null && placeWishRepository.existsByPlaceIdAndUserId(place.getId(), userId))
                 .businessHours(placeDetail.getBusinessHours())
                 .homepageUrl(placeDetail.getHomepageUrl())
