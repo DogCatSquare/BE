@@ -57,28 +57,32 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
+
+          # JAR 경로/이름
           jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
-          
-          # NEW: 시크릿을 파일로 안전히 저장(개행/따옴표 이슈 회피)
+          jar_name=$(basename "$jar_file")
+
+          # FCM JSON을 파일로 저장(개행/따옴표 안전)
           printf "%s" "$FCM_SERVICE_ACCOUNT_JSON" > fcm.json
-          
-          # CHANGED: JAR + fcm.json 모두 전송
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" fcm.json $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/
-          
-          # CHANGED: 원격에서 환경변수 export 후 실행
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+
+          # JAR + fcm.json 전송
+          scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" fcm.json \
+            $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/
+
+          # 원격 실행
+          ssh -i private_key.pem -o StrictHostHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
             pgrep java | xargs -r kill -15
             sleep 10
-          
-            # NEW: Spring이 읽을 환경변수로 등록
+
+            # Spring이 읽을 환경변수로 등록
             export FCM_SERVICE_ACCOUNT_JSON=\"\$(cat /home/$EC2_USERNAME/fcm.json)\"
-          
-            # CHANGED: 앱 실행
-            nohup java -jar /home/$EC2_USERNAME/$(basename "$jar_file") > app.log 2>&1 &
-          
-            # NEW: 민감파일 즉시 삭제
+
+            # 앱 실행 (jar_name은 실제 파일명)
+            nohup java -jar /home/$EC2_USERNAME/$jar_name > app.log 2>&1 &
+
+            # 민감파일 삭제
             rm -f /home/$EC2_USERNAME/fcm.json
           "
-          
-          # CHANGED: 로컬 임시파일도 정리
+
+          # 로컬 임시파일 정리
           rm -f private_key.pem fcm.json
