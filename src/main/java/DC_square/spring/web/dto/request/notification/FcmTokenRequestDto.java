@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 public class FcmTokenRequestDto {
 
     @Schema(description = "유저ID")
-    private Long id;
+    private Long userId;
 
     @Schema(description = "Firebase 클라우드 메시징 토큰")
     private String fcmToken;

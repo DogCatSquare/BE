@@ -6,6 +6,7 @@ import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.NotificationRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.notification.FcmMessageRequestDto;
+import DC_square.spring.web.dto.request.notification.FcmTokenRequestDto;
 import DC_square.spring.web.dto.response.notification.NotificationDeliveryResponseDto;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
@@ -29,6 +30,37 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
+    /**
+     * 유저의 디바이스 FCM 토큰을 저장/갱신한다.
+     * - 앱에서 getToken() 으로 받은 값을 전달
+     *
+     * @param userId
+     * @param fcmToken
+     */
+    @Transactional
+    public void registerFcmToken(Long userId, String fcmToken) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId가 필요합니다.");
+        }
+        if (fcmToken == null || fcmToken.isBlank()) {
+            throw new IllegalArgumentException("유효한 fcmToken이 필요합니다.");
+        }
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저: " + userId));
+
+        user.setFcmToken(fcmToken); // JPA 더티체킹으로 저장
+        log.info("FCM 토큰 등록/갱신 완료. userId={}", userId);
+    }
+
+    /**
+     * 푸시 전송 + 알림 이력 저장
+     * @param notificationType
+     * @param targetUser
+     * @param title
+     * @param content
+     * @return
+     */
     @Transactional
     public NotificationDeliveryResponseDto sendNotificationAndSave(
             NotificationType notificationType,
