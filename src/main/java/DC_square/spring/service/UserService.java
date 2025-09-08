@@ -454,18 +454,18 @@ public class UserService {
                 .getId();
     }
 
-    @Transactional
-    public void saveFirebaseToken(Long id, String fcmToken) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
-        user.setFcmToken(fcmToken);
-        userRepository.save(user);
-    }
-
-    public String findFirebaseTokenById(Long id) {
-        return userRepository.findById(id)
-                .map(User::getFcmToken)
-                .orElseThrow(() -> new UsernameNotFoundException("Firebase token not found for user: " + id));
-    }
+//    @Transactional
+//    public void saveFirebaseToken(Long id, String fcmToken) {
+//        User user = userRepository.findById(id)
+//                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+//        user.setFcmToken(fcmToken);
+//        userRepository.save(user);
+//    }
+//
+//    public String findFirebaseTokenById(Long id) {
+//        return userRepository.findById(id)
+//                .map(User::getFcmToken)
+//                .orElseThrow(() -> new UsernameNotFoundException("Firebase token not found for user: " + id));
+//    }
 
 }

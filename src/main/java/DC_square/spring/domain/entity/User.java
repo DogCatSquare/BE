@@ -35,9 +35,9 @@ public class User {
 
 //    @Column
 //    private String regionId;
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "district_id")
-private District district;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id")
+    private District district;
 
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
     private List<Pet> petList = new ArrayList<>();
