@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -172,7 +175,6 @@ public class PlaceService {
         if (results == null || results.isEmpty()) {
             return PlacePageResponseDTO.of(new ArrayList<>(), page, size);
         }
-
         List<PlaceResponseDTO> responseDTOs = results.stream()
                 .map(result -> saveAndConvertToDTO(result, location))
                 .filter(Objects::nonNull)
@@ -186,13 +188,13 @@ public class PlaceService {
         String googlePlaceId = (String) placeData.get("place_id");
 
         Place existingPlace = placeRepository.findByGooglePlaceId(googlePlaceId).orElse(null);
-        if (existingPlace != null) {
-            return convertToResponseDTO(existingPlace, location);
-        }
 
         Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
-
         Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
+        if (existingPlace != null) {
+            saveGooglePlaceImages(detailResult, existingPlace);
+            return convertToResponseDTO(existingPlace, location);
+        }
 
         String address = (String) detailResult.get("formatted_address");
         Pair<Province, City> regionInfo = extractRegionInfo(address);
@@ -258,7 +260,7 @@ public class PlaceService {
         if (detailResult == null || !detailResult.containsKey("photos")) {
             return;
         }
-
+        place.getImages().clear();
         List<Map<String, Object>> photos = (List<Map<String, Object>>) detailResult.get("photos");
         for (Map<String, Object> photo : photos) {
             PlaceImage placeImage = PlaceImage.builder()
@@ -384,7 +386,6 @@ public class PlaceService {
         if (placeDetail != null && placeDetail.getBusinessHours() != null) {
             isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
         }
-
         return PlaceResponseDTO.builder()
                 .id(place.getId())
                 .name(place.getName())
@@ -413,7 +414,9 @@ public class PlaceService {
 
         PlaceDetail placeDetail = placeDetailRepository.findByPlaceId(placeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
-
+        Map<String, Object> googlePlaceDetails = googlePlacesService.getPlaceDetails(placeDetail.getPlace().getGooglePlaceId());
+        Map<String, Object> detailResult = (Map<String, Object>) googlePlaceDetails.get("result");
+        saveGooglePlaceImages(detailResult,placeDetail.getPlace());
         return convertToDetailDTO(placeDetail.getPlace(), location, user.getId());
     }
 
@@ -596,7 +599,6 @@ public class PlaceService {
                 place.getLatitude(),
                 place.getLongitude()
         );
-
         int reviewCount = placeReviewRepository.countByPlaceId(place.getId());
 
         PlaceDetail placeDetail = placeDetailRepository.findByPlace(place)
@@ -623,6 +625,8 @@ public class PlaceService {
                 .filter(review -> !reportedReviewIds.contains(review.getId()))
                 .filter(review -> !frequentlyReportedUserIds.contains(review.getUser().getId()))
                 .collect(Collectors.toList());
+
+
 
         List<PlaceReviewResponseDTO> recentReviewDtos = filteredReviews.stream()
                 .map(review -> PlaceReviewResponseDTO.builder()
@@ -843,5 +847,21 @@ public class PlaceService {
         } catch (Exception e) {
             return 0; // 기본값
         }
+    }
+
+    /**
+     *  구글 Place Detail로 부터 사진 정보 추출 헬퍼 함수
+     */
+    private List<Map<String, Object>> extractPhotos(Map<String, Object> details) {
+        Object result = details.get("result");
+        if (!(result instanceof Map<?,?> resultMap)) return List.of();
+
+        Object photos = resultMap.get("photos");
+        if (!(photos instanceof List<?> list)) return List.of();
+
+        return list.stream()
+                .filter(Map.class::isInstance)
+                .map(m -> (Map<String,Object>) m)
+                .toList();
     }
 }
