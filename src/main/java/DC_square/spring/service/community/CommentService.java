@@ -170,6 +170,7 @@ public class CommentService {
 
         return CommentResponseDto.builder()
                 .id(comment.getId())
+                .userId(user.getId())
                 .content(comment.getContent())
                 .name(comment.getUser().getNickname())
                 .created_at(LocalDateTime.now())
