@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 public class CommentResponseDto {
     private Long id;
+    private Long userId;
     private String content;
     private String name;
     private String animal_type;
