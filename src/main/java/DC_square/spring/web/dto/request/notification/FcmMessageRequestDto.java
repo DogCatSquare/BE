@@ -13,18 +13,18 @@ import lombok.NoArgsConstructor;
 @Builder
 public class FcmMessageRequestDto {
 
-    @Schema(description = "유저ID")
-    private Long id;
+  @Schema(description = "유저ID")
+  private Long id;
 
-    @Schema(description = "알림 타입 (COMMENT, DDAY)")
-    private NotificationType notificationType;
+  @Schema(description = "알림 타입 (COMMENT, DDAY)")
+  private NotificationType notificationType;
 
-    @Schema(description = "메시지 제목")
-    private String title;
+  @Schema(description = "메시지 제목")
+  private String title;
 
-    @Schema(description = "메시지 내용")
-    private String content;
+  @Schema(description = "메시지 내용")
+  private String content;
 
-    @Schema(description = "FCM 토큰")
-    private String fcmToken;
+  @Schema(description = "FCM 토큰")
+  private String fcmToken;
 }

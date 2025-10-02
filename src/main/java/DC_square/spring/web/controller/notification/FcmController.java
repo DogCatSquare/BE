@@ -1,12 +1,10 @@
 package DC_square.spring.web.controller.notification;
 
 import DC_square.spring.apiPayload.ApiResponse;
-import DC_square.spring.service.UserService;
 import DC_square.spring.service.notification.NotificationService;
 import DC_square.spring.web.dto.request.notification.FcmTokenRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
