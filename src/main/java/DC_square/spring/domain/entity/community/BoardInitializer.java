@@ -15,18 +15,18 @@ public class BoardInitializer {
 
   @PostConstruct
   public void initializeBoards() {
-    for (BoardType type: BoardType.values()) {
+    for (BoardType type : BoardType.values()) {
       //이미 존재하는지 확인
       boolean exists = boardRepository.existsByBoardType(type);
 
       // 존재하지 않으면 생성
       if (!exists) {
-          Board board = Board.builder()
-              .boardType(type)
-              .content(type.getDisplayName() + "입니다.") // 기본 내용
-              .createdDate(LocalDateTime.now()).
-              build();
-          boardRepository.save(board);
+        Board board = Board.builder()
+            .boardType(type)
+            .content(type.getDisplayName() + "입니다.") // 기본 내용
+            .createdDate(LocalDateTime.now()).
+            build();
+        boardRepository.save(board);
       }
     }
   }

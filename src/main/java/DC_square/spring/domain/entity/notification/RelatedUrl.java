@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor
 public class RelatedUrl {
-    @Column(nullable = false)
-    private String url;
 
-    public RelatedUrl(String url){
-        this.url = url;
-    }
+  @Column(nullable = false)
+  private String url;
+
+  public RelatedUrl(String url) {
+    this.url = url;
+  }
 }

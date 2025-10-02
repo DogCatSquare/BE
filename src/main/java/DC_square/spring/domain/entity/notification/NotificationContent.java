@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor
 public class NotificationContent {
-    @Column(nullable = false)
-    private String content;
 
-    public NotificationContent(String content){
-        this.content = content;
-    }
+  @Column(nullable = false)
+  private String content;
+
+  public NotificationContent(String content) {
+    this.content = content;
+  }
 }
