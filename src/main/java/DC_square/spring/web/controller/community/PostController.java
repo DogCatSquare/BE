@@ -6,6 +6,7 @@ import DC_square.spring.service.community.PostLikeService;
 import DC_square.spring.service.community.PostService;
 import DC_square.spring.util.UserUtil;
 import DC_square.spring.web.dto.request.community.PostRequestDto;
+import DC_square.spring.web.dto.request.community.UpdatePostRequestDto;
 import DC_square.spring.web.dto.response.community.PostResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -80,7 +81,7 @@ public class PostController {
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   // consumes에서 이미지 타입을 제거하고 multipart/form-data만 사용
   public ApiResponse<PostResponseDto> updatePost(
-      @Valid @RequestPart("request") PostRequestDto postRequestDto,
+      @Valid @RequestPart("request") UpdatePostRequestDto postRequestDto,
       @PathVariable("postId") Long postId,
       @RequestPart(value = "communityImages", required = false) List<MultipartFile> newImages,
       HttpServletRequest request

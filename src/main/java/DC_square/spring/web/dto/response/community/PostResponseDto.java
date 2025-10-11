@@ -28,5 +28,6 @@ public class PostResponseDto {
   private Integer like_count;
   private Integer comment_count;
   private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
   private Long userId;
 }
