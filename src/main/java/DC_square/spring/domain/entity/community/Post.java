@@ -1,6 +1,7 @@
 package DC_square.spring.domain.entity.community;
 
 import DC_square.spring.domain.entity.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -11,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Getter
@@ -63,7 +64,13 @@ public class Post {
   @CollectionTable(name = "community_images", joinColumns = @JoinColumn(name = "post_id"))
   private List<String> communityImages = new ArrayList<>();
 
-  @CreatedDate
+  @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<PostLike> postLikes = new ArrayList<>();
+
+  @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Comment> comments = new ArrayList<>();
+
   private LocalDateTime created_at = LocalDateTime.now();
+  private LocalDateTime updatedAt;
 
 }

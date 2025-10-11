@@ -11,7 +11,9 @@ import DC_square.spring.repository.community.BoardRepository;
 import DC_square.spring.repository.community.PostRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.web.dto.request.community.PostRequestDto;
+import DC_square.spring.web.dto.request.community.UpdatePostRequestDto;
 import DC_square.spring.web.dto.response.community.PostResponseDto;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +79,7 @@ public class PostService {
         .user(user)
         .communityImages(imageUrls)
         .created_at(LocalDateTime.now())
+        .updatedAt(LocalDateTime.now())
         .video_URL(postRequestDto.getVideo_URL())
         .board(findBoard)
         .build();
@@ -98,7 +101,8 @@ public class PostService {
         .comment_count(savedPost.getCommentCount())
         .thumbnail_URL(thumbnailUrl)
         .profileImage_URL(user.getProfileImageUrl())
-        .createdAt(LocalDateTime.now())
+        .createdAt(savedPost.getCreated_at())
+        .updatedAt(savedPost.getUpdatedAt())
         .userId(savedPost.getUser().getId())
         .build();
   }
@@ -136,6 +140,7 @@ public class PostService {
         .thumbnail_URL(post.getVideo_URL() + "/0.jpg")
         .comment_count(post.getCommentCount())
         .createdAt(post.getCreated_at())
+        .updatedAt(post.getUpdatedAt())
         .userId(post.getUser().getId())
         .build();
   }
@@ -184,6 +189,7 @@ public class PostService {
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at()) // 게시글 생성일
+              .updatedAt(post.getUpdatedAt())
               .userId(post.getUser().getId())
               .build();
         })
@@ -233,6 +239,7 @@ public class PostService {
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at()) // 게시글 생성일
+              .updatedAt(post.getUpdatedAt())
               .userId(post.getUser().getId())
               .build();
         })
@@ -278,6 +285,7 @@ public class PostService {
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at()) // 게시글 생성일
+              .updatedAt(post.getUpdatedAt())
               .userId(post.getUser().getId())
               .build();
         })
@@ -288,7 +296,7 @@ public class PostService {
   /**
    * 게시글 수정 API
    */
-  public PostResponseDto updatePost(Long postId, PostRequestDto postRequestDto,
+  public PostResponseDto updatePost(Long postId, @Valid UpdatePostRequestDto postRequestDto,
       List<MultipartFile> newImages, Long currentUserId) {
     // 기존 게시글 조회
     Post post = postRepository.findById(postId)
@@ -314,24 +322,29 @@ public class PostService {
     post.setTitle(postRequestDto.getTitle());
     post.setContent(postRequestDto.getContent());
     post.setVideo_URL(postRequestDto.getVideo_URL());
-    post.setCreated_at(LocalDateTime.now());
+    post.setUpdatedAt(LocalDateTime.now());
 
-    // 이미지 수정 여부 체크
+    // 이미지 삭제
+    List<String> removeList = postRequestDto.getRemoveImageUrls();
+    if (removeList != null && !removeList.isEmpty()) {
+      List<String> images = post.getCommunityImages();
+      for (String removeImageUrl : removeList) {
+        if (images.contains(removeImageUrl)) {
+          images.remove(removeImageUrl);
+          s3Manager.deleteObjectByUrl(removeImageUrl);
+        }
+      }
+    }
+
+    // 새 이미지 추가
     if (newImages != null && !newImages.isEmpty()) {
-      // 기존 이미지 삭제 (기존 이미지를 모두 삭제)
-      post.getCommunityImages().clear();
-
-      // 새로운 이미지 업로드
-      List<String> newImageUrls = newImages.stream()
-          .map(image -> {
-            String uuid = UUID.randomUUID().toString();
-            Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
-            return s3Manager.uploadFile(s3Manager.generateCommunity(savedUuid), image);
-          })
-          .collect(Collectors.toList());
-
-      // 새로운 이미지 목록으로 교체
-      post.setCommunityImages(newImageUrls);
+      List<String> images = post.getCommunityImages();
+      for (MultipartFile image : newImages) {
+        String uuid = UUID.randomUUID().toString();
+        Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
+        String uploadedUrl = s3Manager.uploadFile(s3Manager.generateCommunity(savedUuid), image);
+        images.add(uploadedUrl);
+      }
     }
 
     // 게시글 저장 - DB에 반영
@@ -355,6 +368,7 @@ public class PostService {
         .profileImage_URL(savedPost.getUser().getProfileImageUrl())
         .comment_count(savedPost.getCommentCount())
         .createdAt(savedPost.getCreated_at()) // 수정된 날짜 그대로 반환
+        .updatedAt(savedPost.getUpdatedAt())
         .userId(savedPost.getUser().getId())
         .build();
   }
@@ -375,8 +389,16 @@ public class PostService {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 유저는 삭제 권한이 없습니다. 작성자만 가능합니다.");
     }
 
-    //삭제수행
-    postRepository.deleteById(postId);
+    // 3) S3 이미지 삭제 (있을 경우)
+    if (post.getCommunityImages() != null && !post.getCommunityImages().isEmpty()) {
+      for (String url : post.getCommunityImages()) {
+        s3Manager.deleteObjectByUrl(url);
+      }
+    }
+
+    // 4) 연관 데이터 삭제
+    // - JPA 매핑에 cascade=ALL, orphanRemoval=true가 있으면 아래 한 줄로 모두 정리됩니다.
+    postRepository.delete(post);
   }
 
   /**

@@ -35,6 +35,43 @@ public class AmazonS3Manager {
     return amazonS3.getUrl(amazonConfig.getBucket(), keyName).toString();
   }
 
+  public void deleteObjectByUrl(String url) {
+    try {
+      // 버킷 이름 추출
+      String bucket = amazonConfig.getBucket();
+
+      String key = extractKeyFromUrl(url);
+
+      // key가 비정상일 경우 로그 출력
+      if (key == null || key.isBlank()) {
+        log.warn("S3 삭제 실패: key 추출 불가 (url: {})", url);
+        return;
+      }
+
+      // 삭제
+      amazonS3.deleteObject(bucket, key);
+    } catch (Exception e) {
+      log.error("S3 객체 삭제 중 오류 발생: {}", url, e);
+    }
+  }
+
+  private String extractKeyFromUrl(String fileUrl) {
+    try {
+      // URI로 파싱
+      java.net.URI uri = java.net.URI.create(fileUrl);
+      String path = uri.getPath(); // "/community/uuid123"
+      if (path == null || path.isBlank()) {
+        return null;
+      }
+
+      // 앞의 "/" 제거 후 반환
+      return path.startsWith("/") ? path.substring(1) : path;
+    } catch (Exception e) {
+      log.error("S3 URL 파싱 오류: {}", fileUrl, e);
+      return null;
+    }
+  }
+
   public String generateProfile(Uuid uuid) {
     return amazonConfig.getProfilePath() + '/' + uuid.getUuid();
   }
