@@ -3,9 +3,11 @@ package DC_square.spring.service.community;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.community.Post;
 import DC_square.spring.domain.entity.community.PostLike;
+import DC_square.spring.domain.enums.NotificationType;
 import DC_square.spring.repository.community.PostLikeRepository;
 import DC_square.spring.repository.community.PostRepository;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.service.notification.NotificationService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ public class PostLikeService {
   private final PostLikeRepository postLikeRepository;
   private final PostRepository postRepository;
   private final UserRepository userRepository;
+  private final NotificationService notificationService;
 
   /**
    * 게시글 좋아요 추가 및 취소
@@ -44,6 +47,21 @@ public class PostLikeService {
           .build();
       postLikeRepository.save(newLike);
       post.setLikeCount(post.getLikeCount() + 1);
+
+      // 알림 전송: 본인 글이 아닐 때만
+      if (!post.getUser().getId().equals(userId)) {
+        String message = String.format(
+            "%s님이 '%s' 게시글을 좋아요를 눌렀습니다",
+            user.getNickname() != null ? user.getNickname() : "익명",
+            post.getTitle()
+        );
+        notificationService.sendNotificationAndSave(
+            NotificationType.LIKE,
+            post.getUser(),   // 게시글 작성자에게
+            message
+        );
+      }
+
       return true; // 좋아요 추가됨
     }
   }

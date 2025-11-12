@@ -71,16 +71,14 @@ public class CommentService {
   }
 
   private void sendCommentNotification(User commentWriter, Post post, String commentContent) {
-    String boardName = post.getTitle();
-    String title = boardName;
     String body =
-        commentWriter.getNickname() + "님이 [" + post.getTitle() + "]에 댓글을 남겼습니다. 지금 바로 확인해보세요\n" +
+        commentWriter.getNickname() + "님이 [" + post.getTitle() + "]에 댓글을 남겼습니다. (postId : "
+            + post.getId() + ")" + "\n" +
             commentContent;
 
     notificationService.sendNotificationAndSave(
         NotificationType.COMMENT,
         post.getUser(),
-        title,
         body
     );
   }
