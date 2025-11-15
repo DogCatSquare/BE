@@ -13,7 +13,6 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -98,6 +97,7 @@ public class NotificationService {
       TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
         @Override
         public void afterCommit() {
+          // DB에 성공적으로 저장된 이후에 SSE로 알림 보내기
           sendToAllEmitters(NotificationInfoDto.of(userNotification));
         }
       });
@@ -246,31 +246,6 @@ public class NotificationService {
     }
   }
 
-  /**
-   * 저장 전용(내부 사용)
-   */
-  @Transactional
-  public UserNotification createNotification(User user, NotificationType type, String message) {
-    UserNotification notification = UserNotification.builder()
-        .user(user)
-        .notificationType(type)
-        .content(message)
-        .createdAt(LocalDateTime.now())
-        .isRead(false)
-        .build();
-    return notificationRepository.save(notification);
-  }
-
-  /**
-   * DB → SSE 브로드캐스트(내부)
-   */
-  private void sendNotificationToSse(NotificationInfoDto dto) {
-    Long userId = dto.getUserId();
-    List<SseEmitter> emitters = userEmitters.getOrDefault(userId, List.of());
-    for (SseEmitter emitter : emitters) {
-      sendToEmitter(userId, emitter, dto);
-    }
-  }
 
   /**
    * 구독 직후 미읽음 알림 비동기 전송 - @Async 사용을 위해 @EnableAsync 필요
@@ -339,7 +314,9 @@ public class NotificationService {
   }
 
   /**
-   * 여러 Emitter로 브로드캐스트(성공 여부 반환)
+   * 여러 Emitter로 브로드캐스트(성공 여부 반환) 브로드캐스트 = “같은 알림을, 여러 SSE 연결(여러 기기/탭)에 동시에 뿌리는 것”
+   * sendToAllEmitters() = “그 유저의 모든 SSE 연결로 브로드캐스트하는 함수” -> 이게 필요한 이유는 동일한 사용자가 여러 탭을 띄어놓을 수도 있기
+   * 때문에 한 유저의 여러 SSE 연결(여러기기/탭), 여러 Emitter에 동시에 뿌림 sendToEmitter() = “특정 SSE 연결 하나에만 보내는 함수
    */
   private boolean sendToAllEmitters(NotificationInfoDto dto) {
     Long userId = dto.getUserId();
