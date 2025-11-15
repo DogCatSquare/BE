@@ -346,14 +346,13 @@ public class DdayService {
       User user = dday.getUser(); // D-Day 소유 유저
 
       long daysRemaining = ChronoUnit.DAYS.between(LocalDate.now(KST), reservation.getTargetDate());
-      String title = "주기 알림";
       String body = (daysRemaining == 0)
           ? dday.getTitle() + "디데이입니다"
           : dday.getTitle() + "까지 " + daysRemaining + "일 남았습니다.";
 
       try {
         // 알림 푸시 + 이력 저장을 단일 서비스에 위임 (중복 발송 방지)
-        notificationService.sendNotificationAndSave(NotificationType.DDAY, user, title, body);
+        notificationService.sendNotificationAndSave(NotificationType.DDAY, user, body);
 
         // 발송 성공 → 예약은 SENT
         reservation.setStatus(AlarmStatus.SENT);

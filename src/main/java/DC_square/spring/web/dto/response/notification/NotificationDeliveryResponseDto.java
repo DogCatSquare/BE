@@ -19,7 +19,6 @@ public class NotificationDeliveryResponseDto {
 
   private Long userId;
   private NotificationType notificationType;
-  private String title;
   private String content;
 
   private boolean fcmAttempted;
@@ -29,4 +28,5 @@ public class NotificationDeliveryResponseDto {
 
   private Long notificationId;           // 저장된 알림 이력 PK
   private LocalDateTime createdAt;       // 저장 시각
+  private boolean isRead; // 읽었는지
 }

@@ -2,6 +2,7 @@ package DC_square.spring.domain.entity.notification;
 
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.enums.NotificationType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,11 +41,12 @@ public class UserNotification {
   @Enumerated(EnumType.STRING)
   private NotificationType notificationType;
 
-  private String title;
-
+  @Column(name = "content", nullable = false)
   private String content;
 
   private LocalDateTime createdAt;
+
+  private boolean isRead;
 
   @PrePersist
   public void prePersist() {
