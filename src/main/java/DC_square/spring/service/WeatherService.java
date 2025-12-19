@@ -79,11 +79,18 @@ public class WeatherService {
 
       // 2. API 호출 정보 준비
       LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));  // UTC 시간 문제 해결을 위해
+
+      // 기본은 오늘 날짜(base_date)
       String baseDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-      //  String baseTime = String.format("%02d00", (now.getHour() / 3) * 3);
-      String baseTime = String.format("%02d00",
-          ((now.getHour() >= 23 ? 0 : now.getHour()) / 3) * 3);
+      // 현재 시각 기준으로 API에서 사용 가능한 base_time 계산
+      String baseTime = resolveBaseTime(now);
+
+      // 새벽 02:10 이전이면 baseTime이 2300이 나오는데,
+      //    이때는 "전날 23:00 발표"를 써야 하므로 날짜를 하루 빼야 함
+      if ("2300".equals(baseTime) && now.getHour() < 2) {
+        baseDate = now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+      }
 
       // 3. API 호출
       String url = String.format(
@@ -98,8 +105,7 @@ public class WeatherService {
               "&dataType=JSON",
           1,  // pageNo
           baseDate,
-          // baseTime,
-          "0200",
+          baseTime,
           URLEncoder.encode(serviceKey, StandardCharsets.UTF_8), // authKey  인코딩
           300,  // numOfRows
           user.getDistrict().getCity().getGrid_X(),
@@ -240,4 +246,53 @@ public class WeatherService {
         .min(Comparator.comparing(Dday::getDay)) // 가장 가까운 날짜 선택
         .orElse(null);
   }
+
+  /**
+   * <pre>
+   * 기상청 단기예보 API에서 사용할 수 있는 "가장 최근 발표 시각(base_time)"을 계산한다.
+   *
+   * - 발표 시각: 02:00, 05:00, 08:00, 11:00, 14:00, 17:00, 20:00, 23:00 (하루 8번)
+   * - 보통 발표 후 약 10분 뒤부터 조회 가능하다고 보고(안전하게) 10분 기준으로 보정한다.
+   *   예) 02:10 이후 → base_time=0200 사용 가능
+   *
+   * 이 규칙을 지키지 않으면:
+   * - 데이터 없음 / 에러 응답 / 502 Proxy Error 같은 문제가 발생할 수 있다.
+   * </pre>
+   */
+  private static String resolveBaseTime(LocalDateTime now) {
+
+    // 현재 시각을 HHmm 형태로 변환 (예: 01:35 → 135, 14:20 → 1420)
+    int hhmm = now.getHour() * 100 + now.getMinute();
+
+    // 최신 발표 시각부터 역순으로 체크
+    if (hhmm >= 2310) {
+      return "2300";
+    }
+    if (hhmm >= 2010) {
+      return "2000";
+    }
+    if (hhmm >= 1710) {
+      return "1700";
+    }
+    if (hhmm >= 1410) {
+      return "1400";
+    }
+    if (hhmm >= 1110) {
+      return "1100";
+    }
+    if (hhmm >= 810) {
+      return "0800";
+    }
+    if (hhmm >= 510) {
+      return "0500";
+    }
+    if (hhmm >= 210) {
+      return "0200";
+    }
+
+    // 새벽 02:10 이전에는 오늘 데이터가 아직 없음
+    // → 전날 23:00 발표 데이터를 사용해야 함
+    return "2300";
+  }
+
 }
