@@ -24,8 +24,11 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
- * D-Day 알람 예약 엔티티 (작업 큐) - 한 레코드 = 특정 사용자/디데이/날짜에 대해 '정해진 시각(scheduledAt)'에 보낼 1건의 작업 -
- * AlarmStatus의 PENDING -> SENT/CREATED 로 관리 (중복/재시도 제어)
+ * <pre>
+ * D-Day 알람 예약 엔티티 (작업 큐)
+ * - 한 레코드 = 특정 사용자/디데이/날짜에 대해 '정해진 시각(scheduledAt)'에 보낼 1건의 작업
+ * - AlarmStatus의 PENDING -> SENT/CREATED 로 관리 (중복/재시도 제어)
+ * </pre>
  */
 @Entity
 @Getter
