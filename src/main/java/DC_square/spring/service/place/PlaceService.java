@@ -209,6 +209,15 @@ public class PlaceService {
 
     Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
     Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
+
+    // 공원 타입인 경우 건물 내 주소(층/호) 필터링
+    List<String> types = (List<String>) placeData.get("types");
+    if (types != null && types.contains("park")) {
+      if (isIndoorLocation(detailResult)) {
+        return null;  // 건물 내 주소인 경우 필터링
+      }
+    }
+
     if (existingPlace != null) {
       saveGooglePlaceImages(detailResult, existingPlace);
       return convertToResponseDTO(existingPlace, location);
@@ -923,5 +932,32 @@ public class PlaceService {
         .filter(Map.class::isInstance)
         .map(m -> (Map<String, Object>) m)
         .toList();
+  }
+
+  /**
+   * 건물 내 주소인지 확인 (층/호가 포함된 주소)
+   * Google Place Details의 address_components에서 subpremise 타입 확인
+   */
+  private boolean isIndoorLocation(Map<String, Object> detailResult) {
+    if (detailResult == null) {
+      return false;
+    }
+
+    List<Map<String, Object>> addressComponents =
+        (List<Map<String, Object>>) detailResult.get("address_components");
+
+    if (addressComponents == null) {
+      return false;
+    }
+
+    // address_components에서 subpremise 타입 확인
+    for (Map<String, Object> component : addressComponents) {
+      List<String> componentTypes = (List<String>) component.get("types");
+      if (componentTypes != null && componentTypes.contains("subpremise")) {
+        return true;  // 건물 내 주소 (층/호)
+      }
+    }
+
+    return false;
   }
 }
