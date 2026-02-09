@@ -364,10 +364,11 @@ public class PlaceService {
         return PlaceCategory.HOSPITAL;
       }
       if (types.contains("park")) {
-        return PlaceCategory.PARK;
-      }
-      if (types.contains("pet_store")) {
-        return PlaceCategory.ETC;
+        // 이름에 공원 관련 키워드가 있는 경우만 PARK로 분류
+        if (isParkName(name)) {
+          return PlaceCategory.PARK;
+        }
+        return null; // 공원이 아닌 장소는 제외
       }
     }
 
@@ -390,23 +391,14 @@ public class PlaceService {
       }
     }
 
-    return PlaceCategory.ETC;
-//        String name = ((String) placeData.get("name")).toLowerCase();
-//
-//        if (name.contains("병원") || name.contains("수의") || name.contains("의료")
-//                || name.contains("메디컬") || name.contains("hospital")) {
-//            return PlaceCategory.HOSPITAL;
-//        }
-//        if (name.contains("호텔") || name.contains("hotel")) {
-//            return PlaceCategory.HOTEL;
-//        }
-//        if (name.contains("카페") || name.contains("cafe")) {
-//            return PlaceCategory.CAFE;
-//        }
-//        if (name.contains("공원") || name.contains("운동장") || name.contains("파크") || name.contains("park")) {
-//            return PlaceCategory.PARK;
-//        }
-//        return PlaceCategory.ETC;
+    return null; // 분류 불가한 장소는 제외
+  }
+
+  private boolean isParkName(String name) {
+    List<String> parkKeywords = Arrays.asList(
+        "공원", "파크", "park", "광장", "마당", "근린", "운동장", "놀이터", "둘레길", "산책로", "수목원", "정원", "숲"
+    );
+    return parkKeywords.stream().anyMatch(name::contains);
   }
 
   private PlaceResponseDTO convertToResponseDTO(Place place, LocationRequestDTO location) {

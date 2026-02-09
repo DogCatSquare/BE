@@ -30,7 +30,6 @@ public class GooglePlacesService {
     Map<String, NameValuePair> searchMap = new HashMap<>();
     searchMap.put("veterinary_care", new NameValuePair("veterinary_care", null));  // 동물병원은 타입으로
     searchMap.put("park", new NameValuePair("park", null));                        // 공원은 타입으로
-    searchMap.put("pet_store", new NameValuePair("pet_store", null));             // 펫스토어는 타입으로
     searchMap.put("cafe", new NameValuePair(null, "애견카페"));                    // 애견카페는 키워드로만
     searchMap.put("hotel", new NameValuePair(null, "애견호텔"));
 
@@ -90,8 +89,6 @@ public class GooglePlacesService {
     searchMap.put("veterinary_care",
         new NameValuePair("veterinary_care", keyword));  // 동물병원 타입 + 키워드
     searchMap.put("park", new NameValuePair("park", keyword));                        // 공원 타입 + 키워드
-    searchMap.put("pet_store",
-        new NameValuePair("pet_store", keyword));             // 펫스토어 타입 + 키워드
     searchMap.put("cafe", new NameValuePair(null, "애견카페 " + keyword));           // 애견카페 키워드
     searchMap.put("hotel", new NameValuePair(null, "애견호텔 " + keyword));          // 애견호텔 키워드
 
