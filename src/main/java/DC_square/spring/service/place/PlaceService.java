@@ -219,14 +219,29 @@ public class PlaceService {
     }
 
     if (existingPlace != null) {
+      // ETC 카테고리 제외
+      if (existingPlace.getCategory() == PlaceCategory.ETC) {
+        return null;
+      }
+      // PARK 카테고리인데 이름이 공원 관련이 아니면 제외
+      if (existingPlace.getCategory() == PlaceCategory.PARK
+          && !isParkName(existingPlace.getName().toLowerCase())) {
+        return null;
+      }
       saveGooglePlaceImages(detailResult, existingPlace);
       return convertToResponseDTO(existingPlace, location);
+    }
+
+    // 카테고리 분류 불가한 장소는 제외
+    PlaceCategory category = determinePlaceCategory(placeData);
+    if (category == null) {
+      return null;
     }
 
     String address = (String) detailResult.get("formatted_address");
     Pair<Province, City> regionInfo = extractRegionInfo(address);
 
-    Place newPlace = createPlaceFromGoogleData(placeData, detailResult, regionInfo);
+    Place newPlace = createPlaceFromGoogleData(placeData, detailResult, regionInfo, category);
     Place savedPlace = placeRepository.save(newPlace);
 
     PlaceDetail placeDetail = createPlaceDetail(savedPlace, detailResult);
@@ -238,7 +253,7 @@ public class PlaceService {
   }
 
   private Place createPlaceFromGoogleData(Map<String, Object> placeData,
-      Map<String, Object> detailResult, Pair<Province, City> regionInfo) {
+      Map<String, Object> detailResult, Pair<Province, City> regionInfo, PlaceCategory category) {
     Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
     Map<String, Object> location = (Map<String, Object>) geometry.get("location");
     //Map<String, Object> openingHours = (Map<String, Object>) placeData.get("opening_hours");
@@ -249,7 +264,7 @@ public class PlaceService {
     return Place.builder()
         .name((String) placeData.get("name"))
         .address((String) detailResult.get("formatted_address"))
-        .category(determinePlaceCategory(placeData))
+        .category(category)
         .phoneNumber(phoneNumber)
         .latitude((Double) location.get("lat"))
         .longitude((Double) location.get("lng"))
