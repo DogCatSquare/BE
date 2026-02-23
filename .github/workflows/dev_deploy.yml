@@ -59,9 +59,11 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
-          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}  # 새로 추가된 시크릿
+          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
         shell: bash
         run: |
+          set -euo pipefail
+
           # SSH 키 준비
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -77,21 +79,74 @@ jobs:
           scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" fcm.json \
             "$EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/"
 
-          # 원격 실행
-          ssh -i private_key.pem -o StrictHostKeyChecking=no "$EC2_USERNAME@$EC2_HOST" "
-            # 기존 앱 종료
-            pgrep java | xargs -r kill -15
-            sleep 10
+          # [변경점] 기존에는 nohup(java -jar ... &)으로 백그라운드 실행했지만,
+          # 프로세스가 죽으면 자동 복구가 어려워서 현재 systemd 서비스로 관리합니다.
+          # -> 비정상 종료/OOM 시 systemd 정책으로 자동 재시작됨
+          ssh -i private_key.pem -o StrictHostKeyChecking=no "$EC2_USERNAME@$EC2_HOST" bash -s -- "$jar_name" "$EC2_USERNAME" <<'REMOTE'
+          set -euo pipefail
 
-            # Spring이 읽을 환경변수로 FCM JSON 주입
-            export FCM_SERVICE_ACCOUNT_JSON=\"\$(cat /home/$EC2_USERNAME/fcm.json)\"
+          JAR_NAME="$1"
+          EC2_USER="$2"
+          APP_HOME="/home/${EC2_USER}"
+          JAR_PATH="${APP_HOME}/${JAR_NAME}"
+          CURRENT_JAR_PATH="${APP_HOME}/current-app.jar"
+          ENV_PATH="${APP_HOME}/.dogcatsquare.env"
+          SERVICE_NAME="dogcatsquare.service"
+          SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}"
 
-            # 애플리케이션 실행
-            nohup java -jar /home/$EC2_USERNAME/$jar_name > app.log 2>&1 &
+          # [변경점] 기존 nohup 방식은 배포할 때마다 JAR 파일명을 직접 지정해 실행했는데,
+          # 현재 systemd는 고정 ExecStart 경로를 쓰기 위해 current-app.jar로 덮어씁니다.
+          # 이렇게 하면 서비스 파일은 그대로 두고 새 버전만 안정적으로 교체 가능합니다.
+          cp -f "$JAR_PATH" "$CURRENT_JAR_PATH"
+          chown "$EC2_USER:$EC2_USER" "$CURRENT_JAR_PATH"
 
-            # 민감 파일 즉시 삭제
-            rm -f /home/$EC2_USERNAME/fcm.json
-          "
+          # FCM JSON은 개행/따옴표가 많아 그대로 EnvironmentFile에 넣기 어려워서
+          # 1) 한 줄 JSON으로 압축하고 2) 작은따옴표 escape 후 저장합니다.
+          # [변경점] 재시작 시에도 값이 유지되도록 export 대신 파일 기반 주입으로 전환했습니다.
+          FCM_JSON_COMPACT=$(python3 -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1])), separators=(",",":")))' "${APP_HOME}/fcm.json")
+          FCM_JSON_ESCAPED=$(printf '%s' "$FCM_JSON_COMPACT" | sed "s/'/'\\''/g")
+          printf "FCM_SERVICE_ACCOUNT_JSON='%s'\n" "$FCM_JSON_ESCAPED" > "$ENV_PATH"
+          chown "$EC2_USER:$EC2_USER" "$ENV_PATH"
+          chmod 600 "$ENV_PATH"
+
+          # systemd 유닛 파일을 배포 시점마다 갱신합니다.
+          # [변경점] 기존 nohup 실행은 프로세스 관리자가 없어 죽으면 수동 재기동이 필요했지만,
+          # 현재 유닛의 Restart 정책으로 장애 복구를 자동화합니다.
+          sudo bash -c "cat > ${SERVICE_PATH}" <<SERVICE
+          [Unit]
+          Description=DogcatSquare Spring Boot Application
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=${EC2_USER}
+          WorkingDirectory=${APP_HOME}
+          EnvironmentFile=${ENV_PATH}
+          # -XX:+ExitOnOutOfMemoryError: OOM 발생 시 JVM을 즉시 종료해 hung 상태를 피함
+          # -XX:MaxRAMPercentage=70.0: 인스턴스 메모리 대비 JVM 사용 상한을 둬 OOM 위험 완화
+          # [변경점] 종료를 명시적으로 만들어 systemd 자동 재시작이 확실히 동작하게 함
+          ExecStart=/usr/bin/java -XX:+ExitOnOutOfMemoryError -XX:MaxRAMPercentage=70.0 -jar ${CURRENT_JAR_PATH}
+          SuccessExitStatus=143
+          # 핵심: 이 서비스는 Restart=always, RestartSec=5로 설정되어
+          # 프로세스가 죽으면 5초 뒤 자동 재시작됩니다.
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+          SERVICE
+
+          # daemon-reload: 방금 쓴 유닛 파일 반영
+          # enable: 서버 재부팅 후에도 자동 기동
+          # restart: 새 JAR/설정으로 즉시 재기동
+          # [변경점] 수동 nohup 재실행 대신 표준 서비스 라이프사이클로 전환
+          sudo systemctl daemon-reload
+          sudo systemctl enable "$SERVICE_NAME"
+          sudo systemctl restart "$SERVICE_NAME"
+          sudo systemctl --no-pager --full status "$SERVICE_NAME" | sed -n '1,30p'
+
+          rm -f "${APP_HOME}/fcm.json"
+          REMOTE
 
           # 로컬 임시파일 정리
           rm -f private_key.pem fcm.json
