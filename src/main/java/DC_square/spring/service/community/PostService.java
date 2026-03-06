@@ -114,11 +114,23 @@ public class PostService {
     Post post = postRepository.findById(postId)
         .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
 
-    // 유튜브 영상 ID 추출
+    // 유튜브 영상 ID 추출 (썸네일 URL 생성)
     String thumbnailUrl = null;
     if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
-      String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
-      thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+      String url = post.getVideo_URL();
+      String videoId = null;
+      if (url.contains("v=")) {
+        int start = url.indexOf("v=") + 2;
+        int end = url.indexOf("&", start);
+        videoId = (end == -1) ? url.substring(start) : url.substring(start, end);
+      } else if (url.contains("youtu.be/")) {
+        int start = url.lastIndexOf("/") + 1;
+        int end = url.indexOf("?", start);
+        videoId = (end == -1) ? url.substring(start) : url.substring(start, end);
+      }
+      if (videoId != null) {
+        thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+      }
     }
 
     List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
@@ -129,7 +141,6 @@ public class PostService {
         .boardType(post.getBoard().getBoardType().getDisplayName())
         .title(post.getTitle())
         .content(post.getContent())
-        .content(post.getContent())
         .animal_type(animalType)
         .video_URL(post.getVideo_URL())
         .username(post.getUser().getNickname())
@@ -137,7 +148,6 @@ public class PostService {
         .profileImage_URL(post.getUser().getProfileImageUrl())
         .images(post.getCommunityImages())
         .like_count(post.getLikeCount())
-        .thumbnail_URL(post.getVideo_URL() + "/0.jpg")
         .comment_count(post.getCommentCount())
         .createdAt(post.getCreated_at())
         .updatedAt(post.getUpdatedAt())
@@ -168,8 +178,20 @@ public class PostService {
           // 유튜브 영상 ID 추출 (썸네일 URL 생성)
           String thumbnailUrl = null;
           if (post.getVideo_URL() != null && !post.getVideo_URL().isEmpty()) {
-            String videoId = post.getVideo_URL().substring(post.getVideo_URL().length() - 11);
-            thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+            String url = post.getVideo_URL();
+            String videoId = null;
+            if (url.contains("v=")) {
+              int start = url.indexOf("v=") + 2;
+              int end = url.indexOf("&", start);
+              videoId = (end == -1) ? url.substring(start) : url.substring(start, end);
+            } else if (url.contains("youtu.be/")) {
+              int start = url.lastIndexOf("/") + 1;
+              int end = url.indexOf("?", start);
+              videoId = (end == -1) ? url.substring(start) : url.substring(start, end);
+            }
+            if (videoId != null) {
+              thumbnailUrl = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+            }
           }
 
           List<Pet> pets = post.getUser().getPetList(); // 사용자로부터 반려동물 목록을 가져옴
