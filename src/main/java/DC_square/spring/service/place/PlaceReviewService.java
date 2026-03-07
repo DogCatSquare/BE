@@ -41,8 +41,9 @@ public class PlaceReviewService {
   private final UuidRepository uuidRepository;
   private final JwtTokenProvider jwtTokenProvider;
   private final PlaceReviewReportService placeReviewReportService;
+  private final PlaceService placeService;
 
-  public Long createPlaceReview(PlaceReviewCreateRequestDTO request, Long placeId,
+  public Long createPlaceReview(PlaceReviewCreateRequestDTO request, String googlePlaceId,
       List<MultipartFile> images, String token) {
 
     if (images.isEmpty()) {
@@ -61,8 +62,7 @@ public class PlaceReviewService {
         })
         .collect(Collectors.toList());
 
-    Place place = placeRepository.findById(placeId)
-        .orElseThrow(() -> new RuntimeException("장소를 찾을 수 없습니다."));
+    Place place = placeService.ensurePlaceSaved(googlePlaceId);
 
     PlaceReview placeReview = PlaceReview.builder()
         .user(user)
@@ -75,9 +75,11 @@ public class PlaceReviewService {
     return placeReviewRepository.save(placeReview).getId();
   }
 
-  public PlacePageResponseDTO<PlaceReviewResponseDTO> findPlaceReviews(Long placeId, String token,
-      int page, int size) {
-    List<PlaceReview> placeReviews = placeReviewRepository.findAllByPlaceId(placeId);
+  public PlacePageResponseDTO<PlaceReviewResponseDTO> findPlaceReviews(String googlePlaceId,
+      String token, int page, int size) {
+    Place place = placeRepository.findByGooglePlaceId(googlePlaceId)
+        .orElseThrow(() -> new RuntimeException("장소를 찾을 수 없습니다."));
+    List<PlaceReview> placeReviews = placeReviewRepository.findAllByPlaceId(place.getId());
 
     //신고 기능을 위한 코드
     Long currentUserId = null;
@@ -137,7 +139,7 @@ public class PlaceReviewService {
 //                .collect(Collectors.toList());
   }
 
-  public void deletePlaceReview(Long placeId, Long reviewId, String token) {
+  public void deletePlaceReview(String googlePlaceId, Long reviewId, String token) {
 
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
