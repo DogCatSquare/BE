@@ -74,15 +74,14 @@ public class PlaceController {
 
   // 장소 상세 조회 API
   @Operation(summary = "장소 상세 조회 API")
-  @PostMapping("/{placeId}")
-  public ApiResponse<PlaceDetailResponseDTO> getPlaceById(
-      @PathVariable("placeId") Long placeId,
+  @PostMapping("/{googlePlaceId}")
+  public ApiResponse<PlaceDetailResponseDTO> getPlaceByGoogleId(
+      @PathVariable("googlePlaceId") String googlePlaceId,
       @RequestBody LocationRequestDTO location,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
-    placeService.increaseViewCount(placeId);
-    PlaceDetailResponseDTO place = placeService.findPlaceDetailById(placeId, token, location);
+    PlaceDetailResponseDTO place = placeService.findPlaceDetailByGoogleId(googlePlaceId, token, location);
     return ApiResponse.onSuccess(place);
   }
 
