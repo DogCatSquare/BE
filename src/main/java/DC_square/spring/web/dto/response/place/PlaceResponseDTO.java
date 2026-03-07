@@ -10,7 +10,7 @@ import lombok.Getter;
 
 public class PlaceResponseDTO {
 
-  private Long id;
+  private String googlePlaceId;
   private String name;
   private String address;
   private PlaceCategory category;

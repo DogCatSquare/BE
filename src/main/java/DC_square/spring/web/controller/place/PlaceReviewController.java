@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "PlaceReview", description = "장소 리뷰 관련 API")
 @RestController
-@RequestMapping("/api/places/{placeId}/reviews")
+@RequestMapping("/api/places/{googlePlaceId}/reviews")
 @RequiredArgsConstructor
 public class PlaceReviewController {
 
@@ -37,37 +37,37 @@ public class PlaceReviewController {
       MediaType.IMAGE_JPEG_VALUE})
   public ApiResponse<Long> createPlaceReview(
       @Valid @RequestPart("request") PlaceReviewCreateRequestDTO createDto,
-      @PathVariable("placeId") Long placeId,
+      @PathVariable("googlePlaceId") String googlePlaceId,
       @RequestPart(value = "placeReviewImages") List<MultipartFile> images,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
     return ApiResponse.onSuccess(
-        placeReviewService.createPlaceReview(createDto, placeId, images, token));
+        placeReviewService.createPlaceReview(createDto, googlePlaceId, images, token));
   }
 
   @Operation(summary = "장소 리뷰 전체 조회 API")
   @GetMapping
   public ApiResponse<PlacePageResponseDTO<PlaceReviewResponseDTO>> getReviews(
-      @PathVariable("placeId") Long placeId,
+      @PathVariable("googlePlaceId") String googlePlaceId,
       @RequestParam(defaultValue = "0") int page,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
     PlacePageResponseDTO<PlaceReviewResponseDTO> reviews = placeReviewService.findPlaceReviews(
-        placeId, token, page, 10);
+        googlePlaceId, token, page, 10);
     return ApiResponse.onSuccess(reviews);
   }
 
   @Operation(summary = "장소 리뷰 삭제 API")
   @DeleteMapping("/{reviewId}")
   public ApiResponse<Long> deleteReview(
-      @PathVariable("placeId") Long placeId,
+      @PathVariable("googlePlaceId") String googlePlaceId,
       @PathVariable("reviewId") Long reviewId,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
-    placeReviewService.deletePlaceReview(placeId, reviewId, token);
+    placeReviewService.deletePlaceReview(googlePlaceId, reviewId, token);
     return ApiResponse.onSuccess(reviewId);
   }
 }
