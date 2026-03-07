@@ -2,36 +2,46 @@ package DC_square.spring.service.place;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.domain.entity.place.*;
+import DC_square.spring.domain.entity.place.Place;
+import DC_square.spring.domain.entity.place.PlaceDetail;
+import DC_square.spring.domain.entity.place.PlaceImage;
+import DC_square.spring.domain.entity.place.PlaceReview;
+import DC_square.spring.domain.entity.place.PlaceView;
 import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.Province;
+import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.repository.community.UserRepository;
-import DC_square.spring.repository.place.*;
+import DC_square.spring.repository.place.PlaceDetailRepository;
+import DC_square.spring.repository.place.PlaceRepository;
+import DC_square.spring.repository.place.PlaceReviewRepository;
+import DC_square.spring.repository.place.PlaceViewRepository;
+import DC_square.spring.repository.place.PlaceWishRepository;
+import DC_square.spring.repository.place.ReviewReportRepository;
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
-import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.util.Pair;
-
-import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -72,7 +82,7 @@ public class PlaceService {
 
     List<PlaceResponseDTO> responseDTOs = results.stream()
         //.filter(this::isPetRelatedPlace)
-        .map(result -> saveAndConvertToDTO(result, location))
+        .map(result -> convertGoogleToDTO(result, location))
         .filter(Objects::nonNull)
         .sorted((a, b) -> {
           // 1. 먼저 유사도로 비교
@@ -193,7 +203,7 @@ public class PlaceService {
       return PlacePageResponseDTO.of(new ArrayList<>(), page, size);
     }
     List<PlaceResponseDTO> responseDTOs = results.stream()
-        .map(result -> saveAndConvertToDTO(result, location))
+        .map(result -> convertGoogleToDTO(result, location))
         .filter(Objects::nonNull)
         .sorted(Comparator.comparing(PlaceResponseDTO::getDistance))
         .collect(Collectors.toList());
@@ -201,55 +211,141 @@ public class PlaceService {
     return PlacePageResponseDTO.of(responseDTOs, page, size);
   }
 
-  private PlaceResponseDTO saveAndConvertToDTO(Map<String, Object> placeData,
+  /**
+   * 검색 결과를 DB 저장 없이 DTO로 변환 (DB에 이미 있으면 DB 데이터 사용)
+   */
+  private PlaceResponseDTO convertGoogleToDTO(Map<String, Object> placeData,
       LocationRequestDTO location) {
     String googlePlaceId = (String) placeData.get("place_id");
+    String name = (String) placeData.get("name");
 
-    Place existingPlace = placeRepository.findByGooglePlaceId(googlePlaceId).orElse(null);
-
-    Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
-    Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
-
-    // 공원 타입인 경우 건물 내 주소(층/호) 필터링
-    List<String> types = (List<String>) placeData.get("types");
-    if (types != null && types.contains("park")) {
-      if (isIndoorLocation(detailResult)) {
-        return null;  // 건물 내 주소인 경우 필터링
-      }
-    }
-
-    if (existingPlace != null) {
+    // DB에 이미 있으면 DB 데이터 사용
+    Place existing = placeRepository.findByGooglePlaceId(googlePlaceId).orElse(null);
+    if (existing != null) {
       // ETC 카테고리 제외
-      if (existingPlace.getCategory() == PlaceCategory.ETC) {
+      if (existing.getCategory() == PlaceCategory.ETC) {
         return null;
       }
+
       // PARK 카테고리인데 이름이 공원 관련이 아니면 제외
-      if (existingPlace.getCategory() == PlaceCategory.PARK
-          && !isParkName(existingPlace.getName().toLowerCase())) {
+      if (existing.getCategory() == PlaceCategory.PARK && !isParkName(
+          existing.getName().toLowerCase())) {
         return null;
       }
-      saveGooglePlaceImages(detailResult, existingPlace);
-      return convertToResponseDTO(existingPlace, location);
+      return convertToResponseDTO(existing, location);
     }
 
-    // 카테고리 분류 불가한 장소는 제외
+    // 카테고리 분류 불가 → 제외
     PlaceCategory category = determinePlaceCategory(placeData);
     if (category == null) {
       return null;
     }
+    if (category == PlaceCategory.PARK && !isParkName(name.toLowerCase())) {
+      return null;
+    }
 
-    String address = (String) detailResult.get("formatted_address");
-    Pair<Province, City> regionInfo = extractRegionInfo(address);
+    Map<String, Object> geometry = (Map<String, Object>) placeData.get("geometry");
+    Map<String, Object> loc = (Map<String, Object>) geometry.get("location");
+    double lat = (Double) loc.get("lat");
+    double lng = (Double) loc.get("lng");
 
-    Place newPlace = createPlaceFromGoogleData(placeData, detailResult, regionInfo, category);
-    Place savedPlace = placeRepository.save(newPlace);
+    // 이미지 (Google Nearby/Text Search 결과에서 직접 추출)
+    String imgUrl = null;
+    List<Map<String, Object>> photos = (List<Map<String, Object>>) placeData.get("photos");
+    if (photos != null && !photos.isEmpty()) {
+      String photoRef = (String) photos.get(0).get("photo_reference");
+      Integer width = (Integer) photos.get(0).get("width");
+      imgUrl = googlePlacesService.getPhotoUrl(photoRef, width != null ? width : 400);
+    }
 
-    PlaceDetail placeDetail = createPlaceDetail(savedPlace, detailResult);
-    placeDetailRepository.save(placeDetail);
+    // 영업 여부 (open_now, 없으면 false)
+    boolean openNow = false;
+    Map<String, Object> openingHours = (Map<String, Object>) placeData.get("opening_hours");
+    if (openingHours != null && openingHours.get("open_now") instanceof Boolean) {
+      openNow = (Boolean) openingHours.get("open_now");
+    }
 
-    saveGooglePlaceImages(detailResult, savedPlace);
+    return PlaceResponseDTO.builder()
+        .googlePlaceId(googlePlaceId)
+        .name(name)
+        .address((String) placeData.get("vicinity"))
+        .category(category)
+        .latitude(lat)
+        .longitude(lng)
+        .distance(calculateDistance(location.getLatitude(), location.getLongitude(), lat, lng))
+        .open(openNow)
+        .imgUrl(imgUrl)
+        .reviewCount(0)
+        .keywords(new ArrayList<>())
+        .build();
+  }
 
-    return convertToResponseDTO(savedPlace, location);
+  /**
+   * 장소가 DB에 없으면 Google API로 상세 정보를 가져와 저장하고, 있으면 그대로 반환합니다. 검색 목록에서는 호출하지 않으며, 유저가 실제로 행동(상세 조회 / 찜
+   * / 리뷰)할 때만 호출합니다.
+   */
+  public Place ensurePlaceSaved(String googlePlaceId) {
+    return placeRepository.findByGooglePlaceId(googlePlaceId)
+        .orElseGet(() -> {
+          Map<String, Object> details = googlePlacesService.getPlaceDetails(googlePlaceId);
+          Map<String, Object> detailResult = (Map<String, Object>) details.get("result");
+
+          PlaceCategory category = determinePlaceCategory(detailResult);
+          if (category == null) {
+            // Detail API는 Nearby Search와 types 구성이 달라 "park" 타입이 없을 수 있음
+            // 이름에 공원 키워드가 있고, 음식/숙박 타입이 아닐 때만 PARK로 분류
+            // ("서울광장 고깃집"처럼 광장이 이름에 포함된 식당은 PARK가 되지 않도록 방지)
+            String detailName = (String) detailResult.get("name");
+            List<String> detailTypes = (List<String>) detailResult.get("types");
+            boolean isNotFoodOrLodging = detailTypes == null || (
+                !detailTypes.contains("restaurant") &&
+                !detailTypes.contains("food") &&
+                !detailTypes.contains("cafe") &&
+                !detailTypes.contains("lodging") &&
+                !detailTypes.contains("bar")
+            );
+            if (detailName != null && isParkName(detailName.toLowerCase()) && isNotFoodOrLodging) {
+              category = PlaceCategory.PARK;
+            } else {
+              category = PlaceCategory.ETC;
+            }
+          }
+
+          String address = (String) detailResult.get("formatted_address");
+          Pair<Province, City> regionInfo = extractRegionInfo(address);
+
+          Map<String, Object> geometry = (Map<String, Object>) detailResult.get("geometry");
+          Map<String, Object> loc = (Map<String, Object>) geometry.get("location");
+
+          Place newPlace = Place.builder()
+              .name((String) detailResult.get("name"))
+              .address(address)
+              .category(category)
+              .phoneNumber((String) detailResult.get("formatted_phone_number"))
+              .latitude((Double) loc.get("lat"))
+              .longitude((Double) loc.get("lng"))
+              .googlePlaceId(googlePlaceId)
+              .images(new ArrayList<>())
+              .keywords(new ArrayList<>())
+              .province(regionInfo != null ? regionInfo.getFirst() : null)
+              .city(regionInfo != null ? regionInfo.getSecond() : null)
+              .build();
+
+          Place savedPlace = placeRepository.save(newPlace);
+          placeDetailRepository.save(createPlaceDetail(savedPlace, detailResult));
+          saveGooglePlaceImages(detailResult, savedPlace);
+          return savedPlace;
+        });
+  }
+
+  /**
+   * googlePlaceId 기반 상세 조회 (DB 저장 포함)
+   */
+  public PlaceDetailResponseDTO findPlaceDetailByGoogleId(String googlePlaceId, String token,
+      LocationRequestDTO location) {
+    Place place = ensurePlaceSaved(googlePlaceId);
+    increaseViewCount(place.getId());
+    return findPlaceDetailById(place.getId(), token, location);
   }
 
   private Place createPlaceFromGoogleData(Map<String, Object> placeData,
@@ -434,7 +530,7 @@ public class PlaceService {
       isCurrentlyOpen = isCurrentlyOpenFromBusinessHours(placeDetail.getBusinessHours());
     }
     return PlaceResponseDTO.builder()
-        .id(place.getId())
+        .googlePlaceId(place.getGooglePlaceId())
         .name(place.getName())
         .address(place.getAddress())
         .category(place.getCategory())
@@ -508,7 +604,7 @@ public class PlaceService {
           }
 
           return PlaceResponseDTO.builder()
-              .id(place.getId())
+              .googlePlaceId(place.getGooglePlaceId())
               .name(place.getName())
               //.address(place.getAddress())
               .category(place.getCategory())
@@ -738,7 +834,7 @@ public class PlaceService {
 
     // 2. 장소를 DTO로 변환하고 필터 적용
     List<PlaceResponseDTO> responseDTOs = results.stream()
-        .map(result -> saveAndConvertToDTO(result, location))
+        .map(result -> convertGoogleToDTO(result, location))
         .filter(Objects::nonNull)
         .filter(placeDTO -> {
           // 필터가 적용되지 않은 경우 모든 장소 포함
@@ -746,7 +842,8 @@ public class PlaceService {
             return true;
           }
 
-          Place place = placeRepository.findById(placeDTO.getId()).orElse(null);
+          Place place = placeRepository.findByGooglePlaceId(placeDTO.getGooglePlaceId())
+              .orElse(null);
           if (place == null) {
             return false;
           }
@@ -942,8 +1039,7 @@ public class PlaceService {
   }
 
   /**
-   * 건물 내 주소인지 확인 (층/호가 포함된 주소)
-   * Google Place Details의 address_components에서 subpremise 타입 확인
+   * 건물 내 주소인지 확인 (층/호가 포함된 주소) Google Place Details의 address_components에서 subpremise 타입 확인
    */
   private boolean isIndoorLocation(Map<String, Object> detailResult) {
     if (detailResult == null) {
