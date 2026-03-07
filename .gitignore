@@ -42,3 +42,6 @@ src/main/resources/firebase-service-account.json
 # Git 폴더들 무시
 *.git/
 BE.git/
+
+# 문서 무시
+docs/
