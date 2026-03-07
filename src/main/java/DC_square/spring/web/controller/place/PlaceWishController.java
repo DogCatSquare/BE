@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "PlaceWish", description = "장소 위시리스트 관련 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/wishlist/places/{placeId}")
+@RequestMapping("/api/wishlist/places/{googlePlaceId}")
 public class PlaceWishController {
 
   private final PlaceWishService placeWishService;
@@ -25,11 +25,11 @@ public class PlaceWishController {
   @Operation(summary = "장소 위시리스트 추가 API")
   @PostMapping
   public ApiResponse<Boolean> toggleWish(
-      @PathVariable("placeId") Long placeId,
+      @PathVariable("googlePlaceId") String googlePlaceId,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
-    Boolean isWishId = placeWishService.togglePlaceWish(token, placeId);
+    Boolean isWishId = placeWishService.togglePlaceWish(token, googlePlaceId);
     return ApiResponse.onSuccess(isWishId);
   }
 }

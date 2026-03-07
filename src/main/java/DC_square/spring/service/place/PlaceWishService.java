@@ -29,16 +29,15 @@ public class PlaceWishService {
   private final PlaceService placeService;
 
   // 마이 장소 위시리스트 토글
-  public boolean togglePlaceWish(String token, Long placeId) {
+  public boolean togglePlaceWish(String token, String googlePlaceId) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
         .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
-    Place place = placeRepository.findById(placeId)
-        .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
+    Place place = placeService.ensurePlaceSaved(googlePlaceId);
 
     Optional<PlaceWish> existingWish = placeWishRepository.findByUserIdAndPlaceId(user.getId(),
-        placeId);
+        place.getId());
 
     if (existingWish.isPresent()) {
       placeWishRepository.delete(existingWish.get());
