@@ -787,7 +787,7 @@ public class PlaceService {
         .collect(Collectors.toList());
 
     return PlaceDetailResponseDTO.builder()
-        .id(place.getId())
+        .googlePlaceId(place.getGooglePlaceId())
         .name(place.getName())
         .address(place.getAddress())
         .category(place.getCategory().name())
