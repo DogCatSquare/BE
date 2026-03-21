@@ -77,25 +77,26 @@ jobs:
           printf '%s' "$FCM_SERVICE_ACCOUNT_JSON" > fcm.json
 
           # JAR 파일과 Firebase JSON 파일을 EC2 서버로 전송
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" fcm.json \
+          # JAR 은 current-app.jar 로 직접 덮어씀 (dogcatsquare.service 가 이 파일을 실행)
+          scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" \
+            "$EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/current-app.jar"
+          scp -i private_key.pem -o StrictHostKeyChecking=no fcm.json \
             "$EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/"
 
           # EC2 서버에 SSH 접속해서 아래 명령어들 순서대로 실행
           ssh -i private_key.pem -o StrictHostKeyChecking=no "$EC2_USERNAME@$EC2_HOST" "
-            # 현재 실행 중인 Java 프로세스(기존 앱) 종료
-            pgrep java | xargs -r kill -15
-            sleep 10
-
-            # Firebase JSON 을 환경변수로 주입
-            # application.yml 의 \${FCM_SERVICE_ACCOUNT_JSON:} 가 이 환경변수를 읽어감
-            # → yml 에 직접 값을 넣지 않아도 Spring 이 실행 시점에 환경변수에서 가져옴
-            export FCM_SERVICE_ACCOUNT_JSON=\"\$(cat /home/$EC2_USERNAME/fcm.json)\"
-
-            # Spring Boot 앱 백그라운드 실행 (nohup = 터미널 종료 후에도 계속 실행)
-            nohup java -jar /home/$EC2_USERNAME/$jar_name > app.log 2>&1 &
+            # Firebase JSON 을 .dogcatsquare.env 에 반영
+            # → dogcatsquare.service 가 EnvironmentFile 로 이 파일을 읽어 환경변수를 로드함
+            FCM_VALUE=\$(cat /home/$EC2_USERNAME/fcm.json)
+            sed -i '/^FCM_SERVICE_ACCOUNT_JSON=/d' /home/$EC2_USERNAME/.dogcatsquare.env
+            echo \"FCM_SERVICE_ACCOUNT_JSON='\$FCM_VALUE'\" >> /home/$EC2_USERNAME/.dogcatsquare.env
 
             # 보안을 위해 Firebase JSON 파일 즉시 삭제
             rm -f /home/$EC2_USERNAME/fcm.json
+
+            # systemd 서비스 재시작 (kill/nohup 대신 systemd 로 관리)
+            # → Restart=always 설정으로 이후 재부팅/크래시 시에도 자동 복구됨
+            sudo systemctl restart dogcatsquare
           "
 
           # 로컬(GitHub Actions 러너)에 생성한 임시 파일 정리
