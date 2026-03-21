@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>공지사항 상세</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      padding: 60px 20px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    h2 {
+      font-size: 22px;
+      color: #222;
+    }
+
+    .btn-back {
+      padding: 8px 16px;
+      background: #f0f0f0;
+      color: #555;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-back:hover {
+      background: #e0e0e0;
+    }
+
+    .notice-meta {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .notice-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 10px;
+    }
+
+    .notice-content {
+      font-size: 15px;
+      color: #444;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <a th:href="@{/admin/notices/list}" class="btn-back">← 목록으로</a>
+  </div>
+  <div class="notice-title" th:text="${notice.title}"></div>
+  <div class="notice-meta"
+       th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></div>
+  <div class="notice-content" th:text="${notice.content}"></div>
+</div>
+</body>
+</html>

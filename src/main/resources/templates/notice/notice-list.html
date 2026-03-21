@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>공지사항 목록</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; display: flex; justify-content: center; padding: 60px 20px; }
+        .container { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        h2 { font-size: 22px; color: #222; }
+        .btn-new {
+            padding: 9px 18px; background: #4a90e2; color: #fff;
+            border-radius: 8px; font-size: 14px; font-weight: 600;
+            text-decoration: none; transition: background 0.2s;
+        }
+        .btn-new:hover { background: #357abd; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #f0f4ff; }
+        th { padding: 12px 16px; text-align: left; font-size: 13px; color: #555; font-weight: 600; }
+        td { padding: 14px 16px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0; }
+        tbody tr:hover { background: #fafafa; }
+        .title-link { color: #333; text-decoration: none; }
+        .title-link:hover { color: #4a90e2; text-decoration: underline; }
+        .empty { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>공지사항 목록</h2>
+        <a th:href="@{/admin/notices/new}" class="btn-new">+ 새 공지 작성</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 80px;">번호</th>
+                <th>제목</th>
+                <th style="width: 160px;">작성일</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="notice : ${notices}">
+                <td th:text="${notice.id}"></td>
+                <td><a th:href="@{/admin/notices/{id}(id=${notice.id})}" th:text="${notice.title}" class="title-link"></a></td>
+                <td th:text="${#temporals.format(notice.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(notices)}">
+                <td colspan="3" class="empty">등록된 공지사항이 없습니다.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
