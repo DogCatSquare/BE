@@ -35,7 +35,7 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
-# Redis
+  # Redis
   data:
     redis:
       host: localhost
@@ -89,6 +89,11 @@ weather:
 app:
   fcm:
     service-account-json: ${FCM_SERVICE_ACCOUNT_JSON:}
+
+# 어드민 계정
+admin:
+  username: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}
 
 
 
