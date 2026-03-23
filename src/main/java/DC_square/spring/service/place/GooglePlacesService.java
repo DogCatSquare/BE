@@ -1,13 +1,21 @@
 package DC_square.spring.service.place;
 
 import DC_square.spring.config.GoogleMapsConfig;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.*;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GooglePlacesService {
@@ -15,7 +23,6 @@ public class GooglePlacesService {
   private final GoogleMapsConfig googleMapsConfig;
   private final RestTemplate restTemplate;
   private static final String PLACES_API_BASE_URL = "https://maps.googleapis.com/maps/api/place";
-  private static final String TRANSLATE_API_BASE_URL = "https://translation.googleapis.com/language/translate/v2";
 
   @lombok.Value
   private static class NameValuePair {
@@ -25,6 +32,12 @@ public class GooglePlacesService {
   }
 
   // 근처 장소 검색
+  // 위도/경도를 소수점 2자리로 반올림해서 캐시 키로 사용 (~1km 단위)
+  // nearbyPlaces::3757,12698   →  { "results": [ ... ] }
+  @Cacheable(
+      value = "nearbyPlaces",
+      key = "T(Math).round(#latitude * 100) + ',' + T(Math).round(#longitude * 100)"
+  )
   public Map<String, Object> searchNearbyPlaces(double latitude, double longitude) {
     // 타입과 키워드를 매핑
     Map<String, NameValuePair> searchMap = new HashMap<>();
@@ -55,6 +68,15 @@ public class GooglePlacesService {
 
       String url = builder.build().toUriString();
       Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+      log.info("[NearbySearch] status={}, results={}",
+          response != null ? response.get("status") : "null",
+          response != null && response.get("results") != null
+              ? ((List<?>) response.get("results")).size() : 0);
+      if (response != null && !"OK".equals(response.get("status")) && !"ZERO_RESULTS".equals(
+          response.get("status"))) {
+        log.warn("[NearbySearch] API error: status={}, error_message={}", response.get("status"),
+            response.get("error_message"));
+      }
       if (response != null && response.get("results") != null) {
         List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
         allResults.addAll(results);
@@ -79,9 +101,9 @@ public class GooglePlacesService {
   }
 
   // 키워드로 검색
+  // keywordPlaces::성수   →  { "results": [ ... ] }
+  @Cacheable(value = "keywordPlaces", key = "#keyword")
   public Map<String, Object> searchPlacesByKeyword(String keyword) {
-    // 원본 키워드를 보존하기 위한 변수
-    String originalKeyword = keyword;
     List<Map<String, Object>> allResults = new ArrayList<>();
 
     // 검색 조건 설정
@@ -110,6 +132,19 @@ public class GooglePlacesService {
 
       String url = builder.build().toUriString();
       Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+      /**
+       * 디버깅 로그
+       */
+//      log.info("[TextSearch] query={}, status={}, results={}",
+//          pair.keyword,
+//          response != null ? response.get("status") : "null",
+//          response != null && response.get("results") != null
+//              ? ((List<?>) response.get("results")).size() : 0);
+//      if (response != null && !"OK".equals(response.get("status")) && !"ZERO_RESULTS".equals(
+//          response.get("status"))) {
+//        log.warn("[TextSearch] API error: status={}, error_message={}", response.get("status"),
+//            response.get("error_message"));
+//      }
       if (response != null && response.get("results") != null) {
         List<Map<String, Object>> results = (List<Map<String, Object>>) response.get("results");
         // 결과를 필터링하여 추가
