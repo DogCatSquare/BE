@@ -19,7 +19,6 @@ jobs:
 
       # GitHub Secret APPLICATION_YML 에 저장된 application.yml 내용을 파일로 생성
       # → DB URL, JWT 시크릿 등 실제 값이 이미 채워진 yml 이 빌드에 포함됨
-      # → Firebase JSON 은 너무 길어서 yml 에 넣지 않고 아래 deploy 단계에서 별도로 주입
       - name: Make application.yml
         env:
           APP_YML: ${{ secrets.APPLICATION_YML }}
@@ -58,10 +57,9 @@ jobs:
         env:
           # secrets 에 저장된 값은 쉘 스크립트에서 바로 쓸 수 없음
           # env 로 등록해야 아래 run 블록에서 $변수명 으로 사용 가능
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}                          # EC2 접속용 .pem 키 파일 내용
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}                        # EC2 로그인 유저명 (ubuntu)
-          EC2_HOST: ${{ secrets.EC2_HOST }}                                # EC2 IP 주소 (3.39.188.10)
-          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }} # Firebase 서비스 계정 JSON
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}       # EC2 접속용 .pem 키 파일 내용
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}     # EC2 로그인 유저명 (ubuntu)
+          EC2_HOST: ${{ secrets.EC2_HOST }}             # EC2 IP 주소
         shell: bash
         run: |
           # .pem 키 파일 생성 후 권한 설정 (600 = 본인만 읽기 가능, SSH 요구사항)
@@ -70,34 +68,21 @@ jobs:
 
           # plain.jar 제외하고 실제 실행 가능한 JAR 파일 경로 찾기
           jar_file=$(find build/libs -name '*.jar' ! -name '*plain.jar' | head -n 1)
-          jar_name=$(basename "$jar_file")
 
-          # Firebase JSON 을 임시 파일로 저장
-          # → yml 에 넣지 않고 파일로 EC2 에 전송 후 환경변수로 주입할 예정
-          printf '%s' "$FCM_SERVICE_ACCOUNT_JSON" > fcm.json
-
-          # JAR 파일과 Firebase JSON 파일을 EC2 서버로 전송
-          # JAR 은 current-app.jar 로 직접 덮어씀 (dogcatsquare.service 가 이 파일을 실행)
+          # JAR을 current-app.jar 로 직접 덮어씀 (dogcatsquare.service 가 이 파일을 실행)
           scp -i private_key.pem -o StrictHostKeyChecking=no "$jar_file" \
             "$EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/current-app.jar"
-          scp -i private_key.pem -o StrictHostKeyChecking=no fcm.json \
-            "$EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/"
 
-          # EC2 서버에 SSH 접속해서 아래 명령어들 순서대로 실행
-          ssh -i private_key.pem -o StrictHostKeyChecking=no "$EC2_USERNAME@$EC2_HOST" "
-            # Firebase JSON 을 .dogcatsquare.env 에 반영
-            # → dogcatsquare.service 가 EnvironmentFile 로 이 파일을 읽어 환경변수를 로드함
-            FCM_VALUE=\$(cat /home/$EC2_USERNAME/fcm.json)
-            sed -i '/^FCM_SERVICE_ACCOUNT_JSON=/d' /home/$EC2_USERNAME/.dogcatsquare.env
-            echo \"FCM_SERVICE_ACCOUNT_JSON='\$FCM_VALUE'\" >> /home/$EC2_USERNAME/.dogcatsquare.env
+          ssh -i private_key.pem -o StrictHostKeyChecking=no "$EC2_USERNAME@$EC2_HOST" '
+            # 8080 포트를 점유 중인 기존 프로세스 강제 종료 (구버전 nohup 프로세스 정리)
+            PIDS=$(sudo lsof -t -i:8080)
+            if [ -n "$PIDS" ]; then
+              sudo kill -9 $PIDS
+            fi
 
-            # 보안을 위해 Firebase JSON 파일 즉시 삭제
-            rm -f /home/$EC2_USERNAME/fcm.json
-
-            # systemd 서비스 재시작 (kill/nohup 대신 systemd 로 관리)
-            # → Restart=always 설정으로 이후 재부팅/크래시 시에도 자동 복구됨
+            # systemd 서비스 재시작
             sudo systemctl restart dogcatsquare
-          "
+          '
 
           # 로컬(GitHub Actions 러너)에 생성한 임시 파일 정리
-          rm -f private_key.pem fcm.json
+          rm -f private_key.pem
