@@ -74,12 +74,6 @@ jobs:
             "$EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/current-app.jar"
 
           ssh -i private_key.pem -o StrictHostKeyChecking=no "$EC2_USERNAME@$EC2_HOST" '
-            # 8080 포트를 점유 중인 기존 프로세스 강제 종료 (구버전 nohup 프로세스 정리)
-            PIDS=$(sudo lsof -t -i:8080)
-            if [ -n "$PIDS" ]; then
-              sudo kill -9 $PIDS
-            fi
-
             # systemd 서비스 재시작
             sudo systemctl restart dogcatsquare
           '
