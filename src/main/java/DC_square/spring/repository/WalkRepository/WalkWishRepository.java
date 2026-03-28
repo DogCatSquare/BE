@@ -1,6 +1,7 @@
 package DC_square.spring.repository.WalkRepository;
 
 import DC_square.spring.domain.entity.User;
+import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkWish;
 import java.util.List;
@@ -14,4 +15,6 @@ public interface WalkWishRepository extends JpaRepository<WalkWish, Long> {
   List<WalkWish> findByUserAndIsWished(User user, boolean isWished);
 
   Optional<WalkWish> findByUserAndWalk(User user, Walk walk);
+
+  List<WalkWish> findByUserAndPlaceAndIsWished(User user, Place place, boolean isWished);
 }

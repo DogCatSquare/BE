@@ -3,6 +3,7 @@ package DC_square.spring.service.WalkService;
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
+import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkWish;
 import DC_square.spring.domain.enums.Special;
@@ -10,6 +11,7 @@ import DC_square.spring.repository.PetRepository;
 import DC_square.spring.repository.WalkRepository.WalkRepository;
 import DC_square.spring.repository.WalkRepository.WalkWishRepository;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkWishResponseDto;
 import java.util.List;
@@ -26,8 +28,9 @@ public class WalkWishService {
   private final UserRepository userRepository;
   private final PetRepository petRepository;
   private final JwtTokenProvider jwtTokenProvider;
+  private final PlaceRepository placeRepository;
 
-  public WalkWishResponseDto addWalkWish(String token, Long walkId) {
+  public WalkWishResponseDto addWalkWish(String token, Long walkId, String googlePlaceId) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
         .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -35,11 +38,14 @@ public class WalkWishService {
     Walk walk = walkRepository.findById(walkId)
         .orElseThrow(() -> new RuntimeException("산책로를 찾을 수 없습니다."));
 
+    Place place = placeRepository.findByGooglePlaceId(googlePlaceId)
+        .orElseThrow(() -> new RuntimeException("장소를 찾을 수 없습니다."));
+
     if (walkWishRepository.existsByUserAndWalk(user, walk)) {
       throw new RuntimeException("이미 위시리스트에 추가된 산책로입니다.");
     }
 
-    WalkWish walkWish = new WalkWish(user, walk, true);
+    WalkWish walkWish = new WalkWish(user, walk, place, true);
     walkWishRepository.save(walkWish);
 
     return WalkWishResponseDto.builder()
