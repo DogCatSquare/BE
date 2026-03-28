@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,10 +33,11 @@ public class WalkWishController {
   @PostMapping("/{walkId}")
   public ApiResponse<String> addWishlist(
       @PathVariable Long walkId,
+      @RequestParam String googlePlaceId,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
-    walkWishService.addWalkWish(token, walkId);
+    walkWishService.addWalkWish(token, walkId, googlePlaceId);
     return ApiResponse.onSuccess("위시리스트에 추가되었습니다.");
   }
 
