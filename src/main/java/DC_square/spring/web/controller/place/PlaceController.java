@@ -10,6 +10,7 @@ import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
 import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
+import DC_square.spring.web.dto.response.place.PlaceWishResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -88,13 +89,12 @@ public class PlaceController {
   // 마이 위시 장소 조회 API
   @Operation(summary = "마이 위시 장소 조회 API")
   @PostMapping("/wishlist")
-  public ApiResponse<List<PlaceResponseDTO>> getWishList(
+  public ApiResponse<List<PlaceWishResponseDto>> getWishList(
       HttpServletRequest request,
       @RequestBody LocationRequestDTO location
   ) {
     String token = jwtTokenProvider.resolveToken(request);
-    List<PlaceResponseDTO> places = placeService.findWishList(token, location);
-    return ApiResponse.onSuccess(places);
+    return ApiResponse.onSuccess(placeService.findWishList(token, location));
   }
 
   // 지역별 핫 플레이스 조회 API

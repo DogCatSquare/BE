@@ -1,6 +1,7 @@
 package DC_square.spring.domain.entity.walk;
 
 import DC_square.spring.domain.entity.User;
+import DC_square.spring.domain.entity.place.Place;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -30,11 +31,16 @@ public class WalkWish {
   @JoinColumn(name = "walk_id")
   private Walk walk;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "place_id")
+  private Place place;
+
   private boolean isWished;
 
-  public WalkWish(User user, Walk walk, boolean isWished) {
+  public WalkWish(User user, Walk walk, Place place, boolean isWished) {
     this.user = user;
     this.walk = walk;
+    this.place = place;
     this.isWished = isWished;
   }
 }

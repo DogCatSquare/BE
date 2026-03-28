@@ -11,6 +11,8 @@ import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.Province;
 import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.domain.entity.walk.WalkWish;
+import DC_square.spring.repository.WalkRepository.WalkWishRepository;
 import DC_square.spring.repository.place.PlaceDetailRepository;
 import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.repository.place.PlaceReviewRepository;
@@ -24,6 +26,7 @@ import DC_square.spring.web.dto.response.place.PlaceDetailResponseDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
+import DC_square.spring.web.dto.response.place.PlaceWishResponseDto;
 import jakarta.persistence.EntityManager;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -54,6 +57,7 @@ public class PlaceService {
   private final PlaceReviewRepository placeReviewRepository;
   private final GooglePlacesService googlePlacesService;
   private final PlaceWishRepository placeWishRepository;
+  private final WalkWishRepository walkWishRepository;
   private final JwtTokenProvider jwtTokenProvider;
   private final UserRepository userRepository;
   private final EntityManager em;
@@ -566,7 +570,7 @@ public class PlaceService {
   }
 
   // 위시리스트 조회
-  public List<PlaceResponseDTO> findWishList(String token, LocationRequestDTO location) {
+  public List<PlaceWishResponseDto> findWishList(String token, LocationRequestDTO location) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
         .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
@@ -578,7 +582,39 @@ public class PlaceService {
     List<Place> places = placeRepository.findAllById(placeIds);
 
     return places.stream()
-        .map(place -> convertToResponseDTO(place, location))
+        .map(place -> {
+          PlaceResponseDTO base = convertToResponseDTO(place, location);
+
+          List<PlaceWishResponseDto.WalkDto> walks = new ArrayList<>();
+          if (place.getCategory() == PlaceCategory.PARK) {
+            List<WalkWish> walkWishes = walkWishRepository.findByUserAndPlaceAndIsWished(user, place, true);
+            walks = walkWishes.stream()
+                .map(ww -> PlaceWishResponseDto.WalkDto.builder()
+                    .walkId(ww.getWalk().getId())
+                    .title(ww.getWalk().getTitle())
+                    .distance(ww.getWalk().getDistance())
+                    .time(ww.getWalk().getTime())
+                    .walkImageUrl(ww.getWalk().getWalkImageUrl())
+                    .build())
+                .collect(Collectors.toList());
+          }
+
+          return PlaceWishResponseDto.builder()
+              .googlePlaceId(base.getGooglePlaceId())
+              .name(base.getName())
+              .address(base.getAddress())
+              .category(base.getCategory())
+              .phoneNumber(base.getPhoneNumber())
+              .longitude(base.getLongitude())
+              .latitude(base.getLatitude())
+              .distance(base.getDistance())
+              .open(base.getOpen())
+              .imgUrl(base.getImgUrl())
+              .reviewCount(base.getReviewCount())
+              .keywords(base.getKeywords())
+              .walks(walks)
+              .build();
+        })
         .collect(Collectors.toList());
   }
 
