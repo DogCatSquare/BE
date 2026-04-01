@@ -1,11 +1,11 @@
-package DC_square.spring.service.WalkService;
+package DC_square.spring.service.walk;
 
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.walk.WalkReview;
 import DC_square.spring.domain.entity.walk.WalkReviewLike;
-import DC_square.spring.repository.WalkRepository.WalkReviewLikeRepository;
-import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.repository.walk.WalkReviewLikeRepository;
+import DC_square.spring.repository.walk.WalkReviewRepository;
 import DC_square.spring.web.dto.request.walk.WalkReviewLikeRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewLikeResponseDto;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package DC_square.spring.web.controller.walk;
 
-import DC_square.spring.service.WalkService.ReverseGeocodingService;
+import DC_square.spring.service.walk.ReverseGeocodingService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;

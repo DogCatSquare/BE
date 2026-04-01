@@ -1,7 +1,7 @@
 package DC_square.spring.web.controller.walk;
 
 import DC_square.spring.apiPayload.ApiResponse;
-import DC_square.spring.service.WalkService.WalkReviewLikeService;
+import DC_square.spring.service.walk.WalkReviewLikeService;
 import DC_square.spring.web.dto.request.walk.WalkReviewLikeRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewLikeResponseDto;
 import io.swagger.v3.oas.annotations.Operation;

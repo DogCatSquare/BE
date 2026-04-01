@@ -1,4 +1,4 @@
-package DC_square.spring.service.WalkService;
+package DC_square.spring.service.walk;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.Pet;
@@ -8,10 +8,10 @@ import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkWish;
 import DC_square.spring.domain.enums.Special;
 import DC_square.spring.repository.PetRepository;
-import DC_square.spring.repository.WalkRepository.WalkRepository;
-import DC_square.spring.repository.WalkRepository.WalkWishRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceRepository;
+import DC_square.spring.repository.walk.WalkRepository;
+import DC_square.spring.repository.walk.WalkWishRepository;
 import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkWishResponseDto;
 import java.util.List;

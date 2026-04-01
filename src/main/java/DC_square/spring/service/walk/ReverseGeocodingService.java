@@ -1,4 +1,4 @@
-package DC_square.spring.service.WalkService;
+package DC_square.spring.service.walk;
 
 import DC_square.spring.config.GoogleMapsConfig;
 import DC_square.spring.web.dto.response.walk.GeocodingResponse;

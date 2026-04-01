@@ -1,4 +1,4 @@
-package DC_square.spring.repository.WalkRepository;
+package DC_square.spring.repository.walk;
 
 import DC_square.spring.domain.entity.walk.WalkSpecial;
 import org.springframework.data.jpa.repository.JpaRepository;
