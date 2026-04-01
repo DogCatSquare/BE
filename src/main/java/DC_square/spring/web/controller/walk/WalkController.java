@@ -2,8 +2,10 @@ package DC_square.spring.web.controller.walk;
 
 import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.config.jwt.JwtTokenProvider;
-import DC_square.spring.service.WalkService.WalkService;
+import DC_square.spring.service.walk.WalkReportService;
+import DC_square.spring.service.walk.WalkService;
 import DC_square.spring.web.dto.request.walk.WalkCreateRequestDto;
+import DC_square.spring.web.dto.request.walk.WalkReportRequestDto;
 import DC_square.spring.web.dto.request.walk.WalkRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkCreateResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkDetailResponseDto;
@@ -35,6 +37,7 @@ public class WalkController {
 
   private final WalkService walkService;
   private final JwtTokenProvider jwtTokenProvider;
+  private final WalkReportService walkReportService;
 
   @Operation(summary = "산책로 목록 조회 api", description = "산책로 목록을 조회하는 API입니다.")
   @ApiResponses({
@@ -108,5 +111,22 @@ public class WalkController {
   @GetMapping("/walks/search")
   public WalkResponseDto searchWalks(@RequestParam String title) {
     return walkService.searchWalks(title);
+  }
+
+  @Operation(summary = "산책로 신고 API", description = "특정 산책로를 신고하는 API입니다.")
+  @ApiResponses({
+      @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 신고 성공"),
+      @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "산책로를 찾을 수 없음"),
+      @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON401", description = "로그인 필요")
+  })
+  @PostMapping("/walks/{walkId}/report")
+  public ApiResponse<Void> reportWalk(
+      @PathVariable Long walkId,
+      @RequestBody WalkReportRequestDto requestDto,
+      HttpServletRequest request
+  ) {
+    String token = jwtTokenProvider.resolveToken(request);
+    walkReportService.reportWalk(walkId, requestDto, token);
+    return ApiResponse.onSuccess(null, "산책로 신고가 완료되었습니다.");
   }
 }
