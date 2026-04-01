@@ -2,9 +2,9 @@ package DC_square.spring.service;
 
 import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
-import DC_square.spring.repository.WalkRepository.WalkReviewRepository;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceReviewRepository;
+import DC_square.spring.repository.walk.WalkReviewRepository;
 import DC_square.spring.web.dto.response.ReviewResponseDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import java.util.ArrayList;

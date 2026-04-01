@@ -1,5 +1,6 @@
 package DC_square.spring.service.place;
 
+import DC_square.spring.annotation.CheckAccountStop;
 import DC_square.spring.config.S3.AmazonS3Manager;
 import DC_square.spring.config.S3.Uuid;
 import DC_square.spring.config.S3.UuidRepository;
@@ -7,7 +8,6 @@ import DC_square.spring.config.jwt.JwtTokenProvider;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.place.Place;
 import DC_square.spring.domain.entity.place.PlaceReview;
-//import DC_square.spring.domain.entity.place.PlaceReviewImage;
 import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.repository.place.PlaceReviewLikeRepository;
@@ -16,17 +16,15 @@ import DC_square.spring.web.dto.request.place.PlaceReviewCreateRequestDTO;
 import DC_square.spring.web.dto.response.place.PlacePageResponseDTO;
 import DC_square.spring.web.dto.response.place.PlaceReviewResponseDTO;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -43,6 +41,7 @@ public class PlaceReviewService {
   private final PlaceReviewReportService placeReviewReportService;
   private final PlaceService placeService;
 
+  @CheckAccountStop
   public Long createPlaceReview(PlaceReviewCreateRequestDTO request, String googlePlaceId,
       List<MultipartFile> images, String token) {
 

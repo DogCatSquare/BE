@@ -1,5 +1,6 @@
 package DC_square.spring.service.community;
 
+import DC_square.spring.annotation.CheckAccountStop;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.community.Post;
 import DC_square.spring.domain.entity.community.PostLike;
@@ -26,6 +27,7 @@ public class PostLikeService {
   /**
    * 게시글 좋아요 추가 및 취소
    */
+  @CheckAccountStop
   public boolean toggleLike(Long postId, Long userId) {
     Post post = postRepository.findById(postId)
         .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));

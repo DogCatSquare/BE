@@ -1,5 +1,6 @@
 package DC_square.spring.service.community;
 
+import DC_square.spring.annotation.CheckAccountStop;
 import DC_square.spring.config.S3.AmazonS3Manager;
 import DC_square.spring.config.S3.Uuid;
 import DC_square.spring.config.S3.UuidRepository;
@@ -41,6 +42,7 @@ public class PostService {
   /**
    * 게시글 생성 API
    */
+  @CheckAccountStop
   public PostResponseDto createPost(List<MultipartFile> images, PostRequestDto postRequestDto,
       Long userId) {
 
@@ -318,6 +320,7 @@ public class PostService {
   /**
    * 게시글 수정 API
    */
+  @CheckAccountStop
   public PostResponseDto updatePost(Long postId, @Valid UpdatePostRequestDto postRequestDto,
       List<MultipartFile> newImages, Long currentUserId) {
     // 기존 게시글 조회

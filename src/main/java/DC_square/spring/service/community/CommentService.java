@@ -1,5 +1,6 @@
 package DC_square.spring.service.community;
 
+import DC_square.spring.annotation.CheckAccountStop;
 import DC_square.spring.domain.entity.Pet;
 import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.community.Comment;
@@ -31,6 +32,7 @@ public class CommentService {
   /**
    * 댓글 생성 API
    */
+  @CheckAccountStop
   public CommentResponseDto createComment(Long postId, Long userId,
       CommentRequestDto commentRequestDto) {
     Post post = postRepository.findById(postId)

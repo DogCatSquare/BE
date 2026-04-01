@@ -9,16 +9,16 @@ import DC_square.spring.domain.entity.place.PlaceReview;
 import DC_square.spring.domain.entity.place.PlaceView;
 import DC_square.spring.domain.entity.region.City;
 import DC_square.spring.domain.entity.region.Province;
+import DC_square.spring.domain.entity.walk.WalkWish;
 import DC_square.spring.domain.enums.PlaceCategory;
 import DC_square.spring.repository.community.UserRepository;
-import DC_square.spring.domain.entity.walk.WalkWish;
-import DC_square.spring.repository.WalkRepository.WalkWishRepository;
 import DC_square.spring.repository.place.PlaceDetailRepository;
 import DC_square.spring.repository.place.PlaceRepository;
 import DC_square.spring.repository.place.PlaceReviewRepository;
 import DC_square.spring.repository.place.PlaceViewRepository;
 import DC_square.spring.repository.place.PlaceWishRepository;
 import DC_square.spring.repository.place.ReviewReportRepository;
+import DC_square.spring.repository.walk.WalkWishRepository;
 import DC_square.spring.web.dto.request.place.LocationRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceCreateRequestDTO;
 import DC_square.spring.web.dto.request.place.PlaceUserInfoUpdateDTO;
@@ -303,10 +303,10 @@ public class PlaceService {
             List<String> detailTypes = (List<String>) detailResult.get("types");
             boolean isNotFoodOrLodging = detailTypes == null || (
                 !detailTypes.contains("restaurant") &&
-                !detailTypes.contains("food") &&
-                !detailTypes.contains("cafe") &&
-                !detailTypes.contains("lodging") &&
-                !detailTypes.contains("bar")
+                    !detailTypes.contains("food") &&
+                    !detailTypes.contains("cafe") &&
+                    !detailTypes.contains("lodging") &&
+                    !detailTypes.contains("bar")
             );
             if (detailName != null && isParkName(detailName.toLowerCase()) && isNotFoodOrLodging) {
               category = PlaceCategory.PARK;
@@ -587,7 +587,8 @@ public class PlaceService {
 
           List<PlaceWishResponseDto.WalkDto> walks = new ArrayList<>();
           if (place.getCategory() == PlaceCategory.PARK) {
-            List<WalkWish> walkWishes = walkWishRepository.findByUserAndPlaceAndIsWished(user, place, true);
+            List<WalkWish> walkWishes = walkWishRepository.findByUserAndPlaceAndIsWished(user,
+                place, true);
             walks = walkWishes.stream()
                 .map(ww -> PlaceWishResponseDto.WalkDto.builder()
                     .walkId(ww.getWalk().getId())
