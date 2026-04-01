@@ -23,7 +23,7 @@ public class WalkReviewReportService {
   private final JwtTokenProvider jwtTokenProvider;
 
   private static final int STOP_TRIGGER_COUNT = 1; // 몇 회 신고 시 정지할지
-  private static final int STOP_DAYS = 7; // 정지 기간 (일)
+  private static final int STOP_DAYS = 1; // 정지 기간 (일) [테스트로 1일로 설정, 원래 7일]
 
   @Transactional
   public void reportWalkReview(Long walkId, Long reviewId,
