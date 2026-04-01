@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -76,4 +77,11 @@ public class User {
   private String profileImageUrl;
 
   private String fcmToken;
+
+  @Column(name = "account_stop_end_at")
+  private LocalDateTime accountStopEndAt; // 계정 정지 종료 시각 (null이면 정지 아님)
+
+  @Column(name = "received_report_count", nullable = false)
+  @Builder.Default
+  private Integer receivedReportCount = 0; // 신고 받은 횟수
 }
