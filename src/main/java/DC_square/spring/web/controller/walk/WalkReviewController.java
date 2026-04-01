@@ -2,8 +2,10 @@ package DC_square.spring.web.controller.walk;
 
 import DC_square.spring.apiPayload.ApiResponse;
 import DC_square.spring.config.jwt.JwtTokenProvider;
-import DC_square.spring.service.WalkService.WalkReviewService;
+import DC_square.spring.service.walk.WalkReviewReportService;
+import DC_square.spring.service.walk.WalkReviewService;
 import DC_square.spring.web.dto.request.walk.WalkReviewCreateRequestDto;
+import DC_square.spring.web.dto.request.walk.WalkReviewReportRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +34,7 @@ public class WalkReviewController {
 
   private final WalkReviewService walkReviewService;
   private final JwtTokenProvider jwtTokenProvider;
+  private final WalkReviewReportService walkReviewReportService;
 
   @Operation(summary = "산책로 후기 등록 API", description = "특정 산책로에 대한 후기를 등록하는 API입니다.")
   @ApiResponses({
@@ -84,5 +88,23 @@ public class WalkReviewController {
   ) {
     WalkReviewResponseDto walkReviewResponseDto = walkReviewService.viewWalkReviewList(walkId);
     return ApiResponse.onSuccess(walkReviewResponseDto);
+  }
+
+  @Operation(summary = "산책로 후기 신고 API", description = "특정 산책로 후기를 신고하는 API입니다.")
+  @ApiResponses({
+      @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 신고 성공"),
+      @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON404", description = "후기를 찾을 수 없음"),
+      @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON401", description = "로그인 필요")
+  })
+  @PostMapping("/{reviewId}/report")
+  public ApiResponse<Void> reportWalkReview(
+      @PathVariable Long walkId,
+      @PathVariable Long reviewId,
+      @RequestBody WalkReviewReportRequestDto requestDto,
+      HttpServletRequest request
+  ) {
+    String token = jwtTokenProvider.resolveToken(request);
+    walkReviewReportService.reportWalkReview(walkId, reviewId, requestDto, token);
+    return ApiResponse.onSuccess(null, "후기 신고가 완료되었습니다.");
   }
 }
