@@ -1,5 +1,6 @@
-package DC_square.spring.service.WalkService;
+package DC_square.spring.service.walk;
 
+import DC_square.spring.annotation.CheckAccountStop;
 import DC_square.spring.config.S3.AmazonS3Manager;
 import DC_square.spring.config.S3.Uuid;
 import DC_square.spring.config.S3.UuidRepository;
@@ -11,9 +12,9 @@ import DC_square.spring.domain.entity.walk.Walk;
 import DC_square.spring.domain.entity.walk.WalkSpecial;
 import DC_square.spring.domain.enums.Special;
 import DC_square.spring.repository.PetRepository;
-import DC_square.spring.repository.WalkRepository.WalkRepository;
-import DC_square.spring.repository.WalkRepository.WalkSpecialRepository;
 import DC_square.spring.repository.community.UserRepository;
+import DC_square.spring.repository.walk.WalkRepository;
+import DC_square.spring.repository.walk.WalkSpecialRepository;
 import DC_square.spring.web.dto.request.walk.WalkCreateRequestDto;
 import DC_square.spring.web.dto.request.walk.WalkRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkCreateResponseDto;
@@ -157,6 +158,7 @@ public class WalkService {
   }
 
 
+  @CheckAccountStop
   public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, String token,
       List<MultipartFile> images) {
     if (images.isEmpty()) {
