@@ -64,6 +64,15 @@ public class Walk {
   @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<WalkSpecial> specials = new ArrayList<>();
 
+  @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<WalkReview> walkReviews = new ArrayList<>();
+
+  @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<WalkWish> walkWishes = new ArrayList<>();
+
+  @OneToMany(mappedBy = "walk", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<WalkReport> walkReports = new ArrayList<>();
+
   @ElementCollection
   @CollectionTable(
       name = "walk_images",

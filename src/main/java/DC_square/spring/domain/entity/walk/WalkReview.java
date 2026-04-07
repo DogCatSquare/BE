@@ -1,6 +1,7 @@
 package DC_square.spring.domain.entity.walk;
 
 import DC_square.spring.domain.entity.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -11,8 +12,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +52,12 @@ public class WalkReview {
   )
   @Column(name = "image_url")
   private List<String> walkReviewImageUrl;
+
+  @OneToMany(mappedBy = "walkReview", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<WalkReviewLike> walkReviewLikes = new ArrayList<>();
+
+  @OneToMany(mappedBy = "walkReview", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<WalkReviewReport> walkReviewReports = new ArrayList<>();
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "walk_id", nullable = false)

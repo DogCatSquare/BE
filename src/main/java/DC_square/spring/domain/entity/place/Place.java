@@ -97,6 +97,15 @@ public class Place {
   @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<PlaceImage> images = new ArrayList<>();
 
+  @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<PlaceReview> placeReviews = new ArrayList<>();
+
+  @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<PlaceWish> placeWishes = new ArrayList<>();
+
+  @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<PlaceView> placeViews = new ArrayList<>();
+
   @ElementCollection
   @CollectionTable(
       name = "place_keywords",
