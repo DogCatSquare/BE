@@ -9,7 +9,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,6 +34,18 @@ public class MyReviewController {
     String token = jwtTokenProvider.resolveToken(request);
     PlacePageResponseDTO<ReviewResponseDTO> reviews = myReviewService.getMyReviews(token, page, 10);
     return ApiResponse.onSuccess(reviews);
+  }
+
+  @Operation(summary = "마이 리뷰 삭제 API", description = "type: place(장소 리뷰) 또는 walk(산책로 리뷰)")
+  @DeleteMapping("/{reviewId}")
+  public ApiResponse<Void> deleteMyReview(
+      HttpServletRequest request,
+      @PathVariable Long reviewId,
+      @RequestParam String type
+  ) {
+    String token = jwtTokenProvider.resolveToken(request);
+    myReviewService.deleteReview(token, reviewId, type);
+    return ApiResponse.onSuccess(null);
   }
 
 }

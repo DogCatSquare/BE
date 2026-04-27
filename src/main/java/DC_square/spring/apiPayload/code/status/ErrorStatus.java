@@ -29,6 +29,11 @@ public enum ErrorStatus implements BaseErrorCode {
   // 예시,,,
   ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다."),
 
+  // 리뷰 관련 에러
+  REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW4001", "리뷰를 찾을 수 없습니다."),
+  REVIEW_UNAUTHORIZED(HttpStatus.FORBIDDEN, "REVIEW4003", "본인의 리뷰만 삭제할 수 있습니다."),
+  REVIEW_TYPE_INVALID(HttpStatus.BAD_REQUEST, "REVIEW4004", "리뷰 타입이 올바르지 않습니다. (place 또는 walk)"),
+
   // For test
   TEMP_EXCEPTION(HttpStatus.BAD_REQUEST, "TEMP4001", "이거는 테스트");
 
