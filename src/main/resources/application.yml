@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: dogcatsquare
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -92,6 +94,11 @@ app:
 admin:
   username: ${ADMIN_USERNAME}
   password: ${ADMIN_PASSWORD}
+
+# 로그 설정
+logging:
+  file:
+    path: ${LOG_PATH:/home/ubuntu/logs}
 
 
 
