@@ -10,6 +10,7 @@ import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.dday.DdayRepository;
 import DC_square.spring.web.dto.response.WeatherResponseDto;
 import jakarta.annotation.PostConstruct;
+import org.springframework.transaction.annotation.Transactional;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -64,6 +65,7 @@ public class WeatherService {
     }
   }
 
+  @Transactional(readOnly = true)
   public WeatherResponseDto getCurrentWeather(Long userId) {
 
     try {
