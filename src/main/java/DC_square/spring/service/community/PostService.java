@@ -23,12 +23,14 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 //test
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PostService {
 
   private final PostRepository postRepository;
@@ -43,6 +45,7 @@ public class PostService {
    * 게시글 생성 API
    */
   @CheckAccountStop
+  @Transactional
   public PostResponseDto createPost(List<MultipartFile> images, PostRequestDto postRequestDto,
       Long userId) {
 
@@ -321,6 +324,7 @@ public class PostService {
    * 게시글 수정 API
    */
   @CheckAccountStop
+  @Transactional
   public PostResponseDto updatePost(Long postId, @Valid UpdatePostRequestDto postRequestDto,
       List<MultipartFile> newImages, Long currentUserId) {
     // 기존 게시글 조회
@@ -401,6 +405,7 @@ public class PostService {
   /**
    * 게시글 삭제 API
    */
+  @Transactional
   public void deletePost(Long postId, Long currentUserId) {
     //게시글 조회
     Post post = postRepository.findById(postId)
