@@ -99,7 +99,7 @@ public class PostService {
         .title(savedPost.getTitle())
         .content(savedPost.getContent())
         .video_URL(savedPost.getVideo_URL())
-        .images(savedPost.getCommunityImages())
+        .images(new ArrayList<>(savedPost.getCommunityImages()))
         .animal_type(animalType)
         .like_count(savedPost.getLikeCount())
         .username(savedPost.getUser().getNickname())
@@ -151,7 +151,7 @@ public class PostService {
         .username(post.getUser().getNickname())
         .thumbnail_URL(thumbnailUrl)
         .profileImage_URL(post.getUser().getProfileImageUrl())
-        .images(post.getCommunityImages())
+        .images(new ArrayList<>(post.getCommunityImages()))
         .like_count(post.getLikeCount())
         .comment_count(post.getCommentCount())
         .createdAt(post.getCreated_at())
@@ -212,7 +212,7 @@ public class PostService {
               .animal_type(animalType)
               .username(post.getUser().getNickname())
               .profileImage_URL(post.getUser().getProfileImageUrl())
-              .images(post.getCommunityImages())
+              .images(new ArrayList<>(post.getCommunityImages()))
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at()) // 게시글 생성일
@@ -262,7 +262,7 @@ public class PostService {
               .animal_type(animalType)
               .username(post.getUser().getNickname())
               .profileImage_URL(post.getUser().getProfileImageUrl())
-              .images(post.getCommunityImages())
+              .images(new ArrayList<>(post.getCommunityImages()))
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at()) // 게시글 생성일
@@ -308,7 +308,7 @@ public class PostService {
               .thumbnail_URL(thumbnailUrl)
               .username(post.getUser().getNickname())
               .profileImage_URL(post.getUser().getProfileImageUrl())
-              .images(post.getCommunityImages())
+              .images(new ArrayList<>(post.getCommunityImages()))
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at()) // 게시글 생성일
@@ -392,7 +392,7 @@ public class PostService {
         .thumbnail_URL(thumbnailUrl)
         .animal_type(animalType)
         .username(savedPost.getUser().getNickname())
-        .images(savedPost.getCommunityImages()) // 수정된 이미지 목록
+        .images(new ArrayList<>(savedPost.getCommunityImages())) // 수정된 이미지 목록
         .like_count(savedPost.getLikeCount())
         .profileImage_URL(savedPost.getUser().getProfileImageUrl())
         .comment_count(savedPost.getCommentCount())
@@ -453,7 +453,7 @@ public class PostService {
               .video_URL(post.getVideo_URL())
               .thumbnail_URL(post.getVideo_URL()) // 비디오 썸네일 추가 (예시)
               .profileImage_URL(post.getUser().getProfileImageUrl()) // 사용자 프로필 이미지
-              .images(post.getCommunityImages()) // 게시글 이미지들
+              .images(new ArrayList<>(post.getCommunityImages())) // 게시글 이미지들
               .like_count(post.getLikeCount())
               .comment_count(post.getCommentCount())
               .createdAt(post.getCreated_at())
