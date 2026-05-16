@@ -115,7 +115,7 @@ public class PlaceReviewService {
             .nickname(placeReview.getUser().getNickname())
             .userImageUrl(placeReview.getUser().getProfileImageUrl())
             .createdAt(placeReview.getCreatedAt().toString())
-            .placeReviewImageUrl(placeReview.getPlaceReviewImageUrl())
+            .placeReviewImageUrl(placeReview.getPlaceReviewImageUrl() != null ? new ArrayList<>(placeReview.getPlaceReviewImageUrl()) : new ArrayList<>())
             .placeId(placeReview.getPlace().getId())
             .build())
         .collect(Collectors.toList());

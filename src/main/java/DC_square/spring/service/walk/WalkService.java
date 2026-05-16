@@ -20,6 +20,7 @@ import DC_square.spring.web.dto.request.walk.WalkRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkCreateResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkDetailResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkResponseDto;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -58,7 +59,7 @@ public class WalkService {
               .walkId(walk.getId())
               .title(walk.getTitle())
               .description(walk.getDescription())
-              .walkImageUrl(walk.getWalkImageUrl())
+              .walkImageUrl(walk.getWalkImageUrl() != null ? new ArrayList<>(walk.getWalkImageUrl()) : new ArrayList<>())
               .reviewCount(walk.getReviewCount())
               .distance(walk.getDistance())
               .time(walk.getTime())
@@ -134,7 +135,7 @@ public class WalkService {
         .walkId(walk.getId())
         .title(walk.getTitle())
         .description(walk.getDescription())
-        .walkImageUrl(walk.getWalkImageUrl())
+        .walkImageUrl(walk.getWalkImageUrl() != null ? new ArrayList<>(walk.getWalkImageUrl()) : new ArrayList<>())
         .distance(walk.getDistance())
         .time(walk.getTime())
         .difficulty(walk.getDifficulty().name())
@@ -248,7 +249,7 @@ public class WalkService {
               .walkId(walk.getId())
               .title(walk.getTitle())
               .description(walk.getDescription())
-              .walkImageUrl(walk.getWalkImageUrl())
+              .walkImageUrl(walk.getWalkImageUrl() != null ? new ArrayList<>(walk.getWalkImageUrl()) : new ArrayList<>())
               .distance(walk.getDistance())
               .time(walk.getTime())
               .difficulty(walk.getDifficulty().name())

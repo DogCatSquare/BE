@@ -549,7 +549,7 @@ public class PlaceService {
                 place.getImages().get(0).getWidth()
             ))
         .reviewCount(placeReviewRepository.countByPlaceId(place.getId()))
-        .keywords(place.getKeywords())
+        .keywords(place.getKeywords() != null ? new ArrayList<>(place.getKeywords()) : new ArrayList<>())
         .build();
   }
 
@@ -595,7 +595,7 @@ public class PlaceService {
                     .title(ww.getWalk().getTitle())
                     .distance(ww.getWalk().getDistance())
                     .time(ww.getWalk().getTime())
-                    .walkImageUrl(ww.getWalk().getWalkImageUrl())
+                    .walkImageUrl(ww.getWalk().getWalkImageUrl() != null ? new ArrayList<>(ww.getWalk().getWalkImageUrl()) : new ArrayList<>())
                     .build())
                 .collect(Collectors.toList());
           }
@@ -844,7 +844,7 @@ public class PlaceService {
         .description(placeDetail.getDescription())
         .reviewCount(reviewCount)
         .recentReviews(recentReviewDtos)
-        .keywords(place.getKeywords())
+        .keywords(place.getKeywords() != null ? new ArrayList<>(place.getKeywords()) : new ArrayList<>())
         .additionalInfo(placeDetail.getAdditionalInfo())
         .build();
   }

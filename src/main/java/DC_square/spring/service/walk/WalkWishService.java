@@ -14,6 +14,7 @@ import DC_square.spring.repository.walk.WalkRepository;
 import DC_square.spring.repository.walk.WalkWishRepository;
 import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkWishResponseDto;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -93,7 +94,7 @@ public class WalkWishService {
               .walkId(walk.getId())
               .title(walk.getTitle())
               .description(walk.getDescription())
-              .walkImageUrl(walk.getWalkImageUrl())
+              .walkImageUrl(walk.getWalkImageUrl() != null ? new ArrayList<>(walk.getWalkImageUrl()) : new ArrayList<>())
               .reviewCount(walk.getReviewCount())
               .distance(walk.getDistance())
               .time(walk.getTime())

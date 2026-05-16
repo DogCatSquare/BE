@@ -16,6 +16,7 @@ import DC_square.spring.repository.walk.WalkReviewRepository;
 import DC_square.spring.web.dto.request.walk.WalkReviewCreateRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkResponseDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewResponseDto;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -84,7 +85,7 @@ public class WalkReviewService {
         .reviewId(savedWalkReview.getId())
         .walkId(savedWalkReview.getWalk().getId())
         .content(savedWalkReview.getContent())
-        .walkReviewImageUrl(savedWalkReview.getWalkReviewImageUrl())
+        .walkReviewImageUrl(savedWalkReview.getWalkReviewImageUrl() != null ? new ArrayList<>(savedWalkReview.getWalkReviewImageUrl()) : new ArrayList<>())
         .createdAt(savedWalkReview.getCreatedAt())
         .updatedAt(savedWalkReview.getUpdatedAt())
         .createdBy(WalkResponseDto.CreatedByDto.builder()
@@ -148,7 +149,7 @@ public class WalkReviewService {
               .reviewId(review.getId())
               .walkId(walk.getId())
               .content(review.getContent())
-              .walkReviewImageUrl(review.getWalkReviewImageUrl())
+              .walkReviewImageUrl(review.getWalkReviewImageUrl() != null ? new ArrayList<>(review.getWalkReviewImageUrl()) : new ArrayList<>())
               .createdAt(review.getCreatedAt())
               .updatedAt(review.getUpdatedAt())
               .createdBy(WalkResponseDto.CreatedByDto.builder()
