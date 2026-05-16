@@ -571,6 +571,9 @@ public class PlaceService {
 
   // 위시리스트 조회
   public List<PlaceWishResponseDto> findWishList(String token, LocationRequestDTO location) {
+    if (token == null || !jwtTokenProvider.validateToken(token)) {
+      throw new IllegalArgumentException("잘못된 토큰입니다.");
+    }
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
         .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
