@@ -26,6 +26,7 @@ public class MyReviewService {
   private final UserRepository userRepository;
   private final JwtTokenProvider jwtTokenProvider;
 
+  @Transactional(readOnly = true)
   public PlacePageResponseDTO<ReviewResponseDTO> getMyReviews(String token, int page, int size) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
