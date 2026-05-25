@@ -75,7 +75,7 @@ public class WalkController {
   @PostMapping(value = "/walks/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ApiResponse<WalkCreateResponseDto> createWalk(
       @RequestPart(value = "walkCreateRequestDto") WalkCreateRequestDto walkCreateRequestDto,
-      @RequestPart(value = "walkReviewImages") List<MultipartFile> images,
+      @RequestPart(value = "walkReviewImages", required = false) List<MultipartFile> images,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);
