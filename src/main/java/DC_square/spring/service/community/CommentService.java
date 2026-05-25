@@ -32,6 +32,7 @@ public class CommentService {
   /**
    * 댓글 생성 API
    */
+  @Transactional
   @CheckAccountStop
   public CommentResponseDto createComment(Long postId, Long userId,
       CommentRequestDto commentRequestDto) {
@@ -88,6 +89,7 @@ public class CommentService {
   /**
    * 게시글의 모든 댓글 조회 (대댓글 포함)
    */
+  @Transactional(readOnly = true)
   public List<CommentResponseDto> getComments(Long postId) {
     // 게시글 존재 여부 확인
     Post post = postRepository.findById(postId)
