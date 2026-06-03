@@ -31,7 +31,7 @@ public class NoticeService {
     String message = "[공지] " + notice.getTitle();
     List<User> allUsers = userRepository.findAll();
     for (User user : allUsers) {
-      notificationService.sendNotificationAndSave(NotificationType.NOTICE, user, message);
+      notificationService.sendNotificationAndSave(NotificationType.NOTICE, user, message, notice.getId());
     }
 
     return response;
@@ -47,5 +47,21 @@ public class NoticeService {
     return noticeRepository.findAllByOrderByCreatedAtDesc().stream()
         .map(NoticeResponseDto::from)
         .collect(Collectors.toList());
+  }
+
+  @Transactional
+  public NoticeResponseDto updateNotice(Long noticeId, NoticeRequestDto request) {
+    Notice notice = noticeRepository.findById(noticeId)
+        .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+    notice.update(request.getTitle(), request.getContent());
+    return NoticeResponseDto.from(notice);
+  }
+
+  @Transactional
+  public void deleteNotice(Long noticeId) {
+    if (!noticeRepository.existsById(noticeId)) {
+      throw new RuntimeException("공지사항을 찾을 수 없습니다.");
+    }
+    noticeRepository.deleteById(noticeId);
   }
 }

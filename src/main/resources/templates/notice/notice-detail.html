@@ -54,6 +54,42 @@
       background: #e0e0e0;
     }
 
+    .btn-edit {
+      padding: 8px 16px;
+      background: #4a90e2;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn-edit:hover {
+      background: #357abd;
+    }
+
+    .btn-delete {
+      padding: 8px 16px;
+      background: #e25555;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: #c0392b;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+
     .notice-meta {
       font-size: 13px;
       color: #999;
@@ -81,6 +117,13 @@
 <div class="container">
   <div class="header">
     <a th:href="@{/admin/notices/list}" class="btn-back">← 목록으로</a>
+    <div class="action-btns">
+      <a th:href="@{/admin/notices/{id}/edit(id=${notice.id})}" class="btn-edit">수정</a>
+      <form th:action="@{/admin/notices/{id}/delete(id=${notice.id})}" method="post"
+            onsubmit="return confirm('정말 삭제하시겠습니까?')">
+        <button type="submit" class="btn-delete">삭제</button>
+      </form>
+    </div>
   </div>
   <div class="notice-title" th:text="${notice.title}"></div>
   <div class="notice-meta"

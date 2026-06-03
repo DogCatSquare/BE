@@ -52,5 +52,26 @@ public class NoticeAdminController {
     return "notice/notice-detail";
   }
 
+  // 공지 수정 폼
+  @GetMapping("/admin/notices/{noticeId}/edit")
+  public String editForm(@PathVariable Long noticeId, Model model) {
+    model.addAttribute("notice", noticeService.getNotice(noticeId));
+    model.addAttribute("noticeRequestDto", new NoticeRequestDto());
+    return "notice/notice-edit";
+  }
 
+  // 공지 수정 처리
+  @PostMapping("/admin/notices/{noticeId}/edit")
+  public String updateNotice(@PathVariable Long noticeId,
+      @Valid @ModelAttribute NoticeRequestDto requestDto) {
+    noticeService.updateNotice(noticeId, requestDto);
+    return "redirect:/admin/notices/" + noticeId;
+  }
+
+  // 공지 삭제 처리
+  @PostMapping("/admin/notices/{noticeId}/delete")
+  public String deleteNotice(@PathVariable Long noticeId) {
+    noticeService.deleteNotice(noticeId);
+    return "redirect:/admin/notices/list";
+  }
 }
