@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -159,6 +160,7 @@ public class WalkService {
   }
 
 
+  @Transactional
   @CheckAccountStop
   public WalkCreateResponseDto createWalk(WalkCreateRequestDto walkCreateRequestDto, String token,
       List<MultipartFile> images) {

@@ -38,7 +38,7 @@ public class PlaceReviewController {
   public ApiResponse<Long> createPlaceReview(
       @Valid @RequestPart("request") PlaceReviewCreateRequestDTO createDto,
       @PathVariable("googlePlaceId") String googlePlaceId,
-      @RequestPart(value = "placeReviewImages") List<MultipartFile> images,
+      @RequestPart(value = "placeReviewImages", required = false) List<MultipartFile> images,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);

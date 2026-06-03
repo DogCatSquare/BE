@@ -45,21 +45,17 @@ public class PlaceReviewService {
   public Long createPlaceReview(PlaceReviewCreateRequestDTO request, String googlePlaceId,
       List<MultipartFile> images, String token) {
 
-    if (images.isEmpty()) {
-      throw new RuntimeException("후기 이미지는 필수 입니다.");
-    }
-
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
         .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
-    List<String> imageUrls = images.stream()
+    List<String> imageUrls = (images != null && !images.isEmpty()) ? images.stream()
         .map(image -> {
           String uuid = UUID.randomUUID().toString();
           Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
           return s3Manager.uploadFile(s3Manager.generateReview(savedUuid), image);
         })
-        .collect(Collectors.toList());
+        .collect(Collectors.toList()) : new ArrayList<>();
 
     Place place = placeService.ensurePlaceSaved(googlePlaceId);
 
