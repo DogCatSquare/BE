@@ -59,8 +59,9 @@ public class PostLikeService {
         );
         notificationService.sendNotificationAndSave(
             NotificationType.LIKE,
-            post.getUser(),   // 게시글 작성자에게
-            message
+            post.getUser(),
+            message,
+            post.getId()
         );
       }
 

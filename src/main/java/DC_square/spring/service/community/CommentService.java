@@ -82,7 +82,8 @@ public class CommentService {
     notificationService.sendNotificationAndSave(
         NotificationType.COMMENT,
         post.getUser(),
-        body
+        body,
+        post.getId()
     );
   }
 

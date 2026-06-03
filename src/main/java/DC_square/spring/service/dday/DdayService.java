@@ -352,7 +352,7 @@ public class DdayService {
 
       try {
         // 알림 푸시 + 이력 저장을 단일 서비스에 위임 (중복 발송 방지)
-        notificationService.sendNotificationAndSave(NotificationType.DDAY, user, body);
+        notificationService.sendNotificationAndSave(NotificationType.DDAY, user, body, null);
 
         // 발송 성공 → 예약은 SENT
         reservation.setStatus(AlarmStatus.SENT);
