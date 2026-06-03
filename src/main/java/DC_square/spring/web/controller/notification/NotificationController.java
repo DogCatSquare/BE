@@ -89,6 +89,13 @@ public class NotificationController {
     notificationService.readNotifications(currentUserId, requestDto);
   }
 
+  @Operation(summary = "읽지 않은 알림 수 조회", description = "알림 아이콘 뱃지에 표시할 미읽음 알림 수 반환")
+  @GetMapping("/unread-count")
+  public ApiResponse<Long> getUnreadCount(HttpServletRequest request) {
+    Long currentUserId = userUtil.getCurrentUserId(request);
+    return ApiResponse.onSuccess(notificationService.getUnreadCount(currentUserId), "읽지 않은 알림 수 조회 성공");
+  }
+
   @Operation(summary = "(실제사용X)테스트용으로 읽지 않은 알림들 조회", description = "단순 읽지 않은 알림들 조회 기능")
   @GetMapping("/test-read")
   public ResponseEntity<List<NotificationInfoDto>> getUnReadNotifications(
