@@ -20,6 +20,7 @@ public class NotificationInfoDto {
   private Long id;
   private Long userId;
   private NotificationType type;
+  private Long targetId;
   private String content;
   private LocalDateTime createdAt;
   private boolean isRead;
@@ -29,6 +30,7 @@ public class NotificationInfoDto {
         .id(notification.getId())
         .userId(notification.getUser().getId())
         .type(notification.getNotificationType())
+        .targetId(notification.getTargetId())
         .content(notification.getContent())
         .createdAt(notification.getCreatedAt())
         .isRead(notification.isRead())

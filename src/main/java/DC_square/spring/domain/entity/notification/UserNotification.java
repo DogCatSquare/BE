@@ -39,7 +39,10 @@ public class UserNotification {
   private User user; // 어떤 유저에게 보낸 알림인지
 
   @Enumerated(EnumType.STRING)
+  @Column(name = "notification_type", length = 50)
   private NotificationType notificationType;
+
+  private Long targetId;
 
   @Column(name = "content", nullable = false)
   private String content;

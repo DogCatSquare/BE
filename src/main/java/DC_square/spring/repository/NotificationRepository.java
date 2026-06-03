@@ -12,6 +12,9 @@ public interface NotificationRepository extends JpaRepository<UserNotification, 
   // 특정 유저의 읽지 않은 알림 목록 조회
   List<UserNotification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(Long userId);
 
+  // 특정 유저의 읽지 않은 알림 수
+  long countByUserIdAndIsReadFalse(Long userId);
+
   // 특정 사용자 알림 전체 "읽음" 처리 (현재 읽지 않은 것만)
   @Modifying(flushAutomatically = true, clearAutomatically = true)
   @Query("""
