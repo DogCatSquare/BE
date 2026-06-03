@@ -1,7 +1,11 @@
 package DC_square.spring.service.notice;
 
+import DC_square.spring.domain.entity.User;
 import DC_square.spring.domain.entity.notice.Notice;
+import DC_square.spring.domain.enums.NotificationType;
+import DC_square.spring.repository.community.UserRepository;
 import DC_square.spring.repository.notice.NoticeRepository;
+import DC_square.spring.service.notification.NotificationService;
 import DC_square.spring.web.dto.request.notice.NoticeRequestDto;
 import DC_square.spring.web.dto.response.notice.NoticeResponseDto;
 import java.util.List;
@@ -16,11 +20,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class NoticeService {
 
   private final NoticeRepository noticeRepository;
+  private final UserRepository userRepository;
+  private final NotificationService notificationService;
 
   @Transactional
   public NoticeResponseDto createNotice(NoticeRequestDto request) {
     Notice notice = Notice.create(request.getTitle(), request.getContent());
-    return NoticeResponseDto.from(noticeRepository.save(notice));
+    NoticeResponseDto response = NoticeResponseDto.from(noticeRepository.save(notice));
+
+    String message = "[공지] " + notice.getTitle();
+    List<User> allUsers = userRepository.findAll();
+    for (User user : allUsers) {
+      notificationService.sendNotificationAndSave(NotificationType.NOTICE, user, message);
+    }
+
+    return response;
   }
 
   public NoticeResponseDto getNotice(Long noticeId) {
