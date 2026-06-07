@@ -49,7 +49,7 @@ public class WalkReviewController {
   public ApiResponse<WalkReviewResponseDto> createReview(
       @PathVariable Long walkId,
       @RequestPart("reviewCreateRequestDto") @Valid WalkReviewCreateRequestDto reviewCreateRequestDto,
-      @RequestPart(value = "walkReviewImages") List<MultipartFile> images,
+      @RequestPart(value = "walkReviewImages", required = false) List<MultipartFile> images,
       HttpServletRequest request
   ) {
     String token = jwtTokenProvider.resolveToken(request);

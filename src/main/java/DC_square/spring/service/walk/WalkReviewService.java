@@ -39,17 +39,13 @@ public class WalkReviewService {
   @CheckAccountStop
   public WalkReviewResponseDto createWalkReview(WalkReviewCreateRequestDto request, Long walkId,
       String token, List<MultipartFile> images) {
-    if (images.isEmpty()) {
-      throw new RuntimeException("후기 이미지는 필수 입니다.");
-    }
-
-    List<String> imageUrls = images.stream()
+    List<String> imageUrls = (images != null && !images.isEmpty()) ? images.stream()
         .map(image -> {
           String uuid = UUID.randomUUID().toString();
           Uuid savedUuid = uuidRepository.save(Uuid.builder().uuid(uuid).build());
           return s3Manager.uploadFile(s3Manager.generateReview(savedUuid), image);
         })
-        .collect(Collectors.toList());
+        .collect(Collectors.toList()) : new ArrayList<>();
 
     if (token == null || !jwtTokenProvider.validateToken(token)) {
       throw new IllegalArgumentException("잘못된 토큰입니다.");
