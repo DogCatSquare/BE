@@ -44,6 +44,7 @@ public class MyReviewService {
                 .createdAt(review.getCreatedAt())
                 .imageUrls(new ArrayList<>(review.getPlaceReviewImageUrl() != null ? review.getPlaceReviewImageUrl() : new ArrayList<>()))
                 .placeId(review.getPlace().getId())
+                .googlePlaceId(review.getPlace().getGooglePlaceId())
                 .walkId(null)
                 .build()
         ));

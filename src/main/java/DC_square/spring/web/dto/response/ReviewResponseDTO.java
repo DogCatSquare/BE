@@ -15,5 +15,6 @@ public class ReviewResponseDTO {
   private LocalDateTime createdAt;
   private List<String> imageUrls;
   private Long placeId;
+  private String googlePlaceId;
   private Long walkId;
 }
