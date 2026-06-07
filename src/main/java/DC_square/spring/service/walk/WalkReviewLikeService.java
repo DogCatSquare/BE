@@ -10,6 +10,7 @@ import DC_square.spring.web.dto.request.walk.WalkReviewLikeRequestDto;
 import DC_square.spring.web.dto.response.walk.WalkReviewLikeResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class WalkReviewLikeService {
   private final UserRepository userRepository;
 
 
+  @Transactional
   public WalkReviewLikeResponseDto likeWalkReview(Long walkReviewId,
       WalkReviewLikeRequestDto requestDto) {
     User user = userRepository.findById(requestDto.getUserId())
@@ -48,6 +50,7 @@ public class WalkReviewLikeService {
         .build();
   }
 
+  @Transactional
   public WalkReviewLikeResponseDto cancelLike(Long likeId) {
     WalkReviewLike walkReviewLike = walkReviewLikeRepository.findById(likeId)
         .orElseThrow(() -> new RuntimeException("좋아요 정보를 찾을 수 없습니다."));

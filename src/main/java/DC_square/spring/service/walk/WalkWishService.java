@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public class WalkWishService {
   private final JwtTokenProvider jwtTokenProvider;
   private final PlaceRepository placeRepository;
 
+  @Transactional
   public WalkWishResponseDto addWalkWish(String token, Long walkId, String googlePlaceId) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
@@ -56,6 +58,7 @@ public class WalkWishService {
         .build();
   }
 
+  @Transactional
   public WalkWishResponseDto cancelWalkWish(String token, Long walkId) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)
@@ -76,6 +79,7 @@ public class WalkWishService {
         .build();
   }
 
+  @Transactional(readOnly = true)
   public WalkResponseDto viewWishlist(String token) {
     String userEmail = jwtTokenProvider.getUserEmail(token);
     User user = userRepository.findByEmail(userEmail)

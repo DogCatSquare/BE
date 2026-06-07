@@ -104,7 +104,7 @@ public class PlaceReviewService {
         .filter(review -> !finalFrequentlyReportedUserIds.contains(review.getUser().getId()))
         .map(placeReview -> PlaceReviewResponseDTO.builder()
             .id(placeReview.getId())
-            .breed(placeReview.getUser().getPetList().get(0).getBreed())
+            .breed(!placeReview.getUser().getPetList().isEmpty() ? placeReview.getUser().getPetList().get(0).getBreed() : null)
             .content(placeReview.getContent())
             //.isLiked(placeReviewLikeRepository.existsByUserIdAndPlaceReviewId(placeReview.getId(), placeReview.getUser().getId()))
             .userId(placeReview.getUser().getId())

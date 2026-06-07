@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -36,6 +37,7 @@ public class WalkReviewService {
   private final AmazonS3Manager s3Manager;
   private final UuidRepository uuidRepository;
 
+  @Transactional
   @CheckAccountStop
   public WalkReviewResponseDto createWalkReview(WalkReviewCreateRequestDto request, Long walkId,
       String token, List<MultipartFile> images) {
@@ -94,6 +96,7 @@ public class WalkReviewService {
     return new WalkReviewResponseDto(List.of(reviewDto));
   }
 
+  @Transactional
   public void deleteWalkReview(Long walkId, Long reviewId, String token) throws RuntimeException {
     if (token == null || !jwtTokenProvider.validateToken(token)) {
       throw new IllegalArgumentException("잘못된 토큰입니다.");
@@ -129,6 +132,7 @@ public class WalkReviewService {
   }
 
 
+  @Transactional(readOnly = true)
   public WalkReviewResponseDto viewWalkReviewList(Long walkId) {
     Walk walk = walkRepository.findById(walkId)
         .orElseThrow(() -> new RuntimeException("산책로를 찾을 수 없습니다."));

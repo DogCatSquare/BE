@@ -42,6 +42,7 @@ public class WalkService {
   private final AmazonS3Manager s3Manager;
   private final UuidRepository uuidRepository;
 
+  @Transactional(readOnly = true)
   public WalkResponseDto viewWalkList(WalkRequestDto walkRequestDto) {
     // 사용자 요청에 따라 가까운 산책로를 가져오는 로직 (예: 위도와 경도를 기준으로 검색)
     List<Walk> walks = walkRepository.findNearbyWalks(
@@ -96,6 +97,7 @@ public class WalkService {
         .build();
   }
 
+  @Transactional(readOnly = true)
   public WalkDetailResponseDto getWalkDetails(Long walkId) {
     Walk walk = walkRepository.findById(walkId)
         .orElseThrow(() -> new IllegalArgumentException("Walk not found for id: " + walkId));
@@ -214,6 +216,7 @@ public class WalkService {
     return new WalkCreateResponseDto(true, "산책로 등록에 성공했습니다.", savedWalk.getId());
   }
 
+  @Transactional
   public void deleteWalk(Long walkId, String token) {
     if (token == null || !jwtTokenProvider.validateToken(token)) {
       throw new IllegalArgumentException("잘못된 토큰입니다.");
@@ -234,6 +237,7 @@ public class WalkService {
     walkRepository.delete(walk);
   }
 
+  @Transactional(readOnly = true)
   public WalkResponseDto searchWalks(String title) {
     List<Walk> walks = walkRepository.findByTitleContaining(title);
 

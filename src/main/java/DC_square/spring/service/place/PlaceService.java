@@ -817,11 +817,11 @@ public class PlaceService {
         .map(review -> PlaceReviewResponseDTO.builder()
             .id(review.getId())
             .content(review.getContent())
-            .breed(review.getUser().getPetList().get(0).getBreed())
+            .breed(!review.getUser().getPetList().isEmpty() ? review.getUser().getPetList().get(0).getBreed() : null)
             .nickname(review.getUser().getNickname())
             .userImageUrl(review.getUser().getProfileImageUrl())
             .createdAt(review.getCreatedAt().toString())
-            .placeReviewImageUrl(review.getPlaceReviewImageUrl())
+            .placeReviewImageUrl(review.getPlaceReviewImageUrl() != null ? new ArrayList<>(review.getPlaceReviewImageUrl()) : new ArrayList<>())
             .placeId(review.getPlace().getId())
             .build())
         .collect(Collectors.toList());
