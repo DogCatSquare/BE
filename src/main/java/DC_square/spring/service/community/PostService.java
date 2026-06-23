@@ -116,7 +116,7 @@ public class PostService {
    * 특정 게시글 조회 API(한개 조회)
    */
   public PostResponseDto getPost(Long postId) {
-    Post post = postRepository.findById(postId)
+    Post post = postRepository.findByIdWithValidUser(postId)
         .orElseThrow(() -> new RuntimeException("해당 게시글이 존재하지 않습니다."));
 
     // 유튜브 영상 ID 추출 (썸네일 URL 생성)
@@ -169,8 +169,8 @@ public class PostService {
     Board board = boardRepository.findById(boardId)
         .orElseThrow(() -> new IllegalArgumentException("해당 게시판 ID가 존재하지 않습니다."));
 
-    // 게시판 ID로 게시글들 조회
-    List<Post> posts = postRepository.findByBoardId(boardId);
+    // 게시판 ID로 게시글들 조회 (탈퇴 유저 게시글 제외)
+    List<Post> posts = postRepository.findByBoardIdWithValidUsers(boardId);
 
     // 게시글이 없으면 예외 처리
     if (posts.isEmpty()) {
@@ -231,8 +231,8 @@ public class PostService {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-    //사용자가 작성한 게시글들 조회
-    List<Post> posts = postRepository.findByUserId(userId);
+    //사용자가 작성한 게시글들 조회 (탈퇴 유저 게시글 제외)
+    List<Post> posts = postRepository.findByUserIdWithValidUsers(userId);
 
     // 게시글이 없으면 예외 처리
     if (posts.isEmpty()) {
@@ -277,8 +277,8 @@ public class PostService {
    * 모든 게시물 전체 조회
    */
   public List<PostResponseDto> getAllPosts() {
-    //게시글 모두 조회
-    List<Post> posts = postRepository.findAll();
+    //게시글 모두 조회 (탈퇴한 유저의 게시글 제외)
+    List<Post> posts = postRepository.findAllWithValidUsers();
 
     // 게시글이 없으면 예외 처리
     if (posts.isEmpty()) {
@@ -435,8 +435,7 @@ public class PostService {
    * 인기 게시글 목록을 가져옵니다. 좋아요 수가 10개 이상인 게시글만 가져오고, 좋아요 수 내림차순으로 정렬합니다.
    */
   public List<PostResponseDto> getPopularPosts() {
-    List<Post> popularPosts = postRepository.findByLikeCountGreaterThanEqualOrderByLikeCountDesc(
-        10);
+    List<Post> popularPosts = postRepository.findPopularPostsWithValidUsers(10);
 
     return popularPosts.stream()
         .map(post -> {
