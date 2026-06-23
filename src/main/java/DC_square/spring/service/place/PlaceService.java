@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -186,6 +187,35 @@ public class PlaceService {
     return ((double) commonChars / str1.length() +
         (double) commonChars / str2.length() +
         (double) (commonChars - transpositions) / commonChars) / 3.0;
+  }
+
+  /**
+   * 주변 장소 랜덤 3개 추천 (공원, 병원, 카페)
+   */
+  public List<PlaceResponseDTO> findRandomRecommendations(LocationRequestDTO location) {
+    Map<String, Object> searchResults = googlePlacesService.searchNearbyPlaces(
+        location.getLatitude(),
+        location.getLongitude()
+    );
+
+    List<Map<String, Object>> results = (List<Map<String, Object>>) searchResults.get("results");
+
+    if (results == null || results.isEmpty()) {
+      return new ArrayList<>();
+    }
+
+    List<PlaceCategory> targetCategories = Arrays.asList(
+        PlaceCategory.PARK, PlaceCategory.HOSPITAL, PlaceCategory.CAFE
+    );
+
+    List<PlaceResponseDTO> filtered = results.stream()
+        .map(result -> convertGoogleToDTO(result, location))
+        .filter(Objects::nonNull)
+        .filter(dto -> targetCategories.contains(dto.getCategory()))
+        .collect(Collectors.toList());
+
+    Collections.shuffle(filtered);
+    return filtered.stream().limit(3).collect(Collectors.toList());
   }
 
   /**
