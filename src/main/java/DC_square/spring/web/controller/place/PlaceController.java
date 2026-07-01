@@ -43,7 +43,7 @@ public class PlaceController {
     return ApiResponse.onSuccess(placeService.searchPlacesByKeyword(keyword, location, page, 10));
   }
 
-  @Operation(summary = "주변 장소 랜덤 3개 추천 API", description = "공원, 병원, 카페 중 랜덤 3개 추천")
+  @Operation(summary = "주변 장소 랜덤 3개 추천 API", description = "공원, 카페 중 랜덤 3개 추천")
   @PostMapping("/recommend")
   public ApiResponse<List<PlaceResponseDTO>> getRandomRecommendations(
       @RequestBody LocationRequestDTO location

@@ -190,7 +190,7 @@ public class PlaceService {
   }
 
   /**
-   * 주변 장소 랜덤 3개 추천 (공원, 병원, 카페)
+   * 주변 장소 랜덤 3개 추천 (공원, 카페)
    */
   public List<PlaceResponseDTO> findRandomRecommendations(LocationRequestDTO location) {
     Map<String, Object> searchResults = googlePlacesService.searchNearbyPlaces(
@@ -205,7 +205,7 @@ public class PlaceService {
     }
 
     List<PlaceCategory> targetCategories = Arrays.asList(
-        PlaceCategory.PARK, PlaceCategory.HOSPITAL, PlaceCategory.CAFE
+        PlaceCategory.PARK, PlaceCategory.CAFE
     );
 
     List<PlaceResponseDTO> filtered = results.stream()
